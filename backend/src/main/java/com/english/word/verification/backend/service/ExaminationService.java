@@ -1,0 +1,9 @@
+package com.english.word.verification.backend.service;
+
+import com.english.word.verification.backend.entity.Examination;
+
+import java.util.List;
+
+public interface ExaminationService {
+    List<Examination> findAll();
+}
