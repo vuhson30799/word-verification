@@ -1,11 +1,10 @@
 package com.english.word.verification.backend.controller;
 
+import com.english.word.verification.backend.dto.ExaminationDTO;
 import com.english.word.verification.backend.entity.Examination;
 import com.english.word.verification.backend.service.ExaminationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,5 +17,10 @@ public class ExaminationController {
     @GetMapping
     public List<Examination> getExaminations() {
         return examinationService.findAll();
+    }
+
+    @PostMapping
+    public void createExamination(@RequestBody ExaminationDTO examinationDTO) {
+        examinationService.createExamination(examinationDTO);
     }
 }
