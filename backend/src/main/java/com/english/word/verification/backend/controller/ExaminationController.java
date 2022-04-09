@@ -5,6 +5,7 @@ import com.english.word.verification.backend.entity.Examination;
 import com.english.word.verification.backend.service.ExaminationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,8 +20,8 @@ public class ExaminationController {
         return examinationService.findAll();
     }
 
-    @PostMapping
-    public void createExamination(@RequestBody ExaminationDTO examinationDTO) {
-        examinationService.createExamination(examinationDTO);
+    @PostMapping(consumes = "multipart/form-data")
+    public void createExaminationByTemplate(@RequestParam("file") MultipartFile file, @ModelAttribute ExaminationDTO examinationDTO) {
+       examinationService.createExaminationByTemplate(file, examinationDTO);
     }
 }

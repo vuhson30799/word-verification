@@ -1,11 +1,13 @@
 package com.english.word.verification.backend.entity;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
 @Data
+@Builder
 public class Question {
     @Field("title")
     private String title;
