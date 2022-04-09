@@ -1,11 +1,12 @@
 .adminLayout {
     display: flex;
-    width: 100vw;
-    height: 100vh;
+    background-color: #F2F2F2;
+    margin-left: 10px;
 }
 
 .main {
     display: inherit;
     width: 100vw;
-    height: 100vh;
+    height: 90vh;
+    margin-top: 10vh;
 }
