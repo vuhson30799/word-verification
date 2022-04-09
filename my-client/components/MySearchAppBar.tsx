@@ -12,7 +12,6 @@ import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ListItemText from "@mui/material/ListItemText";
 import Drawer from "@mui/material/Drawer";
 import {AccountCircle} from '@mui/icons-material';
@@ -21,7 +20,10 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SearchIcon from '@mui/icons-material/Search';
 import Badge from '@mui/material/Badge';
 import {Menu} from '@mui/material';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import Link from 'next/link';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -147,7 +149,9 @@ export default function MySearchAppBar() {
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        MUI
+                        <Link href="/admin/dashboard">
+                            Word Verification
+                        </Link>
                     </Typography>
                     <Search>
                         <SearchIconWrapper>
@@ -193,23 +197,32 @@ export default function MySearchAppBar() {
                 </DrawerHeader>
                 <Divider />
                 <List>
-                    {['Inbox', 'Starred', 'Send email', 'Drafts'].map(createSidebarMenu)}
+                    <Link href="/admin/dashboard">
+                        <ListItem button >
+                            <ListItemIcon>
+                                <AddCircleOutlineIcon/>
+                            </ListItemIcon>
+                            <ListItemText primary="Create"/>
+                        </ListItem>
+                    </Link>
+                    <Link href="/admin/examination">
+                        <ListItem button >
+                            <ListItemIcon>
+                                <ViewListIcon/>
+                            </ListItemIcon>
+                            <ListItemText primary="Examinations"/>
+                        </ListItem>
+                    </Link>
+                    <ListItem button >
+                        <ListItemIcon>
+                            <AddCircleOutlineIcon/>
+                        </ListItemIcon>
+                        <ListItemText primary="Examinations"/>
+                    </ListItem>
                 </List>
                 <Divider />
-                <List>
-                    {['All mail', 'Trash', 'Spam'].map(createSidebarMenu)}
-                </List>
             </Drawer>
             {renderMenu}
         </Box>
     );
-
-    function createSidebarMenu(text: string, index: number) {
-        return <ListItem button key={text}>
-            <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon/> : <MailIcon/>}
-            </ListItemIcon>
-            <ListItemText primary={text}/>
-        </ListItem>;
-    }
 }
