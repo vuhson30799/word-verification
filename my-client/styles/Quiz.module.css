@@ -1,0 +1,20 @@
+.QuizForm {
+    align-content: flex-start;
+    width: 50vw;
+}
+
+.QuizFormControl {
+    width: 100%;
+    padding-left: 5px;
+    margin-top: 15px;
+}
+
+.QuizTemplateLink {
+    color: #0070f3;
+    text-decoration-line: underline;
+}
+
+.QuizSubmitButton {
+    background-color: brown;
+    float: right;
+}

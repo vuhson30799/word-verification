@@ -1,17 +1,15 @@
-import {SWRConfiguration} from "swr/dist/types";
+import {ExaminationData} from "../../pages/admin/examination";
 
-
-export function getSWRConfiguration(url: string, method: string): SWRConfiguration {
-    return {
-        onError: (error: any) => {
-            if (error.status !== 403 && error.status !== 404) {
-                // toast will be used when applying redux
-                console.log("request got error: " + error.message)
-            }
-        },
-        onSuccess: () => {
-            console.log("request is triggered successfully.")
-        },
-        fetcher: () => fetch(url, {method}).then(res => res.json())
-    }
+export const fetcher = (url: string, method: string) => fetch(url, {method}).then(res => res.json())
+export const fetcherWithForm = (url: string, method: string, examination: ExaminationData, file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    body.append('title', examination.title)
+    body.append('grade', examination.grade.toString())
+    body.append('createdDate', examination.createdDate)
+    body.append('creator', examination.creator)
+    return fetch(url, {
+        method,
+        body
+    }).then(res => res.ok)
 }

@@ -1,0 +1,12 @@
+.CloudUpload {
+    font-size: 17em;
+}
+
+.ButtonUpload {
+    width: 100%;
+    border-style: dashed;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    color: black;
+}

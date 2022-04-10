@@ -197,7 +197,7 @@ export default function MySearchAppBar() {
                 </DrawerHeader>
                 <Divider />
                 <List>
-                    <Link href="/admin/dashboard">
+                    <Link href="/admin/quiz">
                         <ListItem button >
                             <ListItemIcon>
                                 <AddCircleOutlineIcon/>

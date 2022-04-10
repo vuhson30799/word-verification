@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import {Admin} from "../../layout/Admin";
 import styles from "../../styles/Examination.module.css"
-import {getSWRConfiguration} from "../../modules/configuration/Configuration";
+import {fetcher} from "../../modules/configuration/Configuration";
 import {MySpinner} from "../../components/MySpinner";
 import {Grid, Paper} from "@mui/material";
 import Link from "next/link";
@@ -30,7 +30,7 @@ function Examination() {
     const {
         data: examinations,
         error
-    } = useSWR<ExaminationData[]>('/exams', getSWRConfiguration('http://localhost:8080/exams', 'get'))
+    } = useSWR<ExaminationData[]>(['http://localhost:8080/exams', 'get'], fetcher)
     if (!examinations && !error) return <MySpinner/>
     return (
         !!examinations ? <Admin>
