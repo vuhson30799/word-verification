@@ -35,26 +35,33 @@ function Examination() {
     return (
         !!examinations ? <Admin>
             <div className={styles.Examination}>
-                <Grid columns={1} rowSpacing={2} container>
+                <Grid rowSpacing={2} container>
                     {
                         examinations.map((examination, key) => {
                             return (
-                                <Link href={`/admin/exam/${examination.id}`} key={key}>
-                                    <Grid item xs={12} md={12} xl={12}>
-                                        <Paper className={styles.Paper} elevation={3}>
-                                            <Image src="/logo.png" width="90px" height="90px"
-                                                   style={{backgroundColor: getRandomColor()}}/>
-                                            <div className={styles.ExaminationInfo}>
-                                                <strong className={styles.ExaminationInfoTitle}>{examination.title}</strong>
-                                                <div className={styles.ExaminationInfoQuestion}>
-                                                    <QuizIcon />
-                                                    {examination.questions ? examination.questions.length : 0} Questions
+                                <>
+                                    <Grid item xs={2} md={2} xl={2}/>
+                                    <Grid item xs={8} md={8} xl={8}>
+                                        <Link href={`/admin/examination/${examination.id}`} key={key}>
+                                            <Paper className={styles.Paper} elevation={3}>
+                                                <Image src="/logo.png" width="90px" height="90px"
+                                                       alt="logo.png"
+                                                       style={{backgroundColor: getRandomColor()}}/>
+                                                <div className={styles.ExaminationInfo}>
+                                                    <strong
+                                                        className={styles.ExaminationInfoTitle}>{examination.title}</strong>
+                                                    <div className={styles.ExaminationInfoQuestion}>
+                                                        <QuizIcon/>
+                                                        {examination.questions ? examination.questions.length : 0} Questions
+                                                    </div>
+                                                    <div
+                                                        className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
                                                 </div>
-                                                <div className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
-                                            </div>
-                                        </Paper>
+                                            </Paper>
+                                        </Link>
                                     </Grid>
-                                </Link>
+                                    <Grid item xs={2} md={2} xl={2}/>
+                                </>
                             )
                         })
                     }

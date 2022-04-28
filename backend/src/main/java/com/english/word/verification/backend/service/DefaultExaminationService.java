@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +39,11 @@ public class DefaultExaminationService implements ExaminationService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public Examination findById(String id) {
+        Optional<Examination> examination = examinationRepository.findById(id);
+        return examination.orElseGet(() -> Examination.builder().build());
     }
 }

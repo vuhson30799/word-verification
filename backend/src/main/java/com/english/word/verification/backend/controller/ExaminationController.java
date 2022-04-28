@@ -25,4 +25,10 @@ public class ExaminationController {
     public void createExaminationByTemplate(@RequestParam("file") MultipartFile file, @ModelAttribute ExaminationDTO examinationDTO) {
        examinationService.createExaminationByTemplate(file, examinationDTO);
     }
+
+    @GetMapping("/{id}")
+    public Examination retrieveExamination(@PathVariable("id")String id) {
+        return examinationService.findById(id);
+    }
+
 }

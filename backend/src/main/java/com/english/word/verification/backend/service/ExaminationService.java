@@ -12,4 +12,6 @@ public interface ExaminationService {
     void createExamination(ExaminationDTO examinationDTO);
 
     void createExaminationByTemplate(MultipartFile file, ExaminationDTO examinationDTO);
+
+    Examination findById(String id);
 }
