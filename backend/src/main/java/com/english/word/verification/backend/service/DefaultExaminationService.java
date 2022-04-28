@@ -44,6 +44,6 @@ public class DefaultExaminationService implements ExaminationService {
     @Override
     public Examination findById(String id) {
         Optional<Examination> examination = examinationRepository.findById(id);
-        return examination.orElseGet(() -> Examination.builder().build());
+        return examination.orElseGet(Examination::new);
     }
 }

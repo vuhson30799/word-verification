@@ -17,6 +17,9 @@ function convertDate(date: Date, pattern: string) {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const second = date.getSeconds();
 
     //replace the month
     pattern = pattern.replace("MM", month.toString().padStart(2,"0"));
@@ -31,6 +34,11 @@ function convertDate(date: Date, pattern: string) {
     //replace the day
     pattern = pattern.replace("dd", day.toString().padStart(2,"0"));
 
+    //replace the hour, minute, second
+    pattern = pattern.replace("hh", hour.toString().padStart(2, "0"))
+    pattern = pattern.replace("mm", minute.toString().padStart(2, "0"))
+    pattern = pattern.replace("ss", second.toString().padStart(2, "0"))
+
     return pattern;
 }
 
@@ -39,7 +47,7 @@ export default function Quiz() {
         id: "",
         questions: [],
         title: "",
-        createdDate: "2022-04-06",
+        createdDate: "2022-04-06T12:00:00",
         creator: "Phuong Lien",
         grade: 10
     })
@@ -87,7 +95,7 @@ export default function Quiz() {
     function handleDateChange(date: Date | null) {
         setExamination({
             ...examination,
-            createdDate: date ? convertDate(date, 'yyyy-MM-dd') : ''
+            createdDate: date ? convertDate(date, 'yyyy-MM-ddThh:mm:ss') : ''
         })
     }
 
@@ -114,7 +122,7 @@ export default function Quiz() {
                         <FormControl className={styles.QuizFormControl}>
                             <MyDateTimePicker date={examination.createdDate}
                                               handleChange={handleDateChange}
-                            />
+                                              label={"Created date"}/>
                         </FormControl>
 
                     </Grid>
