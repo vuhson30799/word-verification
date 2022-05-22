@@ -41,7 +41,7 @@ public class ExaminationController {
         return examination;
     }
 
-    @PostMapping("/{id}")
+    @PostMapping( "/{id}")
     public String retrieveHomeworkURL(@PathVariable("id")String examId, @RequestBody HomeworkAssignmentDTO homeworkAssignmentDTO) {
         log.info("Generating homework url for exam with id {}", examId);
         String homeworkURL = homeworkService.generateHomeworkURL(examId, homeworkAssignmentDTO);

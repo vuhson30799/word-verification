@@ -4,15 +4,16 @@ import useSWR from "swr";
 import {fetcher} from "../../../modules/configuration/Configuration";
 import {MySpinner} from "../../../components/MySpinner";
 import {ExaminationData} from "../examination";
-import {Button, Grid, Paper} from "@mui/material";
+import {Grid, Paper} from "@mui/material";
 import styles from "../../../styles/Examination.module.css";
 import Image from "next/image";
 import {getRandomColor} from "../../../modules/utils/color";
 import QuizIcon from "@mui/icons-material/Quiz";
+import AssignHomeworkModal from "../../../components/AssignHomeWorkModal";
 
 export default function ExaminationDetail() {
     const router = useRouter()
-    const { pid } = router.query
+    const { pid, homework_url } = router.query
 
     const {
         data: examination,
@@ -41,7 +42,16 @@ export default function ExaminationDetail() {
                                 className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
                         </div>
                     </Paper>
-                    <Button variant="contained">Assigned Homework</Button>
+                    <AssignHomeworkModal title={"Assign Homework"} examinationId={examination.id}/>
+                    <br/>
+                    <div>
+                        {
+                            homework_url !== undefined ?
+                                <div>
+                                    This is your url: {homework_url}
+                                </div> : undefined
+                        }
+                    </div>
                     <>
                         {
                             questions !== undefined && questions.length !== 0 ?
