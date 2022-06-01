@@ -2,9 +2,9 @@ export function convertDate(date: Date, pattern: string = 'yyyy-MM-ddThh:mm:ss')
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const hour = date.getUTCHours();
-    const minute = date.getUTCMinutes();
-    const second = date.getUTCSeconds();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+    const second = date.getSeconds();
 
     //replace the month
     pattern = pattern.replace("MM", month.toString().padStart(2,"0"));

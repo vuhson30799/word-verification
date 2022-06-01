@@ -9,6 +9,7 @@ import {assignHomeworkFetcher} from "../modules/configuration/Configuration";
 import {useRouter} from "next/router";
 import {MySpinner} from "./MySpinner";
 import MyToast from "./MyToast";
+import styles from "../styles/AssignHomeworkModal.module.css"
 
 export interface AssignHomeworkModalProps {
     title: string
@@ -21,17 +22,6 @@ export interface AssignHomeworkData {
 }
 
 export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
-    const style = {
-        position: 'absolute' as 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-    };
     const now = new Date()
     const [assignHomeworkData, setAssignHomeworkData] = useState<AssignHomeworkData>({
         beginningDate: convertDate(now),
@@ -65,36 +55,52 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     }
 
     return (
-        <>
-            <Button variant="contained" onClick={() => setOpen(true)}>Assigned Homework</Button>
+        <div className={styles.AssignHomework}>
+            <Button variant="contained"
+                    onClick={() => setOpen(true)}>
+                {props.title}
+            </Button>
             <Modal
                 open={open}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
-
+                onClose={() => setOpen(false)}
             >
-                <Box sx={style}>
-                    <Typography id="modal-modal-title" variant="h6" component="h2">
-                        {props.title}
-                    </Typography>
-                    <form>
-                        <Grid container>
-                            <Grid item xl={12} xs={12} md={12}>
-                                <MyDateTimePicker label="Beginning date" date={assignHomeworkData.beginningDate} handleChange={handleBeginningDateChange}/>
-                            </Grid>
-                            <Grid item xl={12} xs={12} md={12}>
-                                <MyDateTimePicker label="Deadline date" date={assignHomeworkData.deadlineDate} handleChange={handleDeadlineDateChange}/>
-                            </Grid>
+                <Box className={styles.AssignHomeworkModal}>
+                    <Grid container rowSpacing={3}>
+                        <Grid item xl={2} xs={2} md={2}/>
+                        <Grid item xl={10} xs={10} md={10}>
+                            <Typography id="modal-modal-title" variant="h6" component="h2">
+                                {props.title}
+                            </Typography>
                         </Grid>
-                    </form>
-                    <Button variant="contained"
-                            onClick={closeModal}>
-                        Assign
-                    </Button>
+                        <Grid item xl={1} xs={1} md={1}/>
+                        <Grid item xl={10} xs={10} md={10}>
+                            <form>
+                                <Grid container rowSpacing={3}>
+                                    <Grid item xl={12} xs={12} md={12}>
+                                        <MyDateTimePicker label="Beginning date" date={assignHomeworkData.beginningDate} handleChange={handleBeginningDateChange}/>
+                                    </Grid>
+                                    <Grid item xl={12} xs={12} md={12}>
+                                        <MyDateTimePicker label="Deadline date" date={assignHomeworkData.deadlineDate} handleChange={handleDeadlineDateChange}/>
+                                    </Grid>
+                                </Grid>
+                            </form>
+                        </Grid>
+                        <Grid item xl={1} xs={1} md={1}/>
+                        <Grid item xl={2} xs={2} md={2}/>
+                        <Grid item xl={10} xs={10} md={10}>
+                            <Button variant="contained"
+                                    onClick={closeModal}>
+                                Assign
+                            </Button>
+                        </Grid>
+                        <Grid item xl={12} xs={12} md={12}/>
+                    </Grid>
                 </Box>
             </Modal>
             {submit && !data && !error ? <MySpinner/> : undefined}
             {submit && !!error ? <MyToast message={error.message} severity="error"/> : undefined}
-        </>
+        </div>
     )
 }

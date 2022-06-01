@@ -4,12 +4,13 @@ import useSWR from "swr";
 import {fetcher} from "../../../modules/configuration/Configuration";
 import {MySpinner} from "../../../components/MySpinner";
 import {ExaminationData} from "../examination";
-import {Grid, Paper} from "@mui/material";
+import {Button, Grid, Paper, TextareaAutosize} from "@mui/material";
 import styles from "../../../styles/Examination.module.css";
 import Image from "next/image";
 import {getRandomColor} from "../../../modules/utils/color";
 import QuizIcon from "@mui/icons-material/Quiz";
 import AssignHomeworkModal from "../../../components/AssignHomeWorkModal";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export default function ExaminationDetail() {
     const router = useRouter()
@@ -18,7 +19,7 @@ export default function ExaminationDetail() {
     const {
         data: examination,
         error
-    } = useSWR<ExaminationData>([`http://localhost:8080/exams/${pid}`, 'get'], fetcher)
+    } = useSWR<ExaminationData>([!!pid ? `http://localhost:8080/exams/${pid}` : null, 'get'], fetcher)
     if (!examination && !error) return <MySpinner/>
     const questions = examination?.questions
 
@@ -36,38 +37,47 @@ export default function ExaminationDetail() {
                                 className={styles.ExaminationInfoTitle}>{examination.title}</strong>
                             <div className={styles.ExaminationInfoQuestion}>
                                 <QuizIcon/>
-                                {examination.questions ? examination.questions.length : 0} Questions
+                                {!!questions ? questions.length : 0} Questions
                             </div>
                             <div
                                 className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
                         </div>
                     </Paper>
                     <AssignHomeworkModal title={"Assign Homework"} examinationId={examination.id}/>
-                    <br/>
-                    <div>
+                    <div className={styles.HomeworkBox}>
                         {
-                            homework_url !== undefined ?
-                                <div>
-                                    This is your url: {homework_url}
-                                </div> : undefined
+                            !!homework_url ?
+                                <>
+                                    <TextareaAutosize minRows={3}
+                                                      aria-label="maximum height"
+                                                      placeholder="Homework url link"
+                                                      readOnly={true}
+                                                      className={styles.HomeworkURL}
+                                                      defaultValue={homework_url}/>
+                                    <Button variant="contained"
+                                            startIcon={<ContentCopyIcon />}
+                                            onClick={() => navigator.clipboard.writeText(homework_url as string)}>
+                                        Copy Link
+                                    </Button>
+                                </>
+                                : undefined
                         }
+
                     </div>
                     <>
                         {
-                            questions !== undefined && questions.length !== 0 ?
-                                questions.map((question) => {
+                            !!questions && questions.length !== 0 ?
+                                questions.map((question, key) => {
                                     return (
                                         <>
-                                            <div className="questionMetadata">
+                                            <div className="questionMetadata" key={key}>
                                                 <div>Type: {question.questionType}</div>
                                                 <div>Timeout: {question.timeout}</div>
                                             </div>
                                             <div>
                                                 <strong>Question: {question.title}</strong>
                                             </div>
-                                            <br/>
                                             <div>Answer: {question.keys[0]}</div>
-                                            <br/>
                                             <div>Alternative:
                                                 {question.keys.map((key, index) => {
                                                     return (

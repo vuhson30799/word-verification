@@ -35,3 +35,13 @@
 .ExaminationInfoAuthor {
     font-size: x-small;
 }
+
+.HomeworkURL {
+    background-color: #d3d5d7;
+}
+
+.HomeworkBox {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 5px;
+}
