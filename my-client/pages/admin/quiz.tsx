@@ -19,7 +19,7 @@ export default function Quiz() {
         id: "",
         questions: [],
         title: "",
-        createdDate: (new Date()).toISOString(),
+        createdDate: convertDate(new Date()),
         creator: "Phuong Lien",
         grade: 10
     })
