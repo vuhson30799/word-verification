@@ -10,6 +10,7 @@ import {useRouter} from "next/router";
 import {MySpinner} from "./MySpinner";
 import MyToast from "./MyToast";
 import styles from "../styles/AssignHomeworkModal.module.css"
+import AssignmentIcon from '@mui/icons-material/Assignment';
 
 export interface AssignHomeworkModalProps {
     title: string
@@ -56,7 +57,7 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
 
     return (
         <div className={styles.AssignHomework}>
-            <Button variant="contained"
+            <Button variant="contained" endIcon={<AssignmentIcon/>}
                     onClick={() => setOpen(true)}>
                 {props.title}
             </Button>

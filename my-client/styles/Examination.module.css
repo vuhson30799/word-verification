@@ -43,5 +43,12 @@
 .HomeworkBox {
     display: flex;
     justify-content: center;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.GroupButtonHomework {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-around;
+    margin-bottom: 10px;
 }

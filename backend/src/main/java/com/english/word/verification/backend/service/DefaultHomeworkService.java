@@ -7,6 +7,8 @@ import com.english.word.verification.backend.repository.HomeworkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class DefaultHomeworkService implements HomeworkService {
@@ -17,5 +19,10 @@ public class DefaultHomeworkService implements HomeworkService {
     public String generateHomeworkURL(String examId, HomeworkAssignmentDTO homeworkAssignmentDTO) {
         Homework homework = homeworkRepository.save(homeworkMapper.toHomework(examId, homeworkAssignmentDTO));
         return homework.getUrl();
+    }
+
+    @Override
+    public List<Homework> findAllHomeworkByExamId(String examId) {
+        return homeworkRepository.findAllByExamId(examId);
     }
 }

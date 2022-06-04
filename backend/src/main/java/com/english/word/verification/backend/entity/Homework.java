@@ -18,6 +18,9 @@ public class Homework {
     @Field("url")
     private String url;
 
+    @Field("exam_id")
+    private String examId;
+
     @Field("beginning_date")
     private LocalDateTime beginningDate;
 

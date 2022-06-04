@@ -43,7 +43,12 @@ export default function ExaminationDetail() {
                                 className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
                         </div>
                     </Paper>
-                    <AssignHomeworkModal title={"Assign Homework"} examinationId={examination.id}/>
+                    <div className={styles.GroupButtonHomework}>
+                        <AssignHomeworkModal title={"Assign Homework"} examinationId={examination.id}/>
+                        <Button variant={"contained"} onClick={() => router.push(`/admin/examination/${pid}/homework`)}>
+                            Available Homework
+                        </Button>
+                    </div>
                     <div className={styles.HomeworkBox}>
                         {
                             !!homework_url ?
@@ -69,13 +74,9 @@ export default function ExaminationDetail() {
                             !!questions && questions.length !== 0 ?
                                 questions.map((question, key) => {
                                     return (
-                                        <>
-                                            <div className="questionMetadata" key={key}>
-                                                <div>Type: {question.questionType}</div>
-                                                <div>Timeout: {question.timeout}</div>
-                                            </div>
+                                        <div key={key}>
                                             <div>
-                                                <strong>Question: {question.title}</strong>
+                                                <strong>Question[{question.questionType}|{question.timeout}s]: {question.title}</strong>
                                             </div>
                                             <div>Answer: {question.keys[0]}</div>
                                             <div>Alternative:
@@ -87,7 +88,7 @@ export default function ExaminationDetail() {
                                                     )
                                                 })}
                                             </div>
-                                        </>
+                                        </div>
                                         )
                                 }) : <div>There are no questions.</div>
                         }

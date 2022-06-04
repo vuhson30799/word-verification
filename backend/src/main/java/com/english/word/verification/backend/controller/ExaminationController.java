@@ -3,6 +3,7 @@ package com.english.word.verification.backend.controller;
 import com.english.word.verification.backend.dto.ExaminationDTO;
 import com.english.word.verification.backend.dto.HomeworkAssignmentDTO;
 import com.english.word.verification.backend.entity.Examination;
+import com.english.word.verification.backend.entity.Homework;
 import com.english.word.verification.backend.service.ExaminationService;
 import com.english.word.verification.backend.service.HomeworkService;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,14 @@ public class ExaminationController {
         String homeworkURL = homeworkService.generateHomeworkURL(examId, homeworkAssignmentDTO);
         log.info("Homework url: {} has been generated successfully.", homeworkURL);
         return homeworkURL;
+    }
+
+    @GetMapping("/{examId}/homeworks")
+    public List<Homework> getHomeworks(@PathVariable String examId) {
+        log.info("Getting all homework of exam {}", examId);
+        List<Homework> homeworks = homeworkService.findAllHomeworkByExamId(examId);
+        log.info("{} homework has been returned.", homeworks.size());
+        return homeworks;
     }
 
 }

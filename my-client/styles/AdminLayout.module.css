@@ -1,7 +1,7 @@
 .adminLayout {
     display: flex;
     background-color: #F2F2F2;
-    margin-left: 10px;
+    min-height: 100vh;
 }
 
 .main {

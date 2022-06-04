@@ -12,6 +12,7 @@ import static com.english.word.verification.backend.constant.ApplicationConstant
 public abstract class HomeworkMapper {
 
     @Mapping(target = "url", expression = "java( toHomeworkURL(examId, homeworkAssignmentDTO) )")
+    @Mapping(target = "examId", source = "examId")
     public abstract Homework toHomework(String examId, HomeworkAssignmentDTO homeworkAssignmentDTO);
 
     protected String toHomeworkURL(String examId, HomeworkAssignmentDTO homeworkAssignmentDTO) {
