@@ -1,0 +1,23 @@
+.CorrectMessage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: #2ba825;
+    background-color: #eaeaea;
+    position: absolute;
+    bottom: 0;
+    min-width: 100ch;
+}
+
+.WrongMessage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: #eaeaea;
+    position: absolute;
+    bottom: 0;
+    min-width: 100ch;
+    color: #a8172f;
+}

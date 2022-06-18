@@ -7,6 +7,7 @@ import com.english.word.verification.backend.repository.HomeworkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,5 +25,10 @@ public class DefaultHomeworkService implements HomeworkService {
     @Override
     public List<Homework> findAllHomeworkByExamId(String examId) {
         return homeworkRepository.findAllByExamId(examId);
+    }
+
+    @Override
+    public boolean isHomeworkExistInRange(String examId, LocalDateTime beginningDate, LocalDateTime deadlineDate) {
+        return homeworkRepository.existsByExamIdAndBeginningDateAndDeadlineDate(examId, beginningDate, deadlineDate);
     }
 }

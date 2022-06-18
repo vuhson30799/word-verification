@@ -1,0 +1,81 @@
+.StudentNameLayer {
+    background-color: #343a40;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.JoinFormControl {
+    min-width: 40ch;
+    max-width: 90ch;
+    margin-bottom: 10px;
+    color: #eaeaea ;
+    border-color: #eaeaea;
+}
+
+.WhiteFont {
+    color: #eaeaea;
+}
+
+.JoinOutLinedInput {
+    color: #eaeaea;
+}
+
+.QuestionProgress {
+    min-height: 2.5vh;
+}
+
+.QuestionLayer {
+    background-color: #343a40;
+    min-height: 100vh;
+    min-width: 100ch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+}
+
+.QuestionTitle {
+    min-height: 40vh;
+    min-width: 100ch;
+    text-align: center;
+    background-color: blueviolet;
+    color: #eaeaea;
+    margin-bottom: 10px;
+    margin-top: 15vh;
+}
+
+.AnswerSubmit {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10vh;
+}
+
+.ButtonAnswerSubmit {
+    max-width: 20ch;
+}
+
+.KeyContainer {
+    display: flex;
+    justify-content: space-evenly;
+    color: #2ba825;
+}
+
+.KeyStyle {
+    display: flex;
+    align-items: center;
+}
+
+.FinishPage {
+    background-color: #343a40;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #eaeaea;
+}

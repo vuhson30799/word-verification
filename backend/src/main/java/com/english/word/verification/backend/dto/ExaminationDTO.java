@@ -15,7 +15,7 @@ public class ExaminationDTO {
     @JsonProperty("title")
     private String title;
 
-    @JsonProperty("question")
+    @JsonProperty("questions")
     private List<Question> questions;
 
     @JsonProperty("created_date")
