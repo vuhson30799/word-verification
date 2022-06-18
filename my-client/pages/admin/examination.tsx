@@ -30,7 +30,7 @@ function Examination() {
     const {
         data: examinations,
         error
-    } = useSWR<ExaminationData[]>(['http://localhost:8080/exams', 'get'], fetcher)
+    } = useSWR<ExaminationData[]>(['/api/exams', 'get'], fetcher)
     if (!examinations && !error) return <MySpinner/>
     return (
         !!examinations ? <Admin>
@@ -42,7 +42,7 @@ function Examination() {
                                 <>
                                     <Grid item xs={2} md={2} xl={2}/>
                                     <Grid item xs={8} md={8} xl={8}>
-                                        <Link href={`/admin/examination/${examination.id}`} key={key}>
+                                        <Link href={`/admin/examination/${key}`} key={key}>
                                             <Paper className={styles.Paper} elevation={3}>
                                                 <Image src="/logo.png" width="90px" height="90px"
                                                        alt="logo.png"

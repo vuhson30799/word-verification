@@ -11,6 +11,7 @@ import {getRandomColor} from "../../../modules/utils/color";
 import QuizIcon from "@mui/icons-material/Quiz";
 import AssignHomeworkModal from "../../../components/AssignHomeWorkModal";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MyToast from "../../../components/MyToast";
 
 export default function ExaminationDetail() {
     const router = useRouter()
@@ -19,12 +20,12 @@ export default function ExaminationDetail() {
     const {
         data: examination,
         error
-    } = useSWR<ExaminationData>([!!pid ? `http://localhost:8080/exams/${pid}` : null, 'get'], fetcher)
+    } = useSWR<ExaminationData>([!!pid ? `/api/exams/${pid}` : null, 'get'], fetcher)
     if (!examination && !error) return <MySpinner/>
+    if (!!error) return <MyToast message={error.message} severity="error"/>
     const questions = examination?.questions
 
-    return (examination !== undefined ?
-        <Admin>
+    return (!!examination && <Admin>
             <Grid rowSpacing={2} container>
                 <Grid item xs={2} md={2} xl={2}/>
                 <Grid item xs={8} md={8} xl={8}>
@@ -78,16 +79,20 @@ export default function ExaminationDetail() {
                                             <div>
                                                 <strong>Question[{question.questionType}|{question.timeout}s]: {question.title}</strong>
                                             </div>
-                                            <div>Answer: {question.keys[0]}</div>
-                                            <div>Alternative:
-                                                {question.keys.map((key, index) => {
-                                                    return (
-                                                        <div key={index}>
-                                                            Key {index}: {key}
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
+                                            {!!question.keys &&
+                                                <>
+                                                    <div>Answer: {question.keys[0]}</div>
+                                                    <div>Alternative:
+                                                        {question.keys.map((key, index) => {
+                                                            return (
+                                                                <div key={index}>
+                                                                    Key {index}: {key}
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </>
+                                            }
                                         </div>
                                         )
                                 }) : <div>There are no questions.</div>
@@ -96,6 +101,6 @@ export default function ExaminationDetail() {
                 </Grid>
                 <Grid item xs={2} md={2} xl={2}/>
             </Grid>
-        </Admin> : <></>
+        </Admin>
     )
 }

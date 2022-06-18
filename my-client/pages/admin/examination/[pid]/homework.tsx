@@ -5,7 +5,7 @@ import {MySpinner} from "../../../../components/MySpinner";
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import {Admin} from "../../../../layout/Admin";
 
-interface HomeworkData {
+export interface HomeworkData {
     url: string
     beginningDate: string
     deadlineDate: string
@@ -16,7 +16,7 @@ export default function Homework() {
     const {
         data: homeworks,
         error
-    } = useSWR<HomeworkData[]>(`http://localhost:8080/exams/${pid}/homeworks`, fetcher)
+    } = useSWR<HomeworkData[]>(`/api/exams/${pid}/homeworks`, fetcher)
     if (!homeworks && !error) return <MySpinner/>
     return ( !!homeworks ?
             <Admin>
