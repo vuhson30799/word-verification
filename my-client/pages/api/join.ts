@@ -2,7 +2,7 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
 import {applicationEncoding, encodingKey} from "../../constant/ApplicationConstant";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const {examId, beginningDate, deadlineDate} = req.query
     if (req.method === 'GET') {
         validateHomework(<string>examId, <string>beginningDate, <string>deadlineDate)

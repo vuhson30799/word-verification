@@ -3,7 +3,7 @@ import styles from "../styles/Join.module.css";
 import {Button, FormControl, InputLabel, OutlinedInput} from "@mui/material";
 import useSWR from "swr";
 import {ExaminationData} from "./admin/examination";
-import {fetcher} from "../modules/configuration/Configuration";
+import {fetcher, fetcherWithForm} from "../modules/configuration/Configuration";
 import {useRouter} from "next/router";
 import {convertDate} from "../modules/utils/dateUtils";
 import StartingQuestion from "../components/StartingQuestion";
@@ -12,8 +12,9 @@ import ProgressQuestionBar from "../components/ProgressQuestionBar";
 import {StudentResult, StudentResultType} from "../components/StudentResult";
 import DoneIcon from '@mui/icons-material/Done';
 import {questionDelayTime} from "../constant/ApplicationConstant";
+import MyToast from "../components/MyToast";
 
-interface StudentAnswer {
+export interface StudentAnswer {
     studentName: string
     correctAnswers: number
     beginningAt: string
@@ -127,7 +128,6 @@ export default function AttendingExamination() {
             ...studentAnswer,
             finishAt: convertDate(new Date())
         })
-        //TODO: send result to database
         setDisplayState({
             ...displayState,
             displayFinishPage: true,
@@ -276,6 +276,9 @@ export default function AttendingExamination() {
                         Play Again
                     </Button>
                 </div>
+            }
+            {!!submitAnswerSuccess
+                && <MyToast message={submitAnswerSuccess} severity="success"/>
             }
             {!!error &&
                 <p>Some error happened</p>
