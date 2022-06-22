@@ -12,10 +12,12 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import AssignHomeworkModal from "../../../components/AssignHomeWorkModal";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MyToast from "../../../components/MyToast";
+import {useState} from "react";
 
 export default function ExaminationDetail() {
     const router = useRouter()
-    const {pid, homework_url} = router.query
+    const {pid} = router.query
+    const [homeworkURL, setHomeworkURL] = useState<string>()
 
     let {
         data: examination,
@@ -47,24 +49,27 @@ export default function ExaminationDetail() {
                         </div>
                     </Paper>
                     <div className={styles.GroupButtonHomework}>
-                        <AssignHomeworkModal title={"Assign Homework"} examinationId={examination.id}/>
+                        <AssignHomeworkModal title={"Assign Homework"}
+                                             examinationId={examination.id}
+                                             onChange={setHomeworkURL}/>
                         <Button variant={"contained"} onClick={() => router.push(`/admin/examination/${pid}/homework`)}>
                             Available Homework
                         </Button>
                     </div>
                     <div className={styles.HomeworkBox}>
                         {
-                            !!homework_url ?
+                            !!homeworkURL ?
                                 <>
                                     <TextareaAutosize minRows={3}
                                                       aria-label="maximum height"
                                                       placeholder="Homework url link"
                                                       readOnly={true}
                                                       className={styles.HomeworkURL}
-                                                      defaultValue={homework_url}/>
+                                                      value={homeworkURL}
+                                    />
                                     <Button variant="contained"
                                             startIcon={<ContentCopyIcon/>}
-                                            onClick={() => navigator.clipboard.writeText(homework_url as string)}>
+                                            onClick={() => navigator.clipboard.writeText(homeworkURL as string)}>
                                         Copy Link
                                     </Button>
                                 </>

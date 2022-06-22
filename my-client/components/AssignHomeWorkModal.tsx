@@ -6,7 +6,6 @@ import {useState} from "react";
 import {convertDate} from "../modules/utils/dateUtils";
 import useSWR from "swr";
 import {assignHomeworkFetcher} from "../modules/configuration/Configuration";
-import {useRouter} from "next/router";
 import {MySpinner} from "./MySpinner";
 import MyToast from "./MyToast";
 import styles from "../styles/AssignHomeworkModal.module.css"
@@ -15,6 +14,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 export interface AssignHomeworkModalProps {
     title: string
     examinationId: string
+    onChange: any
 }
 
 export interface AssignHomeworkData {
@@ -31,15 +31,10 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     const [open, setOpen] = useState<boolean>(false)
     const [submit, setSubmit] = useState<boolean>(false)
     const { data, error } = useSWR<string>(submit ? [`/api/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
-    const router = useRouter()
     if (submit && data) {
-        router.push(`/admin/examination/${props.examinationId}?homework_url=${encodeURIComponent(data)}`)
-            .then(() => console.log('redirect to view examination with homework link'))
+        props.onChange(data)
         setSubmit(false)
-    }
-    function closeModal() {
         setOpen(false)
-        setSubmit(true)
     }
     function handleBeginningDateChange(date: Date | null) {
         setAssignHomeworkData({
@@ -92,7 +87,7 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
                         <Grid item xl={2} xs={2} md={2}/>
                         <Grid item xl={10} xs={10} md={10}>
                             <Button variant="contained"
-                                    onClick={closeModal}>
+                                    onClick={() => setSubmit(true)}>
                                 Assign
                             </Button>
                         </Grid>
