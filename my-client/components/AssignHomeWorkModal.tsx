@@ -30,7 +30,7 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     })
     const [open, setOpen] = useState<boolean>(false)
     const [submit, setSubmit] = useState<boolean>(false)
-    const { data, error } = useSWR<string>(submit ? [`http://localhost:8080/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
+    const { data, error } = useSWR<string>(submit ? [`/api/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
     const router = useRouter()
     if (submit && data) {
         router.push(`/admin/examination/${props.examinationId}?homework_url=${encodeURIComponent(data)}`)

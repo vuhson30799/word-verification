@@ -1,18 +1,13 @@
 import {ExaminationData} from "../../pages/admin/examination";
 import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
 
-export const fetcher = (url: string, method: string) => fetch(url, {method}).then(res => res.json())
-export const fetcherWithForm = (url: string, method: string, examination: ExaminationData, file: File) => {
-    const body = new FormData()
-    body.append('file', file)
-    body.append('title', examination.title)
-    body.append('grade', examination.grade.toString())
-    body.append('createdDate', examination.createdDate)
-    body.append('creator', examination.creator)
+export const fetcher = (url: string, method: string) => fetch(url, {method})
+    .then(res => res.json())
+export const fetcherWithForm = (url: string, method: string, examination: ExaminationData) => {
     return fetch(url, {
         method,
-        body
-    }).then(res => res.ok)
+        body: JSON.stringify(examination)
+    }).then(res => res.json())
 }
 export const assignHomeworkFetcher = (url: string, method: string, assignHomeworkData: AssignHomeworkData) => {
     return fetch(url, {

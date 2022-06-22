@@ -15,15 +15,17 @@ import MyToast from "../../../components/MyToast";
 
 export default function ExaminationDetail() {
     const router = useRouter()
-    const { pid, homework_url } = router.query
+    const {pid, homework_url} = router.query
 
-    const {
+    let {
         data: examination,
         error
     } = useSWR<ExaminationData>([!!pid ? `/api/exams/${pid}` : null, 'get'], fetcher)
     if (!examination && !error) return <MySpinner/>
     if (!!error) return <MyToast message={error.message} severity="error"/>
     const questions = examination?.questions
+    // missing id when get examination from firebase database
+    if (!!examination) examination.id = `${pid}`
 
     return (!!examination && <Admin>
             <Grid rowSpacing={2} container>
@@ -61,7 +63,7 @@ export default function ExaminationDetail() {
                                                       className={styles.HomeworkURL}
                                                       defaultValue={homework_url}/>
                                     <Button variant="contained"
-                                            startIcon={<ContentCopyIcon />}
+                                            startIcon={<ContentCopyIcon/>}
                                             onClick={() => navigator.clipboard.writeText(homework_url as string)}>
                                         Copy Link
                                     </Button>
@@ -94,7 +96,7 @@ export default function ExaminationDetail() {
                                                 </>
                                             }
                                         </div>
-                                        )
+                                    )
                                 }) : <div>There are no questions.</div>
                         }
                     </>

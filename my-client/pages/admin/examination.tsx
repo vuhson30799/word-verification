@@ -10,7 +10,7 @@ import {getRandomColor} from "../../modules/utils/color";
 import QuizIcon from '@mui/icons-material/Quiz';
 
 
-interface Question {
+export interface Question {
     title: string
     keys: string[]
     timeout: number
@@ -39,10 +39,10 @@ function Examination() {
                     {
                         examinations.map((examination, key) => {
                             return (
-                                <>
+                                <Grid container key={key}>
                                     <Grid item xs={2} md={2} xl={2}/>
                                     <Grid item xs={8} md={8} xl={8}>
-                                        <Link href={`/admin/examination/${key}`} key={key}>
+                                        <Link href={`/admin/examination/${examination.id}`}>
                                             <Paper className={styles.Paper} elevation={3}>
                                                 <Image src="/logo.png" width="90px" height="90px"
                                                        alt="logo.png"
@@ -61,7 +61,7 @@ function Examination() {
                                         </Link>
                                     </Grid>
                                     <Grid item xs={2} md={2} xl={2}/>
-                                </>
+                                </Grid>
                             )
                         })
                     }

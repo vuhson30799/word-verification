@@ -1,7 +1,8 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {onValue, ref} from "firebase/database";
+import {onValue, push, ref} from "firebase/database";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
+import {AssignHomeworkData} from "../../../components/AssignHomeWorkModal";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const {pid} = req.query
@@ -19,5 +20,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         }, {
             onlyOnce: true
         })
+    }
+
+    if (req.method === 'POST') {
+        const assignHomeworkData = <AssignHomeworkData> req.body
+        const url = `http://${req.headers.host}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
+        push(ref(database, '/homeworks'), {url, examId: pid, ...assignHomeworkData})
+        res.status(200).send(url)
     }
 }

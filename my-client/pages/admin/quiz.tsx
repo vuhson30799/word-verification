@@ -13,6 +13,7 @@ import {useRouter} from "next/router";
 import {MySpinner} from "../../components/MySpinner";
 import MyToast from "../../components/MyToast";
 import {convertDate} from "../../modules/utils/dateUtils";
+import {extractQuestionsFromExcel} from "../../modules/utils/excelService";
 
 export default function Quiz() {
     const [examination, setExamination] = useState<ExaminationData>({
@@ -25,7 +26,7 @@ export default function Quiz() {
     })
     const [file, setFile] = useState<File | undefined>(undefined)
     const [submit, setSubmit] = useState<boolean>(false)
-    const {data, error} = useSWR(submit ? ['http://localhost:8080/exams', 'post', examination, file] : null, fetcherWithForm)
+    const {data, error} = useSWR(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
     const router = useRouter()
     if (submit && data) {
         router.push('/admin/examination')
@@ -37,6 +38,12 @@ export default function Quiz() {
     function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return
         setFile(e.target.files[0])
+        extractQuestionsFromExcel(e.target.files[0]).then(questions => {
+            setExamination({
+                ...examination,
+                questions
+            })
+        })
     }
 
     function handleChange(fieldName: string, value: string) {
@@ -56,7 +63,7 @@ export default function Quiz() {
             case "grade":
                 setExamination({
                     ...examination,
-                    grade: Number(examination.grade)
+                    grade: Number(value)
                 })
                 break
             default:

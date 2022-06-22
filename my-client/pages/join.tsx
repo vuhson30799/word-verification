@@ -64,7 +64,7 @@ const initialCurrentQuestion: CurrentQuestion = {
 
 export default function AttendingExamination() {
     const router = useRouter()
-    const {examId, begin, deadline} = router.query
+    const {examId, beginningDate, deadlineDate} = router.query
     const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
     const [allowAnswer, setAllowAnswer] = useState<boolean>(initialAllowAnswer)
 
@@ -74,8 +74,8 @@ export default function AttendingExamination() {
     const {
         data: examinationData,
         error
-    } = useSWR<ExaminationData>([!!examId || !!begin || !!deadline ?
-        `http://localhost:8080/join?examId=${examId}&beginningDate=${begin}&deadlineDate=${deadline}` : null, 'get'], fetcher)
+    } = useSWR<ExaminationData>([!!examId && !!beginningDate && !!deadlineDate ?
+        `/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}` : null, 'get'], fetcher)
 
     function handleChange(type: StudentAnswerEnum, value: string) {
         switch (type) {
