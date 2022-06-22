@@ -1,7 +1,7 @@
 import React, {FormEvent, useState} from "react";
 import styles from "../styles/Join.module.css";
 import {Button, FormControl, InputLabel, OutlinedInput} from "@mui/material";
-import useSWR from "swr";
+import useSWRImmutable from 'swr/immutable'
 import {ExaminationData} from "./admin/examination";
 import {fetcher, fetcherWithForm} from "../modules/configuration/Configuration";
 import {useRouter} from "next/router";
@@ -75,8 +75,13 @@ export default function AttendingExamination() {
     const {
         data: examinationData,
         error
-    } = useSWR<ExaminationData>([!!examId && !!beginningDate && !!deadlineDate ?
-        `/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}` : null, 'get'], fetcher)
+    } = useSWRImmutable<ExaminationData>(!!examId && !!beginningDate && !!deadlineDate ?
+        [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
+
+
+    const {
+        data: submitAnswerSuccess
+    } = useSWRImmutable<string>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null,fetcherWithForm)
 
     function handleChange(type: StudentAnswerEnum, value: string) {
         switch (type) {

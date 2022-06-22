@@ -4,12 +4,12 @@ import Typography from "@mui/material/Typography";
 import MyDateTimePicker from "./MyDateTimePicker";
 import {useState} from "react";
 import {convertDate} from "../modules/utils/dateUtils";
-import useSWR from "swr";
 import {assignHomeworkFetcher} from "../modules/configuration/Configuration";
 import {MySpinner} from "./MySpinner";
 import MyToast from "./MyToast";
 import styles from "../styles/AssignHomeworkModal.module.css"
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import useSWRImmutable from "swr/immutable";
 
 export interface AssignHomeworkModalProps {
     title: string
@@ -30,7 +30,7 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     })
     const [open, setOpen] = useState<boolean>(false)
     const [submit, setSubmit] = useState<boolean>(false)
-    const { data, error } = useSWR<string>(submit ? [`/api/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
+    const { data, error } = useSWRImmutable<string>(submit ? [`/api/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
     if (submit && data) {
         props.onChange(data)
         setSubmit(false)

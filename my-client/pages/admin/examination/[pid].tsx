@@ -1,6 +1,5 @@
 import {useRouter} from "next/router";
 import {Admin} from "../../../layout/Admin";
-import useSWR from "swr";
 import {fetcher} from "../../../modules/configuration/Configuration";
 import {MySpinner} from "../../../components/MySpinner";
 import {ExaminationData} from "../examination";
@@ -13,6 +12,7 @@ import AssignHomeworkModal from "../../../components/AssignHomeWorkModal";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MyToast from "../../../components/MyToast";
 import {useState} from "react";
+import useSWRImmutable from "swr/immutable";
 
 export default function ExaminationDetail() {
     const router = useRouter()
@@ -22,7 +22,7 @@ export default function ExaminationDetail() {
     let {
         data: examination,
         error
-    } = useSWR<ExaminationData>([!!pid ? `/api/exams/${pid}` : null, 'get'], fetcher)
+    } = useSWRImmutable<ExaminationData>(!!pid ? [ `/api/exams/${pid}`, 'get'] : null, fetcher)
     if (!examination && !error) return <MySpinner/>
     if (!!error) return <MyToast message={error.message} severity="error"/>
     const questions = examination?.questions

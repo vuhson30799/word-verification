@@ -1,9 +1,9 @@
-import useSWR from "swr";
 import {useRouter} from "next/router";
 import {fetcher} from "../../../../modules/configuration/Configuration";
 import {MySpinner} from "../../../../components/MySpinner";
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import {Admin} from "../../../../layout/Admin";
+import useSWRImmutable from "swr/immutable";
 
 export interface HomeworkData {
     url: string
@@ -16,7 +16,7 @@ export default function Homework() {
     const {
         data: homeworks,
         error
-    } = useSWR<HomeworkData[]>(`/api/exams/${pid}/homeworks`, fetcher)
+    } = useSWRImmutable<HomeworkData[]>(`/api/exams/${pid}/homeworks`, fetcher)
     if (!homeworks && !error) return <MySpinner/>
     return ( !!homeworks ?
             <Admin>

@@ -7,13 +7,13 @@ import {Admin} from "../../layout/Admin";
 import Divider from "@mui/material/Divider";
 import styles from "../../styles/Quiz.module.css"
 import MyFileUpload from "../../components/MyFileUpload";
-import useSWR from "swr";
 import {fetcherWithForm} from "../../modules/configuration/Configuration";
 import {useRouter} from "next/router";
 import {MySpinner} from "../../components/MySpinner";
 import MyToast from "../../components/MyToast";
 import {convertDate} from "../../modules/utils/dateUtils";
 import {extractQuestionsFromExcel} from "../../modules/utils/excelService";
+import useSWRImmutable from "swr/immutable";
 
 export default function Quiz() {
     const [examination, setExamination] = useState<ExaminationData>({
@@ -26,7 +26,7 @@ export default function Quiz() {
     })
     const [file, setFile] = useState<File | undefined>(undefined)
     const [submit, setSubmit] = useState<boolean>(false)
-    const {data, error} = useSWR(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
+    const {data, error} = useSWRImmutable(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
     const router = useRouter()
     if (submit && data) {
         router.push('/admin/examination')

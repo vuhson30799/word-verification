@@ -1,4 +1,3 @@
-import useSWR from "swr";
 import {Admin} from "../../layout/Admin";
 import styles from "../../styles/Examination.module.css"
 import {fetcher} from "../../modules/configuration/Configuration";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import Image from 'next/image'
 import {getRandomColor} from "../../modules/utils/color";
 import QuizIcon from '@mui/icons-material/Quiz';
+import useSWRImmutable from "swr/immutable";
 
 
 export interface Question {
@@ -30,7 +30,7 @@ function Examination() {
     const {
         data: examinations,
         error
-    } = useSWR<ExaminationData[]>(['/api/exams', 'get'], fetcher)
+    } = useSWRImmutable<ExaminationData[]>(['/api/exams', 'get'], fetcher)
     if (!examinations && !error) return <MySpinner/>
     return (
         !!examinations ? <Admin>
