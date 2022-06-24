@@ -22,14 +22,15 @@ export default function ExaminationDetail() {
     let {
         data: examination,
         error
-    } = useSWRImmutable<ExaminationData>(!!pid ? [ `/api/exams/${pid}`, 'get'] : null, fetcher)
-    if (!examination && !error) return <MySpinner/>
-    if (!!error) return <MyToast message={error.message} severity="error"/>
+    } = useSWRImmutable<ExaminationData>(!!pid ? [`/api/exams/${pid}`, 'get'] : null, fetcher)
+    if (error) return <MyToast message={error.message} severity="error"/>
+    if (!examination) return <MySpinner/>
     const questions = examination?.questions
     // missing id when get examination from firebase database
     if (!!examination) examination.id = `${pid}`
 
-    return (!!examination && <Admin>
+    return (
+        <Admin>
             <Grid rowSpacing={2} container>
                 <Grid item xs={2} md={2} xl={2}/>
                 <Grid item xs={8} md={8} xl={8}>

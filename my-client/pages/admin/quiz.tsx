@@ -1,5 +1,5 @@
 import {Button, FormControl, Grid, InputLabel, OutlinedInput, Select, SelectChangeEvent} from "@mui/material";
-import {ChangeEvent, useState} from "react";
+import React, {ChangeEvent, useState} from "react";
 import {ExaminationData} from "./examination";
 import MyDateTimePicker from "../../components/MyDateTimePicker";
 import MenuItem from "@mui/material/MenuItem";
@@ -26,8 +26,11 @@ export default function Quiz() {
     })
     const [file, setFile] = useState<File | undefined>(undefined)
     const [submit, setSubmit] = useState<boolean>(false)
-    const {data, error} = useSWRImmutable(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
     const router = useRouter()
+    const {data, error} = useSWRImmutable(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
+    if (error) return <MyToast message={error.message} severity={"error"} />
+    if (submit && !data) return <MySpinner/>
+
     if (submit && data) {
         router.push('/admin/examination')
             .then(() => console.log('redirect to view examinations'))
@@ -152,8 +155,6 @@ export default function Quiz() {
                     </Grid>
                 </Grid>
             </form>
-            {submit && !data && !error ? <MySpinner/> : undefined}
-            {submit && !!error ? <MyToast message={error.message} severity="error"/> : undefined}
         </Admin>
     )
 }

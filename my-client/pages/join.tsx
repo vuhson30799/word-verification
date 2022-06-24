@@ -1,4 +1,4 @@
-import React, {FormEvent, useState} from "react";
+import React, {FormEvent, useEffect, useState} from "react";
 import styles from "../styles/Join.module.css";
 import {Button, FormControl, InputLabel, OutlinedInput} from "@mui/material";
 import useSWRImmutable from 'swr/immutable'
@@ -11,8 +11,14 @@ import {translateKey, verifyAnswer} from "../modules/utils/verification";
 import ProgressQuestionBar from "../components/ProgressQuestionBar";
 import {StudentResult, StudentResultType} from "../components/StudentResult";
 import DoneIcon from '@mui/icons-material/Done';
-import {questionDelayTime} from "../constant/ApplicationConstant";
+import {
+    timeBetweenQuestions,
+    timeBetweenStartingComponents,
+    timeToDisplay3,
+    timeToDisplayFirstQuestion
+} from "../constant/ApplicationConstant";
 import MyToast from "../components/MyToast";
+import {MySpinner} from "../components/MySpinner";
 
 export interface StudentAnswer {
     studentName: string
@@ -41,6 +47,11 @@ interface DisplayState {
     displayFinishPage: boolean
 }
 
+interface Allowance {
+    answer: boolean
+    start: boolean
+}
+
 const initialDisplayState: DisplayState = {
     displayStudentName: true,
     displayQuestion: false,
@@ -57,17 +68,21 @@ const initialStudentAnswer: StudentAnswer = {
     finishAt: ""
 }
 
-const initialAllowAnswer = true
 const initialCurrentQuestion: CurrentQuestion = {
     questionNumber: 0,
     studentAnswer: ""
+}
+
+const initialAllowance: Allowance = {
+    answer: true,
+    start: true
 }
 
 export default function AttendingExamination() {
     const router = useRouter()
     const {examId, beginningDate, deadlineDate} = router.query
     const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
-    const [allowAnswer, setAllowAnswer] = useState<boolean>(initialAllowAnswer)
+    const [allowance, setAllowance] = useState<Allowance>(initialAllowance)
 
     const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
@@ -78,10 +93,28 @@ export default function AttendingExamination() {
     } = useSWRImmutable<ExaminationData>(!!examId && !!beginningDate && !!deadlineDate ?
         [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
 
-
     const {
         data: submitAnswerSuccess
-    } = useSWRImmutable<string>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null,fetcherWithForm)
+    } = useSWRImmutable<{ success: string }>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null, fetcherWithForm)
+
+    useEffect(() => {
+        if (studentAnswer.studentName.length === 0) {
+            setAllowance({
+                ...allowance,
+                start: false
+            })
+            return
+        } else {
+            setAllowance({
+                ...allowance,
+                start: true
+            })
+        }
+    }, [studentAnswer.studentName.length])
+
+    if (error) return <MyToast message={error.message} severity={"error"} />
+    if (!examinationData) return <MySpinner/>
+    if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
 
     function handleChange(type: StudentAnswerEnum, value: string) {
         switch (type) {
@@ -142,9 +175,12 @@ export default function AttendingExamination() {
 
     function OnStudentAnswerSubmit(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
         e.preventDefault()
-        if (!allowAnswer) return
+        if (!allowance.answer) return
 
-        setAllowAnswer(false)
+        setAllowance({
+            ...allowance,
+            answer: false
+        })
         if (!examinationData) throw new Error('Examination data is needed for answer verification')
         const isRightAnswer = verifyAnswer(currentQuestion.studentAnswer, examinationData.questions[currentQuestion.questionNumber].keys)
         if (isRightAnswer) {
@@ -174,8 +210,11 @@ export default function AttendingExamination() {
                 displayKey: false
             })
 
-            setAllowAnswer(true)
-        }, questionDelayTime)
+            setAllowance({
+                ...allowance,
+                answer: true
+            })
+        }, timeBetweenQuestions)
 
     }
 
@@ -183,12 +222,12 @@ export default function AttendingExamination() {
         ...displayState,
         displayQuestion: true,
         displayStartingComponent: false
-    }), 5000)
+    }), timeToDisplayFirstQuestion)
 
     function onPlayingAgain() {
         setDisplayState(initialDisplayState)
         setCurrentQuestion(initialCurrentQuestion)
-        setAllowAnswer(initialAllowAnswer)
+        setAllowance(initialAllowance)
         setStudentAnswer(initialStudentAnswer)
     }
 
@@ -198,7 +237,7 @@ export default function AttendingExamination() {
                 <>
                     <form className={styles.StudentNameLayer}
                           onSubmit={(e) => OnStartButtonClick(e)}>
-                        <FormControl className={styles.JoinFormControl}>
+                        <FormControl className={styles.JoinFormControl} required={true}>
                             <InputLabel htmlFor="studentName" className={styles.WhiteFont}>Your name is...</InputLabel>
                             <OutlinedInput
                                 className={styles.WhiteFont}
@@ -206,19 +245,22 @@ export default function AttendingExamination() {
                                 value={studentAnswer.studentName}
                                 onChange={(e) => handleChange(StudentAnswerEnum.StudentName, e.target.value)}
                                 label="Your name is..."
+                                autoComplete="off"
                             />
                         </FormControl>
-                        <Button variant="contained" onClick={(e) => OnStartButtonClick(e)}>Start</Button>
+                        <Button variant="contained"
+                                disabled={!allowance.start}
+                                onClick={(e) => OnStartButtonClick(e)}>Start</Button>
                     </form>
 
                 </>
             }
             {displayState.displayStartingComponent &&
                 <>
-                    <StartingQuestion title={"3"} timeout={1500} displayAfter={0}/>
-                    <StartingQuestion title={"2"} timeout={1500} displayAfter={1500}/>
-                    <StartingQuestion title={"1"} timeout={1500} displayAfter={3000}/>
-                    <StartingQuestion title={"Go!"} timeout={1500} displayAfter={4500}/>
+                    <StartingQuestion title={"3"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3}/>
+                    <StartingQuestion title={"2"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + timeBetweenStartingComponents}/>
+                    <StartingQuestion title={"1"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + 2 * timeBetweenStartingComponents}/>
+                    <StartingQuestion title={"Go!"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + 3 * timeBetweenStartingComponents}/>
                 </>
             }
             {displayState.displayQuestion ?
@@ -227,7 +269,7 @@ export default function AttendingExamination() {
                         <>
                             <form className={styles.QuestionLayer}
                                   onSubmit={(e) => OnStudentAnswerSubmit(e)}>
-                                {allowAnswer && <ProgressQuestionBar className={styles.QuestionProgress}
+                                {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
                                                                      timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
                                                                      handleTimeout={OnStudentAnswerSubmit}/>}
                                 <div className={styles.QuestionTitle}>
@@ -250,12 +292,13 @@ export default function AttendingExamination() {
                                             className={styles.WhiteFont}
                                             id="currentAnswer"
                                             value={currentQuestion.studentAnswer}
+                                            autoComplete="off"
                                             onChange={(e) => handleStudentAnswerChange(e.target.value)}
                                         />
                                     </FormControl>
                                     <Button className={styles.ButtonAnswerSubmit}
                                         variant="contained"
-                                            disabled={!allowAnswer}
+                                            disabled={!allowance.answer}
                                             onClick={(e) => OnStudentAnswerSubmit(e)}>
                                         Submit
                                     </Button>
@@ -280,13 +323,10 @@ export default function AttendingExamination() {
                     <Button variant="contained" onClick={onPlayingAgain}>
                         Play Again
                     </Button>
+                    {!!submitAnswerSuccess
+                        && <MyToast message={submitAnswerSuccess.success} severity="success"/>
+                    }
                 </div>
-            }
-            {!!submitAnswerSuccess
-                && <MyToast message={submitAnswerSuccess} severity="success"/>
-            }
-            {!!error &&
-                <p>Some error happened</p>
             }
         </>
     )

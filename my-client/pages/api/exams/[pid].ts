@@ -24,7 +24,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (req.method === 'POST') {
         const assignHomeworkData = <AssignHomeworkData> req.body
-        const url = `http://${req.headers.host}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
+        const url = `${req.headers.referer}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
         push(ref(database, '/homeworks'), {url, examId: pid, ...assignHomeworkData})
         res.status(200).send(url)
     }

@@ -4,12 +4,14 @@ import {MySpinner} from "../../../../components/MySpinner";
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import {Admin} from "../../../../layout/Admin";
 import useSWRImmutable from "swr/immutable";
+import MyToast from "../../../../components/MyToast";
 
 export interface HomeworkData {
     url: string
     beginningDate: string
     deadlineDate: string
 }
+
 export default function Homework() {
     const router = useRouter()
     const {pid} = router.query
@@ -17,36 +19,35 @@ export default function Homework() {
         data: homeworks,
         error
     } = useSWRImmutable<HomeworkData[]>(`/api/exams/${pid}/homeworks`, fetcher)
-    if (!homeworks && !error) return <MySpinner/>
-    return ( !!homeworks ?
-            <Admin>
-                <TableContainer component={Paper}>
-                    <Table aria-label="homework table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Examination ID </TableCell>
-                                <TableCell align="right">Homework URL</TableCell>
-                                <TableCell align="right">Beginning</TableCell>
-                                <TableCell align="right">Deadline</TableCell>
+    if (error) return <MyToast message={error.message} severity="error"/>
+    if (!homeworks) return <MySpinner/>
+    return (
+        <Admin>
+            <TableContainer component={Paper}>
+                <Table aria-label="homework table">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Examination ID </TableCell>
+                            <TableCell align="right">Homework URL</TableCell>
+                            <TableCell align="right">Beginning</TableCell>
+                            <TableCell align="right">Deadline</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {homeworks.map((homeworkData, key) => (
+                            <TableRow
+                                key={key}
+                            >
+                                <TableCell component="th" scope="row">
+                                    {pid}
+                                </TableCell>
+                                <TableCell align="right">{homeworkData.url}</TableCell>
+                                <TableCell align="right">{homeworkData.beginningDate}</TableCell>
+                                <TableCell align="right">{homeworkData.deadlineDate}</TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {homeworks.map((homeworkData, key) => (
-                                <TableRow
-                                    key={key}
-                                >
-                                    <TableCell component="th" scope="row">
-                                        {pid}
-                                    </TableCell>
-                                    <TableCell align="right">{homeworkData.url}</TableCell>
-                                    <TableCell align="right">{homeworkData.beginningDate}</TableCell>
-                                    <TableCell align="right">{homeworkData.deadlineDate}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Admin>
-        : undefined
-    )
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Admin>)
 }

@@ -1,12 +1,19 @@
 import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
 
-export const fetcher = (url: string, method: string) => fetch(url, {method})
-    .then(res => res.json())
-export const fetcherWithForm = (url: string, method: string, object: any) => {
-    return fetch(url, {
+export const fetcher = async (url: string, method: string) => {
+    const response = await fetch(url, {method})
+    if (response.status === 200) return response.json()
+    const data = await response.json()
+    throw new Error(data.message)
+}
+export const fetcherWithForm = async (url: string, method: string, object: any) => {
+    const response = await fetch(url, {
         method,
         body: JSON.stringify(object)
-    }).then(res => res.json())
+    })
+    if (response.status === 200) return response.json()
+    const data = await response.json()
+    throw new Error(data.message)
 }
 export const assignHomeworkFetcher = (url: string, method: string, assignHomeworkData: AssignHomeworkData) => {
     return fetch(url, {

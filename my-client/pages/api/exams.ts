@@ -16,7 +16,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
                 res.status(404).send({message: 'Getting examinations failed.'})
                 console.log('Error when try getting examination.')
             }
-
         }));
     }
 
