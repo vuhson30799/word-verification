@@ -1,6 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
-import {applicationEncoding, encodingKey} from "../../constant/ApplicationConstant";
+import {encoding} from "../../constant/ApplicationConstant";
 import {HomeworkData} from "../admin/examination/[pid]/homework";
 import {goOffline, goOnline} from "@firebase/database";
 import {database} from "../../modules/firebase/FirebaseService";
@@ -39,7 +39,7 @@ function validateHomework(homeworkData: HomeworkData[], beginningDate: string, d
 function encodeExamination(examinationData: ExaminationData): ExaminationData {
     const encodedQuestions = examinationData.questions.filter(question => !!question.keys).map((question) => {
         const encodedKeys = question.keys.map((key) => {
-            return Buffer.from(Buffer.from(key).toString(applicationEncoding).concat(encodingKey)).toString(applicationEncoding)
+            return Buffer.from(Buffer.from(key).toString(encoding).concat(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`)).toString(encoding)
         })
         return {
             title: question.title,

@@ -1,7 +1,5 @@
-export const applicationEncoding = 'base64'
-
-// will retrieve from database whenever client start-up
-export const encodingKey = 'i6mkf1GjCKc6rJg4mdmUElRozis9NGI9'
+export const encoding = 'base64'
+export const decoding = 'ascii'
 
 export const emptyString = ''
 

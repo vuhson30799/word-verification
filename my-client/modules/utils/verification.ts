@@ -1,18 +1,19 @@
-import {applicationEncoding, encodingKey} from "../../constant/ApplicationConstant";
+import {decoding, emptyString, encoding} from "../../constant/ApplicationConstant";
 
 export function verifyAnswer(studentAnswer: string, keys: string[]): boolean {
-    const encodedAnswer = Buffer.from(studentAnswer).toString(applicationEncoding)
+    const encodedAnswer = Buffer.from(studentAnswer).toString(encoding)
     const decodedKeys = keys.map((key) => {
-        const decodedKey = Buffer.from(key, applicationEncoding)
-            .toString('ascii')
-        return decodedKey.replace(encodingKey, '')
+        const decodedKey = Buffer.from(key, encoding)
+            .toString(decoding)
+        return decodedKey.replace(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`, emptyString)
     })
 
     return decodedKeys.some(key => key === encodedAnswer)
 }
 
 export function translateKey(key: string): string {
-    const decodedKey = Buffer.from(key, applicationEncoding).toString('ascii')
-    return Buffer.from(decodedKey.replace(encodingKey, ''), applicationEncoding)
-        .toString('ascii')
+    const decodedKey = Buffer.from(key, encoding).toString(decoding)
+    console.log(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`)
+    return Buffer.from(decodedKey.replace(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`, ''), encoding)
+        .toString(decoding)
 }
