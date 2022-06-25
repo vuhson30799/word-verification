@@ -30,7 +30,9 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     })
     const [open, setOpen] = useState<boolean>(false)
     const [submit, setSubmit] = useState<boolean>(false)
-    const { data, error } = useSWRImmutable<string>(submit ? [`/api/exams/${props.examinationId}`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
+    const { data, error } = useSWRImmutable<string>(submit ? [`/api/exams/${props.examinationId}/homeworks`, 'post', assignHomeworkData] : null, assignHomeworkFetcher)
+    if (submit && error) return <MyToast message={error.message} severity="error"/>
+    if (submit && !data) return <MySpinner/>
     if (submit && data) {
         props.onChange(data)
         setSubmit(false)
@@ -95,8 +97,6 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
                     </Grid>
                 </Box>
             </Modal>
-            {submit && !data && !error ? <MySpinner/> : undefined}
-            {submit && !!error ? <MyToast message={error.message} severity="error"/> : undefined}
         </div>
     )
 }

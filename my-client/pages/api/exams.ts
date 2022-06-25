@@ -5,32 +5,42 @@ import {ExaminationData} from "../admin/examination";
 import {toExaminations} from "../../modules/utils/dataUtils";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'GET') {
-        console.log('Getting examination from database.')
-        onValue(ref(database, `/examinations`), (snapshot => {
-            const examinations = toExaminations(snapshot.val())
-            if (!!examinations) {
-                res.status(200).json(examinations)
-                console.log(`${examinations.length} examination are got from database.`)
-            } else {
-                res.status(404).send({message: 'Getting examinations failed.'})
-                console.log('Error when try getting examination.')
-            }
-        }));
+    switch (req.method) {
+        case 'GET':
+            getExaminations(req, res)
+            break
+        case 'POST':
+            createExamination(req, res)
+            break
+        default:
+            res.status(405).json({message: 'Request is not supported'})
     }
+}
 
-    if (req.method === 'POST') {
-        const examination = <ExaminationData>JSON.parse(req.body)
-        const invalidMessage = getInvalidMessage(examination)
-        if (!!invalidMessage) {
-            res.status(400).send({message: invalidMessage})
-            return
+function getExaminations(req: NextApiRequest, res: NextApiResponse) {
+    console.log('Getting examination from database.')
+    onValue(ref(database, `/examinations`), (snapshot => {
+        const examinations = toExaminations(snapshot.val())
+        if (!!examinations) {
+            res.status(200).json(examinations)
+            console.log(`${examinations.length} examination are got from database.`)
+        } else {
+            res.status(404).send({message: 'This examination is not existed.'})
+            console.log('Error when try getting examination.')
         }
-        push(ref(database, '/examinations'), examination)
-        //TODO: return 204 status code
-        res.status(200).json({message: 'success'})
-    }
+    }));
+}
 
+function createExamination(req: NextApiRequest, res: NextApiResponse) {
+    const examination = <ExaminationData>JSON.parse(req.body)
+    const invalidMessage = getInvalidMessage(examination)
+    if (!!invalidMessage) {
+        res.status(400).send({message: invalidMessage})
+        return
+    }
+    push(ref(database, '/examinations'), examination)
+    //TODO: return 204 status code
+    res.status(200).json({message: 'success'})
 }
 
 function getInvalidMessage(examination: ExaminationData): string | undefined {

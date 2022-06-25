@@ -2,28 +2,43 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
 import {encoding} from "../../constant/ApplicationConstant";
 import {HomeworkData} from "../admin/examination/[pid]/homework";
-import {goOffline, goOnline} from "@firebase/database";
-import {database} from "../../modules/firebase/FirebaseService";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    switch (req.method) {
+        case 'GET':
+            await retrieveExaminationForHomework(req, res)
+            break
+        default:
+            res.status(405).json({message: 'Request is not supported'})
+    }
+}
+
+async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiResponse) {
     const {examId, beginningDate, deadlineDate} = req.query
-    if (req.method === 'GET') {
-        goOnline(database)
-        if (!req.headers.referer) {
-            res.status(400).json({message: 'There are something wrong with this request.\nPlease contact admin for more information'})
+    if (!req.headers.referer) {
+        res.status(400).json({message: 'There are something wrong with this request.\nPlease contact admin for more information'})
+        return
+    }
+    const url = new URL(req.headers.referer)
+    const homeworkData = await fetch(`${url.origin}/api/exams/${examId}/homeworks`, {method: 'GET'})
+    if (homeworkData.status !== 200) {
+        const response = await homeworkData.json()
+        res.status(400).json({message: response.message})
+        return
+    }
+
+    const homework: HomeworkData[] = await homeworkData.json()
+    if (validateHomework(homework, <string> beginningDate, <string> deadlineDate)) {
+        const examinationData = await fetch(`${url.origin}/api/exams/${examId}`, {method: 'GET'})
+        if (examinationData.status !== 200) {
+            const response = await examinationData.json()
+            res.status(examinationData.status).json({message: response.message})
             return
         }
-        const url = new URL(req.headers.referer)
-        const homeworkData = await fetch(`${url.origin}/api/exams/${examId}/homeworks`, {method: 'GET'})
-        const homework: HomeworkData[] = await homeworkData.json()
-        if (validateHomework(homework, <string> beginningDate, <string> deadlineDate)) {
-            const examinationData = await fetch(`${url.origin}/api/exams/${examId}`, {method: 'GET'})
-            const examination: ExaminationData = await examinationData.json()
-            res.status(200).json(encodeExamination(examination))
-        } else {
-            res.status(400).json({message: 'This homework is no longer valid.'})
-        }
-        goOffline(database)
+        const examination: ExaminationData = await examinationData.json()
+        res.status(200).json(encodeExamination(examination))
+    } else {
+        res.status(400).json({message: 'This homework is no longer valid.'})
     }
 }
 
