@@ -33,7 +33,7 @@ function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
 function createHomework(req: NextApiRequest, res: NextApiResponse) {
     const {pid} = req.query
     const assignHomeworkData = <AssignHomeworkData> req.body
-    const url = `${req.headers.referer}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
+    const url = `${req.headers.origin}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
     push(ref(database, '/homeworks'), {url, examId: pid, ...assignHomeworkData})
     res.status(200).send(url)
 }
