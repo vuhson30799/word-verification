@@ -263,56 +263,50 @@ export default function AttendingExamination() {
                     <StartingQuestion title={"Go!"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + 3 * timeBetweenStartingComponents}/>
                 </>
             }
-            {displayState.displayQuestion ?
+            {displayState.displayQuestion && examinationData &&
                 <>
-                    {!!examinationData ?
-                        <>
-                            <form className={styles.QuestionLayer}
-                                  onSubmit={(e) => OnStudentAnswerSubmit(e)}>
-                                {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
-                                                                     timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                                                     handleTimeout={OnStudentAnswerSubmit}/>}
-                                <div className={styles.QuestionTitle}>
-                                    <h2>{examinationData.questions[currentQuestion.questionNumber].title}</h2>
-                                    {displayState.displayKey && !!examinationData &&
-                                        <h5 className={styles.KeyContainer}>
-                                            {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
-                                            return <div key={index} className={styles.KeyStyle}>
-                                                <DoneIcon color={"success"}/>{translateKey(key)}
-                                            </div>
-                                        })}
-                                        </h5>
-                                    }
-                                </div>
-                                <div className={styles.AnswerSubmit}>
-                                    <FormControl className={styles.JoinFormControl}>
-                                        <InputLabel htmlFor="currentAnswer" className={styles.WhiteFont}>Your answer
-                                            is...</InputLabel>
-                                        <OutlinedInput
-                                            className={styles.WhiteFont}
-                                            id="currentAnswer"
-                                            value={currentQuestion.studentAnswer}
-                                            autoComplete="off"
-                                            onChange={(e) => handleStudentAnswerChange(e.target.value)}
-                                        />
-                                    </FormControl>
-                                    <Button className={styles.ButtonAnswerSubmit}
-                                        variant="contained"
-                                            disabled={!allowance.answer}
-                                            onClick={(e) => OnStudentAnswerSubmit(e)}>
-                                        Submit
-                                    </Button>
-                                </div>
-                                {displayState.displayStudentResult ?
-                                    displayState.displayKey ? <StudentResult type={StudentResultType.Wrong} /> : <StudentResult type={StudentResultType.Correct} />
-                                    : undefined
-                                }
-                            </form>
-                        </>
-                        : undefined
-                    }
+                    <form className={styles.QuestionLayer}
+                          onSubmit={(e) => OnStudentAnswerSubmit(e)}>
+                        {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
+                                                                  timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
+                                                                  handleTimeout={OnStudentAnswerSubmit}/>}
+                        <div className={styles.QuestionTitle}>
+                            <h2>{examinationData.questions[currentQuestion.questionNumber].title}</h2>
+                            {displayState.displayKey && !!examinationData &&
+                                <h5 className={styles.KeyContainer}>
+                                    {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
+                                        return <div key={index} className={styles.KeyStyle}>
+                                            <DoneIcon color={"success"}/>{translateKey(key)}
+                                        </div>
+                                    })}
+                                </h5>
+                            }
+                        </div>
+                        <div className={styles.AnswerSubmit}>
+                            <FormControl className={styles.JoinFormControl}>
+                                <InputLabel htmlFor="currentAnswer" className={styles.WhiteFont}>Your answer
+                                    is...</InputLabel>
+                                <OutlinedInput
+                                    className={styles.WhiteFont}
+                                    id="currentAnswer"
+                                    value={currentQuestion.studentAnswer}
+                                    autoComplete="off"
+                                    onChange={(e) => handleStudentAnswerChange(e.target.value)}
+                                />
+                            </FormControl>
+                            <Button className={styles.ButtonAnswerSubmit}
+                                    variant="contained"
+                                    disabled={!allowance.answer}
+                                    onClick={(e) => OnStudentAnswerSubmit(e)}>
+                                Submit
+                            </Button>
+                        </div>
+                        {displayState.displayStudentResult ?
+                            displayState.displayKey ? <StudentResult type={StudentResultType.Wrong} /> : <StudentResult type={StudentResultType.Correct} />
+                            : undefined
+                        }
+                    </form>
                 </>
-                : undefined
             }
             {displayState.displayFinishPage &&
                 <div className={styles.FinishPage}>

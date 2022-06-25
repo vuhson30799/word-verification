@@ -18,7 +18,7 @@ function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
     console.log(`Retrieving examination ${pid} from database.`)
     onValue(ref(database, `/examinations/${pid}`), (snapshot) => {
         const examinationData = <ExaminationData> snapshot.val()
-        if (!!examinationData) {
+        if (examinationData) {
             res.status(200).json(examinationData)
             console.log(`Retrieved examination ${pid} from database.`)
         } else {

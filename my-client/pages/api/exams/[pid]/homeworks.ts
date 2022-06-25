@@ -22,7 +22,7 @@ function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
     onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
         equalTo(`${pid}`)), (snapshot) => {
         const homeworkData = toHomeworks(snapshot.val())
-        if (!!homeworkData) {
+        if (homeworkData) {
             res.status(200).json(homeworkData)
         } else {
             res.status(404).json({message: `Homework not found for exam ${pid}`})

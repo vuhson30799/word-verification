@@ -25,7 +25,7 @@ export default function MyFileUpload(props: MyFileUploadProps) {
                     </Button>
                     : undefined
                 }
-                {!!props.file ?
+                {props.file ?
                     <div>{props.file.name}</div>
                     : undefined
                 }

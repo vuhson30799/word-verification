@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
+  "rules": {
+    // NextJS does it.
+    "react/react-in-jsx-scope": "off",
+    "no-unused-vars": "warn"
+  }
+}

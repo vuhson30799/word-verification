@@ -22,12 +22,12 @@ export default function ExaminationDetail() {
     let {
         data: examination,
         error
-    } = useSWRImmutable<ExaminationData>(!!pid ? [`/api/exams/${pid}`, 'get'] : null, fetcher)
+    } = useSWRImmutable<ExaminationData>(pid ? [`/api/exams/${pid}`, 'get'] : null, fetcher)
     if (error) return <MyToast message={error.message} severity="error"/>
     if (!examination) return <MySpinner/>
     const questions = examination?.questions
     // missing id when get examination from firebase database
-    if (!!examination) examination.id = `${pid}`
+    if (examination) examination.id = `${pid}`
 
     return (
         <Admin>
@@ -43,7 +43,7 @@ export default function ExaminationDetail() {
                                 className={styles.ExaminationInfoTitle}>{examination.title}</strong>
                             <div className={styles.ExaminationInfoQuestion}>
                                 <QuizIcon/>
-                                {!!questions ? questions.length : 0} Questions
+                                {questions ? questions.length : 0} Questions
                             </div>
                             <div
                                 className={styles.ExaminationInfoAuthor}>{examination.creator} . {examination.createdDate}</div>
@@ -58,52 +58,48 @@ export default function ExaminationDetail() {
                         </Button>
                     </div>
                     <div className={styles.HomeworkBox}>
-                        {
-                            !!homeworkURL ?
-                                <>
-                                    <TextareaAutosize minRows={3}
-                                                      aria-label="maximum height"
-                                                      placeholder="Homework url link"
-                                                      readOnly={true}
-                                                      className={styles.HomeworkURL}
-                                                      value={homeworkURL}
-                                    />
-                                    <Button variant="contained"
-                                            startIcon={<ContentCopyIcon/>}
-                                            onClick={() => navigator.clipboard.writeText(homeworkURL as string)}>
-                                        Copy Link
-                                    </Button>
-                                </>
-                                : undefined
+                        {homeworkURL &&
+                            <>
+                                <TextareaAutosize minRows={3}
+                                                  aria-label="maximum height"
+                                                  placeholder="Homework url link"
+                                                  readOnly={true}
+                                                  className={styles.HomeworkURL}
+                                                  value={homeworkURL}
+                                />
+                                <Button variant="contained"
+                                        startIcon={<ContentCopyIcon/>}
+                                        onClick={() => navigator.clipboard.writeText(homeworkURL as string)}>
+                                    Copy Link
+                                </Button>
+                            </>
                         }
-
                     </div>
                     <>
-                        {
-                            !!questions && questions.length !== 0 ?
-                                questions.map((question, key) => {
-                                    return (
-                                        <div key={key}>
-                                            <div>
-                                                <strong>Question[{question.questionType}|{question.timeout}s]: {question.title}</strong>
-                                            </div>
-                                            {!!question.keys &&
-                                                <>
-                                                    <div>Answer: {question.keys[0]}</div>
-                                                    <div>Alternative:
-                                                        {question.keys.map((key, index) => {
-                                                            return (
-                                                                <div key={index}>
-                                                                    Key {index}: {key}
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </>
-                                            }
+                        {!!questions && questions.length !== 0 ?
+                            questions.map((question, key) => {
+                                return (
+                                    <div key={key}>
+                                        <div>
+                                            <strong>Question[{question.questionType}|{question.timeout}s]: {question.title}</strong>
                                         </div>
-                                    )
-                                }) : <div>There are no questions.</div>
+                                        {!!question.keys &&
+                                            <>
+                                                <div>Answer: {question.keys[0]}</div>
+                                                <div>Alternative:
+                                                    {question.keys.map((key, index) => {
+                                                        return (
+                                                            <div key={index}>
+                                                                Key {index}: {key}
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </>
+                                        }
+                                    </div>
+                                )
+                            }) : <div>There are no questions.</div>
                         }
                     </>
                 </Grid>

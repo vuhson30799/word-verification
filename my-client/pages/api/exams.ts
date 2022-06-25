@@ -21,7 +21,7 @@ function getExaminations(req: NextApiRequest, res: NextApiResponse) {
     console.log('Getting examination from database.')
     onValue(ref(database, `/examinations`), (snapshot => {
         const examinations = toExaminations(snapshot.val())
-        if (!!examinations) {
+        if (examinations) {
             res.status(200).json(examinations)
             console.log(`${examinations.length} examination are got from database.`)
         } else {
@@ -34,7 +34,7 @@ function getExaminations(req: NextApiRequest, res: NextApiResponse) {
 function createExamination(req: NextApiRequest, res: NextApiResponse) {
     const examination = <ExaminationData>JSON.parse(req.body)
     const invalidMessage = getInvalidMessage(examination)
-    if (!!invalidMessage) {
+    if (invalidMessage) {
         res.status(400).send({message: invalidMessage})
         return
     }
