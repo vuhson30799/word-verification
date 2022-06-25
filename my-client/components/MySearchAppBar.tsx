@@ -24,6 +24,7 @@ import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import Link from 'next/link';
+import styles from '../styles/MySearchAppBar.module.css'
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -128,7 +129,6 @@ export default function MySearchAppBar() {
                 horizontal: 'right',
             }}
             id={menuId}
-            keepMounted
             transformOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
@@ -142,18 +142,18 @@ export default function MySearchAppBar() {
     );
 
     return (
-        <Box sx={{ display: "flex" }}>
-            <AppBar position="fixed" open={open}>
+        <Box>
+            <AppBar className={styles.Header} position="fixed" open={open}>
                 <Toolbar>
                     <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerOpen} edge="start" sx={{ mr: 2, ...(open && { display: 'none' }) }}>
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        <Link href="/admin/dashboard">
-                            Word Verification
+                    <Typography className={styles.LogoTypography} variant="h6" noWrap component="div">
+                        <Link href="/admin/dashboard" >
+                            <div className={styles.Logo}>Word Verification</div>
                         </Link>
                     </Typography>
-                    <Search>
+                    <Search sx={{ display: { xs: 'none', md: 'flex' } }}>
                         <SearchIconWrapper>
                             <SearchIcon />
                         </SearchIconWrapper>
@@ -177,52 +177,50 @@ export default function MySearchAppBar() {
                     </Box>
                 </Toolbar>
             </AppBar>
-            <Drawer
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        boxSizing: 'border-box',
-                    },
-                }}
-                variant="persistent"
-                anchor="left"
-                open={open}
-            >
-                <DrawerHeader>
-                    <IconButton onClick={handleDrawerClose}>
-                        <ChevronLeftIcon />
-                    </IconButton>
-                </DrawerHeader>
-                <Divider />
-                <List>
-                    <Link href="/admin/quiz">
-                        <ListItem button >
-                            <ListItemIcon>
-                                <AddCircleOutlineIcon/>
-                            </ListItemIcon>
-                            <ListItemText primary="Create"/>
-                        </ListItem>
-                    </Link>
-                    <Link href="/admin/examination">
-                        <ListItem button >
-                            <ListItemIcon>
-                                <ViewListIcon/>
-                            </ListItemIcon>
-                            <ListItemText primary="Examinations"/>
-                        </ListItem>
-                    </Link>
-                    <ListItem button >
-                        <ListItemIcon>
-                            <AddCircleOutlineIcon/>
-                        </ListItemIcon>
-                        <ListItemText primary="Examinations"/>
-                    </ListItem>
-                </List>
-                <Divider />
-            </Drawer>
-            {renderMenu}
+            {open &&
+                <>
+                    <Drawer
+                        sx={{
+                            width: drawerWidth,
+                            flexShrink: 0,
+                            '& .MuiDrawer-paper': {
+                                width: drawerWidth,
+                                boxSizing: 'border-box',
+                            },
+                        }}
+                        variant="persistent"
+                        anchor="left"
+                        open={true}
+                    >
+                        <DrawerHeader>
+                            <IconButton onClick={handleDrawerClose}>
+                                <ChevronLeftIcon />
+                            </IconButton>
+                        </DrawerHeader>
+                        <Divider />
+                        <List>
+                            <Link href="/admin/quiz">
+                                <ListItem button >
+                                    <ListItemIcon>
+                                        <AddCircleOutlineIcon/>
+                                    </ListItemIcon>
+                                    <ListItemText primary="Create"/>
+                                </ListItem>
+                            </Link>
+                            <Link href="/admin/examination">
+                                <ListItem button >
+                                    <ListItemIcon>
+                                        <ViewListIcon/>
+                                    </ListItemIcon>
+                                    <ListItemText primary="Examinations"/>
+                                </ListItem>
+                            </Link>
+                        </List>
+                        <Divider />
+                    </Drawer>
+                    {renderMenu}
+                </>
+            }
         </Box>
     );
 }

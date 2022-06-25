@@ -1,0 +1,13 @@
+.Logo {
+    text-decoration: none;
+    color: #eaeaea;
+}
+
+.Logo:hover {
+    cursor: pointer;
+}
+
+.Header {
+    display: flex;
+    background-color: #1b4965;
+}

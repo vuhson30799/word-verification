@@ -1,12 +1,9 @@
 .adminLayout {
     display: flex;
-    background-color: #F2F2F2;
     min-height: 100vh;
+    font-family: "Arial", serif;
 }
 
 .main {
-    display: inherit;
-    width: 100vw;
-    margin-top: 10vh;
-    margin-right: 5px;
+    margin: 10vh 5px 8vh 0;
 }
