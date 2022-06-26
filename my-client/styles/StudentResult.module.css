@@ -7,7 +7,9 @@
     background-color: #eaeaea;
     position: absolute;
     bottom: 0;
-    min-width: 100ch;
+    min-width: 100vw;
+    animation-name: fade-in;
+    animation-duration: 2s;
 }
 
 .WrongMessage {
@@ -18,6 +20,13 @@
     background-color: #eaeaea;
     position: absolute;
     bottom: 0;
-    min-width: 100ch;
+    min-width: 100vw;
     color: #a8172f;
+    animation-name: fade-in;
+    animation-duration: 2s;
+}
+
+@keyframes fade-in {
+    from {bottom: -8vh}
+    to {bottom: 0}
 }

@@ -19,6 +19,7 @@ import {
 } from "../constant/ApplicationConstant";
 import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
+import Head from "next/head";
 
 export interface StudentAnswer {
     studentName: string
@@ -233,6 +234,12 @@ export default function AttendingExamination() {
 
     return (
         <>
+            <style global jsx>{`body {margin: 0;}`}</style>
+            <Head>
+                <title>Play Homework</title>
+                <meta name="description" content="Student zone page" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            </Head>
             {displayState.displayStudentName &&
                 <>
                     <form className={styles.StudentNameLayer}

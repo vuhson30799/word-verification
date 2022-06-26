@@ -7,10 +7,10 @@ import Box from '@mui/material/Box';
 function LinearProgressWithLabel(props: LinearProgressProps & { display: number }) {
     return (
         <Box sx={{display: 'flex', alignItems: 'center'}}>
-            <Box sx={{width: '97ch', mr: 1}}>
+            <Box sx={{width: '96vw', mr: 1}}>
                 <LinearProgress variant="determinate" {...props} />
             </Box>
-            <Box sx={{minWidth: '3ch'}}>
+            <Box sx={{minWidth: '4vw'}}>
                 <Typography variant="body2" color="white">{`${props.display}s`}</Typography>
             </Box>
         </Box>
@@ -38,7 +38,7 @@ export default function ProgressQuestionBar(props: HTMLProps<any> & { timeout: n
     return (
         <>
             { !!props.timeout && progress >= 0 ?
-                <Box sx={{width: '100ch'}}>
+                <Box sx={{width: '100vw'}}>
                     <LinearProgressWithLabel value={progress}
                                              display={displayProgress}/>
                 </Box>

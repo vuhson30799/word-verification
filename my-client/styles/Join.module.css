@@ -17,6 +17,7 @@
 
 .WhiteFont {
     color: #eaeaea;
+    font-family: "Arial", sans-serif;
 }
 
 .JoinOutLinedInput {
@@ -30,7 +31,7 @@
 .QuestionLayer {
     background-color: #343a40;
     min-height: 100vh;
-    min-width: 100ch;
+    min-width: 100vw;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -39,12 +40,13 @@
 
 .QuestionTitle {
     min-height: 40vh;
-    min-width: 100ch;
+    min-width: 100vw;
     text-align: center;
-    background-color: blueviolet;
+    background: radial-gradient(76.06% 76.06% at 53.17% 47.89%, #DF0B18 0%, #4200FF 100%);
     color: #eaeaea;
     margin-bottom: 10px;
     margin-top: 15vh;
+    font-family: "Arial", sans-serif;
 }
 
 .AnswerSubmit {
@@ -56,7 +58,7 @@
 }
 
 .ButtonAnswerSubmit {
-    max-width: 20ch;
+    max-width: 20vw;
 }
 
 .KeyContainer {
@@ -78,4 +80,5 @@
     justify-content: center;
     flex-direction: column;
     color: #eaeaea;
+    font-family: "Arial", sans-serif;
 }
