@@ -16,7 +16,7 @@
 }
 
 .WhiteFont {
-    color: #eaeaea;
+    color: #eaeaea !important;
     font-family: "Arial", sans-serif;
 }
 
@@ -65,6 +65,7 @@
     display: flex;
     justify-content: space-evenly;
     color: #2ba825;
+    flex-wrap: wrap;
 }
 
 .KeyStyle {
