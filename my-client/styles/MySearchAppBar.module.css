@@ -8,6 +8,6 @@
 }
 
 .Header {
-    display: flex;
-    background-color: #1b4965;
+    display: flex !important;
+    background-color: #1b4965 !important;
 }
