@@ -22,6 +22,7 @@ import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
 
 export interface StudentAnswer {
+    examId: string
     studentName: string
     correctAnswers: number
     beginningAt: string
@@ -29,9 +30,7 @@ export interface StudentAnswer {
 }
 
 enum StudentAnswerEnum {
-    StudentName,
-    CorrectAnswers,
-    FinishAt
+    StudentName
 }
 
 interface CurrentQuestion {
@@ -63,6 +62,7 @@ const initialDisplayState: DisplayState = {
 }
 
 const initialStudentAnswer: StudentAnswer = {
+    examId: "",
     studentName: "",
     correctAnswers: 0,
     beginningAt: "",
@@ -79,17 +79,35 @@ const initialAllowance: Allowance = {
     start: true
 }
 
+function shuffleExamination(examinationData: ExaminationData): ExaminationData {
+    const shuffledQuestions = []
+    const questions = examinationData.questions
+    while (questions.length !== 0) {
+        const index = Math.floor(Math.random() * questions.length);
+        shuffledQuestions.push(examinationData.questions[index])
+        questions.splice(index, 1)
+    }
+
+    examinationData.questions = shuffledQuestions
+    return examinationData
+
+}
+
 export default function AttendingExamination() {
     const router = useRouter()
     const {examId, beginningDate, deadlineDate} = router.query
-    const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
+    const [examinationData, setExaminationData] = useState<ExaminationData | undefined>(undefined)
+    const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>({
+        ...initialStudentAnswer,
+        examId: `${examId}`
+    })
     const [allowance, setAllowance] = useState<Allowance>(initialAllowance)
 
     const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
 
     const {
-        data: examinationData,
+        data,
         error
     } = useSWRImmutable<ExaminationData>(!!examId && !!beginningDate && !!deadlineDate ?
         [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
@@ -97,7 +115,9 @@ export default function AttendingExamination() {
     const {
         data: submitAnswerSuccess
     } = useSWRImmutable<{ success: string }>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null, fetcherWithForm)
-
+    useEffect(() => {
+        if (data) setExaminationData(shuffleExamination(data))
+    }, [data])
     useEffect(() => {
         if (studentAnswer.studentName.length === 0) {
             setAllowance({
@@ -114,7 +134,7 @@ export default function AttendingExamination() {
     }, [studentAnswer.studentName.length])
 
     if (error) return <MyToast message={error.message} severity={"error"} />
-    if (!examinationData) return <MySpinner/>
+    if (!data) return <MySpinner/>
     if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
 
     function handleChange(type: StudentAnswerEnum, value: string) {
@@ -123,18 +143,6 @@ export default function AttendingExamination() {
                 setStudentAnswer({
                     ...studentAnswer,
                     studentName: value
-                })
-                break
-            case StudentAnswerEnum.FinishAt:
-                setStudentAnswer({
-                    ...studentAnswer,
-                    finishAt: value
-                })
-                break
-            case StudentAnswerEnum.CorrectAnswers:
-                setStudentAnswer({
-                    ...studentAnswer,
-                    correctAnswers: Number.parseInt(value)
                 })
                 break
             default:
@@ -196,7 +204,7 @@ export default function AttendingExamination() {
 
         const noQuestionLeft = currentQuestion.questionNumber + 1 == examinationData.questions.length
         if (noQuestionLeft) {
-            setTimeout(showFinishPage, 5000)
+            setTimeout(showFinishPage, timeBetweenQuestions)
             return
         }
 
@@ -230,6 +238,7 @@ export default function AttendingExamination() {
         setCurrentQuestion(initialCurrentQuestion)
         setAllowance(initialAllowance)
         setStudentAnswer(initialStudentAnswer)
+        if (data) setExaminationData(shuffleExamination(data))
     }
 
     return (

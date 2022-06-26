@@ -36,6 +36,7 @@ async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiR
             return
         }
         const examination: ExaminationData = await examinationData.json()
+
         res.status(200).json(encodeExamination(examination))
     } else {
         res.status(400).json({message: 'This homework is no longer valid.'})
