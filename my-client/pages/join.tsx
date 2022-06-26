@@ -136,6 +136,11 @@ export default function AttendingExamination() {
     if (error) return <MyToast message={error.message} severity={"error"} />
     if (!data) return <MySpinner/>
     if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
+    if (displayState.displayStartingComponent) setTimeout(() => setDisplayState({
+        ...displayState,
+        displayQuestion: true,
+        displayStartingComponent: false
+    }), timeToDisplayFirstQuestion)
 
     function handleChange(type: StudentAnswerEnum, value: string) {
         switch (type) {
@@ -171,10 +176,6 @@ export default function AttendingExamination() {
     }
 
     function showFinishPage() {
-        setStudentAnswer({
-            ...studentAnswer,
-            finishAt: convertDate(new Date())
-        })
         setDisplayState({
             ...displayState,
             displayFinishPage: true,
@@ -196,7 +197,10 @@ export default function AttendingExamination() {
             setDisplayState({...displayState, displayStudentResult: true, displayKey: false})
             setStudentAnswer({
                 ...studentAnswer,
-                correctAnswers: studentAnswer.correctAnswers + 1
+                correctAnswers: studentAnswer.correctAnswers + 1,
+                // On the last question, I update student answer twice, then the second override value of correct answers cause a bug
+                // That's why I update finishAt here as a workaround.
+                finishAt: convertDate(new Date())
             })
         } else {
             setDisplayState({...displayState, displayStudentResult: true, displayKey: true})
@@ -227,17 +231,19 @@ export default function AttendingExamination() {
 
     }
 
-    if (displayState.displayStartingComponent) setTimeout(() => setDisplayState({
-        ...displayState,
-        displayQuestion: true,
-        displayStartingComponent: false
-    }), timeToDisplayFirstQuestion)
-
     function onPlayingAgain() {
-        setDisplayState(initialDisplayState)
+        setDisplayState({
+            ...initialDisplayState,
+            displayStartingComponent: true,
+            displayStudentName: false
+        })
         setCurrentQuestion(initialCurrentQuestion)
         setAllowance(initialAllowance)
-        setStudentAnswer(initialStudentAnswer)
+        setStudentAnswer({
+            ...initialStudentAnswer,
+            beginningAt: convertDate(new Date()),
+            studentName: studentAnswer.studentName
+        })
         if (data) setExaminationData(shuffleExamination(data))
     }
 
@@ -326,7 +332,8 @@ export default function AttendingExamination() {
             }
             {displayState.displayFinishPage &&
                 <div className={styles.FinishPage}>
-                    <h1>The end. Your result
+                    <h1>The end.</h1>
+                    <h1>Your result
                         is {studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
                     <h3>Start at: {studentAnswer.beginningAt}</h3>
                     <h3>Finish at: {studentAnswer.finishAt}</h3>
