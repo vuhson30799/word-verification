@@ -1,7 +1,7 @@
 import {decoding, emptyString, encoding} from "../../constant/ApplicationConstant";
 
 export function verifyAnswer(studentAnswer: string, keys: string[]): boolean {
-    const encodedAnswer = Buffer.from(studentAnswer).toString(encoding)
+    const encodedAnswer = Buffer.from(studentAnswer.toLowerCase()).toString(encoding)
     const decodedKeys = keys.map((key) => {
         const decodedKey = Buffer.from(key, encoding)
             .toString(decoding)

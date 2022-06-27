@@ -55,7 +55,7 @@ function validateHomework(homeworkData: HomeworkData[], beginningDate: string, d
 function encodeExamination(examinationData: ExaminationData): ExaminationData {
     const encodedQuestions = examinationData.questions.filter(question => !!question.keys).map((question) => {
         const encodedKeys = question.keys.map((key) => {
-            return Buffer.from(Buffer.from(key).toString(encoding).concat(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`)).toString(encoding)
+            return Buffer.from(Buffer.from(key.toLowerCase()).toString(encoding).concat(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`)).toString(encoding)
         })
         return {
             title: question.title,
