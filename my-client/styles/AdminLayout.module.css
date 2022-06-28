@@ -7,4 +7,5 @@
 
 .main {
     margin: 10vh 5px 8vh 0;
+    min-width: 80vw;
 }
