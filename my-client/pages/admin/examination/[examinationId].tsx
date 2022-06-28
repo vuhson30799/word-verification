@@ -16,18 +16,18 @@ import useSWRImmutable from "swr/immutable";
 
 export default function ExaminationDetail() {
     const router = useRouter()
-    const {pid} = router.query
+    const {examinationId} = router.query
     const [homeworkURL, setHomeworkURL] = useState<string>()
 
     let {
         data: examination,
         error
-    } = useSWRImmutable<ExaminationData>(pid ? [`/api/exams/${pid}`, 'get'] : null, fetcher)
+    } = useSWRImmutable<ExaminationData>(examinationId ? [`/api/exams/${examinationId}`, 'get'] : null, fetcher)
     if (error) return <MyToast message={error.message} severity="error"/>
     if (!examination) return <MySpinner/>
     const questions = examination?.questions
     // missing id when get examination from firebase database
-    if (examination) examination.id = `${pid}`
+    if (examination) examination.id = `${examinationId}`
 
     return (
         <Admin>
@@ -53,7 +53,7 @@ export default function ExaminationDetail() {
                         <AssignHomeworkModal title={"Assign Homework"}
                                              examinationId={examination.id}
                                              onChange={setHomeworkURL}/>
-                        <Button variant={"contained"} onClick={() => router.push(`/admin/examination/${pid}/homework`)}>
+                        <Button variant={"contained"} onClick={() => router.push(`/admin/examination/${examinationId}/homework`)}>
                             Available Homework
                         </Button>
                     </div>

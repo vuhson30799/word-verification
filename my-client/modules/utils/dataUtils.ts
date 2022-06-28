@@ -16,9 +16,24 @@ export function toHomeworks(object: any) {
     const homeworkIds = Object.keys(object)
     return homeworkIds.map(homeworkId => {
         return {
+            id: homeworkId,
             url: object[homeworkId].url,
             beginningDate: object[homeworkId].beginningDate,
             deadlineDate: object[homeworkId].deadlineDate
+        }
+    })
+}
+
+export function toAnswers(object: any) {
+    const answerIds = Object.keys(object)
+    return answerIds.map(answerId => {
+        return {
+            examId: object[answerId].examId,
+            homeworkId: object[answerId].homeworkId,
+            studentName: object[answerId].studentName,
+            correctAnswers: object[answerId].correctAnswers,
+            beginningAt: object[answerId].beginningAt,
+            finishAt: object[answerId].finishAt
         }
     })
 }

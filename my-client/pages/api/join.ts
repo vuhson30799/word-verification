@@ -1,7 +1,8 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
 import {encoding} from "../../constant/ApplicationConstant";
-import {HomeworkData} from "../admin/examination/[pid]/homework";
+import {HomeworkData} from "../admin/examination/[examinationId]/homework";
+import {HomeworkExam} from "../join";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
@@ -27,8 +28,9 @@ async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiR
         return
     }
 
-    const homework: HomeworkData[] = await homeworkData.json()
-    if (validateHomework(homework, <string> beginningDate, <string> deadlineDate)) {
+    const homeworks: HomeworkData[] = await homeworkData.json()
+    const homework = homeworks.find((homeworkData) => homeworkData.beginningDate === beginningDate && homeworkData.deadlineDate === deadlineDate)
+    if (homework && validateHomework(homework)) {
         const examinationData = await fetch(`${url.origin}/api/exams/${examId}`, {method: 'GET'})
         if (examinationData.status !== 200) {
             const response = await examinationData.json()
@@ -36,20 +38,21 @@ async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiR
             return
         }
         const examination: ExaminationData = await examinationData.json()
+        const homeworkExam: HomeworkExam = {
+            examination: encodeExamination(examination),
+            homeworkId: homework.id
+        }
 
-        res.status(200).json(encodeExamination(examination))
+        res.status(200).json(homeworkExam)
     } else {
         res.status(400).json({message: 'This homework is no longer valid.'})
     }
 }
 
-function validateHomework(homeworkData: HomeworkData[], beginningDate: string, deadlineDate: string): boolean {
-    return homeworkData.some((homework) => {
-        if (homework.deadlineDate !== deadlineDate || homework.beginningDate !== beginningDate) return false
-        const deadline = new Date(homework.deadlineDate)
-        const now = new Date()
-        return  now.getTime() < deadline.getTime()
-    })
+function validateHomework(homework: HomeworkData): boolean {
+    const deadline = new Date(homework.deadlineDate)
+    const now = new Date()
+    return  now.getTime() < deadline.getTime()
 }
 
 function encodeExamination(examinationData: ExaminationData): ExaminationData {

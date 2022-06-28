@@ -23,14 +23,11 @@ import Head from "next/head";
 
 export interface StudentAnswer {
     examId: string
+    homeworkId: string
     studentName: string
     correctAnswers: number
     beginningAt: string
     finishAt: string
-}
-
-enum StudentAnswerEnum {
-    StudentName
 }
 
 interface CurrentQuestion {
@@ -52,6 +49,11 @@ interface Allowance {
     start: boolean
 }
 
+export interface HomeworkExam {
+    examination: ExaminationData
+    homeworkId: string
+}
+
 const initialDisplayState: DisplayState = {
     displayStudentName: true,
     displayQuestion: false,
@@ -63,6 +65,7 @@ const initialDisplayState: DisplayState = {
 
 const initialStudentAnswer: StudentAnswer = {
     examId: "",
+    homeworkId: "",
     studentName: "",
     correctAnswers: 0,
     beginningAt: "",
@@ -97,10 +100,7 @@ export default function AttendingExamination() {
     const router = useRouter()
     const {examId, beginningDate, deadlineDate} = router.query
     const [examinationData, setExaminationData] = useState<ExaminationData | undefined>(undefined)
-    const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>({
-        ...initialStudentAnswer,
-        examId: `${examId}`
-    })
+    const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
     const [allowance, setAllowance] = useState<Allowance>(initialAllowance)
 
     const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
@@ -109,14 +109,21 @@ export default function AttendingExamination() {
     const {
         data,
         error
-    } = useSWRImmutable<ExaminationData>(!!examId && !!beginningDate && !!deadlineDate ?
+    } = useSWRImmutable<HomeworkExam>(!!examId && !!beginningDate && !!deadlineDate ?
         [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
 
     const {
         data: submitAnswerSuccess
     } = useSWRImmutable<{ success: string }>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null, fetcherWithForm)
     useEffect(() => {
-        if (data) setExaminationData(shuffleExamination(data))
+        if (data) {
+            setExaminationData(shuffleExamination(data.examination))
+            setStudentAnswer({
+                ...studentAnswer,
+                examId: `${examId}`,
+                homeworkId: `${data.homeworkId}`
+            })
+        }
     }, [data])
     useEffect(() => {
         if (studentAnswer.studentName.length === 0) {
@@ -141,19 +148,6 @@ export default function AttendingExamination() {
         displayQuestion: true,
         displayStartingComponent: false
     }), timeToDisplayFirstQuestion)
-
-    function handleChange(type: StudentAnswerEnum, value: string) {
-        switch (type) {
-            case StudentAnswerEnum.StudentName:
-                setStudentAnswer({
-                    ...studentAnswer,
-                    studentName: value
-                })
-                break
-            default:
-                throw new Error(`This ${type} can not be resolve.`)
-        }
-    }
 
     function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
@@ -204,6 +198,10 @@ export default function AttendingExamination() {
             })
         } else {
             setDisplayState({...displayState, displayStudentResult: true, displayKey: true})
+            setStudentAnswer({
+                ...studentAnswer,
+                finishAt: convertDate(new Date())
+            })
         }
 
         const noQuestionLeft = currentQuestion.questionNumber + 1 == examinationData.questions.length
@@ -239,12 +237,16 @@ export default function AttendingExamination() {
         })
         setCurrentQuestion(initialCurrentQuestion)
         setAllowance(initialAllowance)
-        setStudentAnswer({
-            ...initialStudentAnswer,
-            beginningAt: convertDate(new Date()),
-            studentName: studentAnswer.studentName
-        })
-        if (data) setExaminationData(shuffleExamination(data))
+        if (data) {
+            setExaminationData(shuffleExamination(data.examination))
+            setStudentAnswer({
+                ...initialStudentAnswer,
+                beginningAt: convertDate(new Date()),
+                studentName: studentAnswer.studentName,
+                examId: `${examId}`,
+                homeworkId: `${data.homeworkId}`
+            })
+        }
     }
 
     return (
@@ -265,7 +267,10 @@ export default function AttendingExamination() {
                                 className={styles.WhiteFont}
                                 id="studentName"
                                 value={studentAnswer.studentName}
-                                onChange={(e) => handleChange(StudentAnswerEnum.StudentName, e.target.value)}
+                                onChange={(e) => setStudentAnswer({
+                                    ...studentAnswer,
+                                    studentName: e.target.value
+                                })}
                                 label="Your name is..."
                                 autoComplete="off"
                             />
@@ -332,11 +337,8 @@ export default function AttendingExamination() {
             }
             {displayState.displayFinishPage &&
                 <div className={styles.FinishPage}>
-                    <h1>The end.</h1>
-                    <h1>Your result
-                        is {studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                    <h3>Start at: {studentAnswer.beginningAt}</h3>
-                    <h3>Finish at: {studentAnswer.finishAt}</h3>
+                    <h1>Your result</h1>
+                    <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
                     <Button variant="contained" onClick={onPlayingAgain}>
                         Play Again
                     </Button>

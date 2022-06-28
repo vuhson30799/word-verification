@@ -18,22 +18,22 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
-    const {pid} = req.query
+    const {examId} = req.query
     onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
-        equalTo(`${pid}`)), (snapshot) => {
-        const homeworkData = toHomeworks(snapshot.val())
-        if (homeworkData) {
+        equalTo(`${examId}`)), (snapshot) => {
+        if (snapshot.val()) {
+            const homeworkData = toHomeworks(snapshot.val())
             res.status(200).json(homeworkData)
         } else {
-            res.status(404).json({message: `Homework not found for exam ${pid}`})
+            res.status(404).json({message: `Homework not found for exam ${examId}`})
         }
     })
 }
 
 function createHomework(req: NextApiRequest, res: NextApiResponse) {
-    const {pid} = req.query
+    const {examId} = req.query
     const assignHomeworkData = <AssignHomeworkData> req.body
-    const url = `${req.headers.origin}/join?examId=${pid}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
-    push(ref(database, '/homeworks'), {url, examId: pid, ...assignHomeworkData})
+    const url = `${req.headers.origin}/join?examId=${examId}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
+    push(ref(database, '/homeworks'), {url, examId, ...assignHomeworkData})
     res.status(200).send(url)
 }

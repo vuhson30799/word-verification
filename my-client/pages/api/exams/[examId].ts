@@ -14,16 +14,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
-    const {pid} = req.query
-    console.log(`Retrieving examination ${pid} from database.`)
-    onValue(ref(database, `/examinations/${pid}`), (snapshot) => {
+    const {examId} = req.query
+    console.log(`Retrieving examination ${examId} from database.`)
+    onValue(ref(database, `/examinations/${examId}`), (snapshot) => {
         const examinationData = <ExaminationData> snapshot.val()
         if (examinationData) {
             res.status(200).json(examinationData)
-            console.log(`Retrieved examination ${pid} from database.`)
+            console.log(`Retrieved examination ${examId} from database.`)
         } else {
-            res.status(404).json({message: `Examination with id: ${pid} not found `})
-            console.log(`Error when try retrieving examination ${pid} from database.`)
+            res.status(404).json({message: `Examination with id: ${examId} not found `})
+            console.log(`Error when try retrieving examination ${examId} from database.`)
         }
     }, {
         onlyOnce: true

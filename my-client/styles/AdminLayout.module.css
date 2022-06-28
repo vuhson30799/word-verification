@@ -1,5 +1,6 @@
 .adminLayout {
     display: flex;
+    justify-content: center;
     min-height: 100vh;
     font-family: "Arial", serif;
 }
