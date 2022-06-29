@@ -52,6 +52,10 @@ export default function CompletedStudents() {
                                 </TableCell>
                             </TableRow>
                         ))}
+                        <TableRow>
+                            <TableCell colSpan={3} align="right">Total</TableCell>
+                            <TableCell align="right">{studentAnswers.length}</TableCell>
+                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>
