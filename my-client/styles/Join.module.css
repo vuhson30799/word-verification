@@ -8,8 +8,8 @@
 }
 
 .JoinFormControl {
-    min-width: 40ch;
-    max-width: 90ch;
+    min-width: 40vw;
+    max-width: 90vw;
     margin-bottom: 10px;
     color: #eaeaea ;
     border-color: #eaeaea;

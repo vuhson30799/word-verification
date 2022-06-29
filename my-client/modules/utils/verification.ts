@@ -13,7 +13,6 @@ export function verifyAnswer(studentAnswer: string, keys: string[]): boolean {
 
 export function translateKey(key: string): string {
     const decodedKey = Buffer.from(key, encoding).toString(decoding)
-    console.log(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`)
     return Buffer.from(decodedKey.replace(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`, ''), encoding)
         .toString(decoding)
 }

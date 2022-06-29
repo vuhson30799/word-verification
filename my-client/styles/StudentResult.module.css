@@ -27,6 +27,6 @@
 }
 
 @keyframes fade-in {
-    from {bottom: -8vh}
-    to {bottom: 0}
+    from {bottom: -7vh}
+    to {bottom: -2vh}
 }
