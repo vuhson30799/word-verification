@@ -298,7 +298,7 @@ export default function AttendingExamination() {
                                                                   timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
                                                                   handleTimeout={OnStudentAnswerSubmit}/>}
                         <div className={styles.QuestionTitle}>
-                            <h2>{examinationData.questions[currentQuestion.questionNumber].title}</h2>
+                            <h2>Question {currentQuestion.questionNumber + 1}: {examinationData.questions[currentQuestion.questionNumber].title}</h2>
                             {displayState.displayKey && !!examinationData &&
                                 <h5 className={styles.KeyContainer}>
                                     {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
