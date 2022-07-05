@@ -6,7 +6,7 @@ export function extractQuestionsFromExcel(file: File): Promise<Question[]> {
     return readXlsxFile(file).then((rows) => {
         let questions: Question[] = []
         rows.forEach((row, index) => {
-            if (index >= 3) {
+            if (index >= 2) {
                 const title = <string>row[0]
                 const questionType = <string>row[1]
                 const timeout = <number>row[8]
