@@ -6,6 +6,7 @@ import {Admin} from "../../../../../../layout/Admin";
 import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import MyToast from "../../../../../../components/MyToast";
 import {MySpinner} from "../../../../../../components/MySpinner";
+import {groupBy, maxBy, uniq} from "lodash";
 
 export default function CompletedStudents() {
     const router = useRouter()
@@ -23,6 +24,17 @@ export default function CompletedStudents() {
     if (error) return <MyToast message={error.message} severity="error"/>
     if (!studentAnswers) return <MySpinner/>
 
+    function getHighestStudentScores(studentAnswers: StudentAnswer[]) {
+        const studentNames = uniq(studentAnswers.map(answer => answer.studentName))
+        const groupedAnswers = groupBy(studentAnswers, 'studentName')
+        let response: StudentAnswer[] = []
+        studentNames.forEach((studentName) => {
+            const max = maxBy(groupedAnswers[studentName], 'correctAnswers')
+            if (max) response.push(max)
+        })
+        return response
+    }
+
     return (
         <Admin>
             <TableContainer component={Paper}>
@@ -36,7 +48,7 @@ export default function CompletedStudents() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {studentAnswers.map((answer, key) => (
+                        {getHighestStudentScores(studentAnswers).map((answer, key) => (
                             <TableRow key={key}>
                                 <TableCell align="left">
                                     {answer.studentName}
@@ -54,7 +66,7 @@ export default function CompletedStudents() {
                         ))}
                         <TableRow>
                             <TableCell colSpan={3} align="right">Total</TableCell>
-                            <TableCell align="right">{studentAnswers.length}</TableCell>
+                            <TableCell align="right">{getHighestStudentScores(studentAnswers).length}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
