@@ -20,6 +20,7 @@ import {
 import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
+import useSWR from "swr";
 
 export interface StudentAnswer {
     examId: string
@@ -113,8 +114,9 @@ export default function AttendingExamination() {
         [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
 
     const {
-        data: submitAnswerSuccess
-    } = useSWRImmutable<{ success: string }>(displayState.displayFinishPage ? [`/api/answers`, 'post', studentAnswer] : null, fetcherWithForm)
+        data: submitAnswerSuccess,
+        error: submitAnswerError
+    } = useSWR<{ success: string }>(displayState.displayFinishPage ? ['/api/answers', 'post', studentAnswer] : null, fetcherWithForm)
     useEffect(() => {
         if (data) {
             setExaminationData(shuffleExamination(data.examination))
@@ -141,6 +143,7 @@ export default function AttendingExamination() {
     }, [studentAnswer.studentName.length])
 
     if (error) return <MyToast message={error.message} severity={"error"} />
+    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"} />
     if (!data) return <MySpinner/>
     if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
     if (displayState.displayStartingComponent) setTimeout(() => setDisplayState({
