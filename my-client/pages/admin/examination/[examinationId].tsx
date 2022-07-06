@@ -18,13 +18,26 @@ export default function ExaminationDetail() {
     const router = useRouter()
     const {examinationId} = router.query
     const [homeworkURL, setHomeworkURL] = useState<string>()
+    const [submitDeletion, setSubmitDeletion] = useState<boolean>(false)
 
     let {
         data: examination,
         error
     } = useSWRImmutable<ExaminationData>(examinationId ? [`/api/exams/${examinationId}`, 'get'] : null, fetcher)
+
+    const {
+        data: deleteExaminationSuccess,
+        error: deleteExaminationError
+    } = useSWRImmutable<{message: string}>(submitDeletion ?  [`/api/exams/${examinationId}`, 'delete'] : null, fetcher)
     if (error) return <MyToast message={error.message} severity="error"/>
+    if (deleteExaminationError) return <MyToast message={deleteExaminationError.message} severity="error"/>
     if (!examination) return <MySpinner/>
+    if (submitDeletion && !deleteExaminationSuccess) return <MySpinner/>
+    if (submitDeletion && deleteExaminationSuccess) {
+        router.push('/admin/examination').then(() => {
+            router.reload()
+        })
+    }
     const questions = examination?.questions
     // missing id when get examination from firebase database
     if (examination) examination.id = `${examinationId}`
@@ -81,7 +94,7 @@ export default function ExaminationDetail() {
                                 return (
                                     <div key={key}>
                                         <div>
-                                            <strong>Question[{question.questionType}|{question.timeout}s]: {question.title}</strong>
+                                            <strong>Question {key + 1} [{question.questionType}|{question.timeout}s]: {question.title}</strong>
                                         </div>
                                         {!!question.keys &&
                                             <>
@@ -90,7 +103,7 @@ export default function ExaminationDetail() {
                                                     {question.keys.map((key, index) => {
                                                         return (
                                                             <div key={index}>
-                                                                Key {index}: {key}
+                                                                Key {index + 1}: {key}
                                                             </div>
                                                         )
                                                     })}
@@ -102,6 +115,13 @@ export default function ExaminationDetail() {
                             }) : <div>There are no questions.</div>
                         }
                     </>
+                    <div className={styles.DeleteExamination}>
+                        <Button variant={"contained"}
+                                color="error"
+                                onClick={() => setSubmitDeletion(true)}>
+                            Delete Examination
+                        </Button>
+                    </div>
                 </Grid>
                 <Grid item xs={2} md={2} xl={2}/>
             </Grid>

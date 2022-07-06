@@ -28,6 +28,7 @@ export function toAnswers(object: any) {
     const answerIds = Object.keys(object)
     return answerIds.map(answerId => {
         return {
+            id: answerId,
             examId: object[answerId].examId,
             homeworkId: object[answerId].homeworkId,
             studentName: object[answerId].studentName,

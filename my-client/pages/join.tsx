@@ -23,6 +23,7 @@ import Head from "next/head";
 import useSWR from "swr";
 
 export interface StudentAnswer {
+    id?: string
     examId: string
     homeworkId: string
     studentName: string

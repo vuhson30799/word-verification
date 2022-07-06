@@ -52,3 +52,9 @@
     justify-content: space-around;
     margin-bottom: 10px;
 }
+
+.DeleteExamination {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}

@@ -1,15 +1,18 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {onValue, ref} from "firebase/database";
+import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
+import {toAnswers, toHomeworks} from "../../../modules/utils/dataUtils";
+import {StudentAnswer} from "../../join";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
         case 'GET':
-            retrieveExamination(req, res)
-            break
+            return retrieveExamination(req, res)
+        case 'DELETE':
+            return deleteExamination(req, res)
         default:
-            res.status(405).json({message: 'Request is not supported'})
+            return res.status(405).json({message: 'Request is not supported'})
     }
 }
 
@@ -28,4 +31,35 @@ function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
     }, {
         onlyOnce: true
     })
+}
+
+async function deleteExamination(req: NextApiRequest, res: NextApiResponse) {
+    const {examId} = req.query
+    const updates: Record<string, any> = {}
+    // delete examination
+    updates[`/examinations/${examId}`] = null
+    // delete homework of this examination
+    await onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
+        equalTo(`${examId}`)), async (snapshot) => {
+        if (snapshot.val()) {
+            const homeworkData = toHomeworks(snapshot.val())
+            for (const homework of homeworkData) {
+                updates[`/homeworks/${homework.id}`] = null
+                // delete all answer related
+                await onValue(query(ref(database, `/answers`), orderByChild('examId'),
+                    equalTo(`${examId}`)), (snapshot) => {
+                    if (snapshot.val()) {
+                        const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homework.id)
+                        answers.forEach(answer => {
+                            if (answer.id) updates[`/answers/${answer.id}`] = null
+                        })
+                    }
+                })
+            }
+        }
+
+    })
+
+    await update(ref(database), updates);
+    return res.status(200).json({message: 'This examination is deleted successfully. All homework and students answers are also deleted accordingly.'})
 }
