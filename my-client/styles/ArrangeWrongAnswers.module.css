@@ -1,0 +1,21 @@
+.InputAnswers {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.InputTextarea {
+    min-width: 80vw;
+    min-height: 15vh;
+}
+
+.ProceedButton {
+    margin: 10px 0;
+}
+
+.GroupButton {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}

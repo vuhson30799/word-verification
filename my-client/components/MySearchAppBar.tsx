@@ -23,6 +23,7 @@ import {Menu} from '@mui/material';
 import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ViewListIcon from '@mui/icons-material/ViewList';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import Link from 'next/link';
 import styles from '../styles/MySearchAppBar.module.css'
 
@@ -213,6 +214,14 @@ export default function MySearchAppBar() {
                                         <ViewListIcon/>
                                     </ListItemIcon>
                                     <ListItemText primary="Examinations"/>
+                                </ListItem>
+                            </Link>
+                            <Link href="/admin/utils/arrange-wrong-answers">
+                                <ListItem button >
+                                    <ListItemIcon>
+                                        <BugReportIcon/>
+                                    </ListItemIcon>
+                                    <ListItemText primary="Arrange wrong answers"/>
                                 </ListItem>
                             </Link>
                         </List>
