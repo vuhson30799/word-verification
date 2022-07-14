@@ -13,14 +13,20 @@ import {
 } from "@mui/material";
 import {useState} from "react";
 import {
+    generateFileResult,
     generateQuestionResults,
-    generateStudentResults, Messages,
+    generateStudentResults,
     QuestionResult,
     StudentResult
 } from "../../../modules/utils/englishUtils";
 import styles from '../../../styles/ArrangeWrongAnswers.module.css'
-import {isEmpty} from "lodash";
 import MyToast from "../../../components/MyToast";
+import {isEmpty} from "lodash";
+
+interface FileResult {
+    href: string
+    output: string
+}
 
 export default function EnglishUtils() {
     const [displayTable, setDisplayTable] = useState<boolean>(false)
@@ -28,6 +34,10 @@ export default function EnglishUtils() {
     const [gradeToGroup, setGradeToGroup] = useState<string>("")
     const [studentResults, setStudentResults] = useState<StudentResult[]>([])
     const [questionResults, setQuestionResults] = useState<QuestionResult[]>([])
+    const [fileResult, setFileResult] = useState<FileResult>({
+        href: "#",
+        output: `Result_at_${(new Date).toISOString()}.txt`
+    })
     function onProceedArrangingAnswers() {
         setDisplayTable(true)
         const {
@@ -46,7 +56,13 @@ export default function EnglishUtils() {
         setStudentResults(updatedStudentResults)
     }
     function onGroupingQuestion() {
-        setQuestionResults(generateQuestionResults(studentResults, gradeToGroup))
+        const groupedQuestionResults = generateQuestionResults(studentResults, gradeToGroup)
+        setQuestionResults(groupedQuestionResults)
+        const downloadLink = URL.createObjectURL(generateFileResult(groupedQuestionResults))
+        setFileResult({
+            ...fileResult,
+            href: downloadLink
+        })
     }
     return (
         <Admin>
@@ -103,6 +119,12 @@ export default function EnglishUtils() {
                         <Button variant="text" onClick={onGroupingQuestion}>
                             Group By Class
                         </Button>
+                        {!isEmpty(fileResult.href) &&
+                            <Button variant="text">
+                                <a href={fileResult.href} download={fileResult.output}>(Download)</a>
+                            </Button>
+                        }
+
                     </div>
                     <TableContainer component={Paper}>
                         <Table aria-label="student result table">

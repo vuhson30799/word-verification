@@ -66,6 +66,13 @@ export function generateQuestionResults(studentResults: StudentResult[], gradeTo
     }])
 }
 
+export function generateFileResult(questionResults: QuestionResult[]): Blob {
+    const lines = questionResults.map(question => `${question.question}\t| ${question.studentNames.join(" , ")}\n`)
+    return new Blob(lines, {
+        type: "text/plain"
+    })
+}
+
 function validateInput(name: string, grade: string, wrongQuestions: string, messages: Messages, lineNumber: number): boolean {
     if (!name || !grade || !wrongQuestions) {
         messages.errorMessages.push(`Missing name or grade or wrong questions at line ${lineNumber + 1}`)
