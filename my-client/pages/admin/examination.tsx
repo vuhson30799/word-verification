@@ -10,6 +10,7 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import useSWRImmutable from "swr/immutable";
 import MyToast from "../../components/MyToast";
 import React from "react";
+import {orderBy} from "lodash";
 
 
 export interface Question {
@@ -40,7 +41,7 @@ function Examination() {
             <div className={styles.Examination}>
                 <Grid rowSpacing={2} container>
                     {
-                        examinations.map((examination, key) => {
+                        orderExamsByCreatedDate(examinations).map((examination, key) => {
                             return (
                                 <Grid container key={key}>
                                     <Grid item xs={2} md={2} xl={2}/>
@@ -72,6 +73,12 @@ function Examination() {
             </div>
         </Admin>
     )
+}
+
+function orderExamsByCreatedDate(examinations: ExaminationData[]): ExaminationData[] {
+    return orderBy(examinations, (exam) => {
+        return Date.parse(exam.createdDate)
+    }, ['desc'])
 }
 
 export default Examination;
