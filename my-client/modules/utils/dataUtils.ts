@@ -33,6 +33,8 @@ export function toAnswers(object: any) {
             homeworkId: object[answerId].homeworkId,
             studentName: object[answerId].studentName,
             correctAnswers: object[answerId].correctAnswers,
+            trial: object[answerId].trial,
+            questionNumber: object[answerId].questionNumber,
             beginningAt: object[answerId].beginningAt,
             finishAt: object[answerId].finishAt
         }

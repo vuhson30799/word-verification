@@ -28,8 +28,10 @@ export interface StudentAnswer {
     homeworkId: string
     studentName: string
     correctAnswers: number
-    beginningAt: string
-    finishAt: string
+    trial: number
+    questionNumber?: number
+    beginningAt?: string
+    finishAt?: string
 }
 
 interface CurrentQuestion {
@@ -70,6 +72,7 @@ const initialStudentAnswer: StudentAnswer = {
     homeworkId: "",
     studentName: "",
     correctAnswers: 0,
+    trial: 1,
     beginningAt: "",
     finishAt: ""
 }
@@ -118,14 +121,38 @@ export default function AttendingExamination() {
         data: submitAnswerSuccess,
         error: submitAnswerError
     } = useSWR<{ success: string }>(displayState.displayFinishPage ? ['/api/answers', 'post', studentAnswer] : null, fetcherWithForm)
+
+    // update current state of student
+    useSWR(currentQuestion.questionNumber % 5 == 0
+    && currentQuestion.questionNumber != 0
+        ? [`/api/answers/current-state`, 'post', {
+        ...studentAnswer,
+        questionNumber: currentQuestion.questionNumber + 1
+    }] : null, fetcherWithForm)
     useEffect(() => {
+        const lastExamId = localStorage.getItem('examId')
+        const lastHomeworkId = localStorage.getItem('homeworkId')
+        const lastTrial = localStorage.getItem('trial')
+        const lastStudentName = localStorage.getItem('studentName')
         if (data) {
+            if (lastExamId === examId
+                && lastHomeworkId === data.homeworkId
+                && lastStudentName === studentAnswer.studentName
+                && lastTrial) {
+                setStudentAnswer({
+                    ...studentAnswer,
+                    examId: `${examId}`,
+                    homeworkId: `${data.homeworkId}`,
+                    trial: Number.parseInt(lastTrial)
+                })
+            } else {
+                setStudentAnswer({
+                    ...studentAnswer,
+                    examId: `${examId}`,
+                    homeworkId: `${data.homeworkId}`
+                })
+            }
             setExaminationData(shuffleExamination(data.examination))
-            setStudentAnswer({
-                ...studentAnswer,
-                examId: `${examId}`,
-                homeworkId: `${data.homeworkId}`
-            })
         }
     }, [data])
     useEffect(() => {
@@ -153,7 +180,15 @@ export default function AttendingExamination() {
         displayStartingComponent: false
     }), timeToDisplayFirstQuestion)
 
-    function OnStartButtonClick(e: FormEvent) {
+
+    window.onbeforeunload = function updateHomeworkLocalStorage(): void {
+        localStorage.setItem('examId', `${examId}`)
+        localStorage.setItem('homeworkId', `${data?.homeworkId}`)
+        localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
+        localStorage.setItem('studentName', `${studentAnswer.studentName}`)
+    }
+
+        function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
         setDisplayState({
             ...displayState,
@@ -247,6 +282,7 @@ export default function AttendingExamination() {
                 ...initialStudentAnswer,
                 beginningAt: convertDate(new Date()),
                 studentName: studentAnswer.studentName,
+                trial: studentAnswer.trial + 1,
                 examId: `${examId}`,
                 homeworkId: `${data.homeworkId}`
             })
