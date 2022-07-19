@@ -1,5 +1,5 @@
 export const encoding = 'base64'
-export const decoding = 'ascii'
+export const decoding = 'utf-8'
 
 export const emptyString = ''
 
