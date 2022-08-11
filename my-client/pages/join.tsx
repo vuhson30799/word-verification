@@ -358,6 +358,7 @@ export default function AttendingExamination() {
                                     id="currentAnswer"
                                     value={currentQuestion.studentAnswer}
                                     autoComplete="off"
+                                    disabled={!allowance.answer}
                                     onChange={(e) => handleStudentAnswerChange(e.target.value)}
                                 />
                             </FormControl>
