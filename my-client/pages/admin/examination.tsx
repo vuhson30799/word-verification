@@ -7,10 +7,10 @@ import Link from "next/link";
 import Image from 'next/image'
 import {getRandomColor} from "../../modules/utils/color";
 import QuizIcon from '@mui/icons-material/Quiz';
-import useSWRImmutable from "swr/immutable";
 import MyToast from "../../components/MyToast";
 import React from "react";
 import {orderBy} from "lodash";
+import useSWR from "swr";
 
 
 export interface Question {
@@ -33,7 +33,7 @@ function Examination() {
     const {
         data: examinations,
         error
-    } = useSWRImmutable<ExaminationData[]>(['/api/exams', 'get'], fetcher)
+    } = useSWR<ExaminationData[]>(['/api/exams', 'get'], fetcher)
     if (error) return <MyToast message={error.message} severity={"error"} />
     if (!examinations) return <MySpinner/>
     return (

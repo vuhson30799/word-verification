@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useRef, useState} from 'react';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -8,12 +9,10 @@ import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
 import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
-import {useRef, useState} from "react";
 import {HomeworkData} from "../pages/admin/examination/[examinationId]/homework";
 import {useRouter} from "next/router";
 import useSWRImmutable from "swr/immutable";
 import {fetcher} from "../modules/configuration/Configuration";
-import MyToast from "./MyToast";
 
 const options = ['Copy Homework URL', 'Display completed students', 'Remove'];
 
@@ -25,8 +24,8 @@ export default function HomeworkSplitButton(props: {homeworkData: HomeworkData})
     const [selectedIndex, setSelectedIndex] = useState(1)
     const [submitDeletion, setSubmitDeletion] = useState(false)
 
-    const handleClick = (selectedIndex: number) => {
-        switch (selectedIndex) {
+    const handleClick = (index: number) => {
+        switch (index) {
             case 0:
                 return navigator.clipboard.writeText(props.homeworkData.url)
             case 1:
