@@ -161,7 +161,6 @@ export default function AttendingExamination() {
                 ...allowance,
                 start: false
             })
-            return
         } else {
             setAllowance({
                 ...allowance,
@@ -377,6 +376,7 @@ export default function AttendingExamination() {
             }
             {displayState.displayFinishPage &&
                 <div className={styles.FinishPage}>
+                    {examinationData && <h1>Examination - {examinationData.title}</h1>}
                     <h1>Your result</h1>
                     <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
                     <Button variant="contained" onClick={onPlayingAgain}>
