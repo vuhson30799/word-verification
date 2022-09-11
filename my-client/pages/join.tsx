@@ -21,6 +21,7 @@ import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
 import useSWR from "swr";
+import Script from "next/script";
 
 export interface StudentAnswer {
     id?: string
@@ -46,6 +47,7 @@ interface DisplayState {
     displayStudentResult: boolean
     displayKey: boolean
     displayFinishPage: boolean
+    displayCheatingPage: boolean
 }
 
 interface Allowance {
@@ -64,7 +66,8 @@ const initialDisplayState: DisplayState = {
     displayStartingComponent: false,
     displayStudentResult: false,
     displayKey: false,
-    displayFinishPage: false
+    displayFinishPage: false,
+    displayCheatingPage: false
 }
 
 const initialStudentAnswer: StudentAnswer = {
@@ -186,8 +189,9 @@ export default function AttendingExamination() {
         localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
         localStorage.setItem('studentName', `${studentAnswer.studentName}`)
     }
+    document.onvisibilitychange = showCheatingPage
 
-        function OnStartButtonClick(e: FormEvent) {
+    function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
         setDisplayState({
             ...displayState,
@@ -215,7 +219,15 @@ export default function AttendingExamination() {
         })
     }
 
-    function OnStudentAnswerSubmit(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
+    function showCheatingPage() {
+        setDisplayState({
+            ...displayState,
+            displayCheatingPage: true,
+            displayQuestion: false
+        })
+    }
+
+    function onStudentAnswerSubmit(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
         e.preventDefault()
         if (!allowance.answer) return
 
@@ -332,10 +344,10 @@ export default function AttendingExamination() {
             {displayState.displayQuestion && examinationData &&
                 <>
                     <form className={styles.QuestionLayer}
-                          onSubmit={(e) => OnStudentAnswerSubmit(e)}>
+                          onSubmit={(e) => onStudentAnswerSubmit(e)}>
                         {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
                                                                   timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                                                  handleTimeout={OnStudentAnswerSubmit}/>}
+                                                                  handleTimeout={onStudentAnswerSubmit}/>}
                         <div className={styles.QuestionTitle}>
                             <h2>Question {currentQuestion.questionNumber + 1}: {examinationData.questions[currentQuestion.questionNumber].title}</h2>
                             {displayState.displayKey && !!examinationData &&
@@ -363,7 +375,7 @@ export default function AttendingExamination() {
                             <Button className={styles.ButtonAnswerSubmit}
                                     variant="contained"
                                     disabled={!allowance.answer}
-                                    onClick={(e) => OnStudentAnswerSubmit(e)}>
+                                    onClick={(e) => onStudentAnswerSubmit(e)}>
                                 Submit
                             </Button>
                         </div>
@@ -385,6 +397,19 @@ export default function AttendingExamination() {
                     {!!submitAnswerSuccess
                         && <MyToast message={submitAnswerSuccess.success} severity="success"/>
                     }
+                </div>
+            }
+            {displayState.displayCheatingPage &&
+                <div className={styles.FinishPage}>
+                    {examinationData && <h1>Examination - {examinationData.title}</h1>}
+
+                    <h1>Your result</h1>
+                    <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
+                    <h5>Detecting cheating when you open another tab or different application. Your result will not be submitted. Please start over.</h5>
+                    <Button variant="contained" onClick={onPlayingAgain}>
+                        Play Again
+                    </Button>
+
                 </div>
             }
         </>
