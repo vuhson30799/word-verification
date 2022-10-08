@@ -16,12 +16,13 @@
     "@mui/x-date-pickers": "^5.0.0-alpha.0",
     "date-fns": "^2.28.0",
     "firebase": "^9.8.3",
+    "lodash": "^4.17.21",
     "next": "12.1.4",
     "react": "18.0.0",
     "react-dom": "18.0.0",
     "read-excel-file": "^5.3.4",
     "swr": "^1.2.2",
-    "lodash": "^4.17.21"
+    "usehooks-ts": "^2.7.2"
   },
   "devDependencies": {
     "@types/node": "17.0.23",

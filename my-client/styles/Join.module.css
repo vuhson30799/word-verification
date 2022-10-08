@@ -1,5 +1,4 @@
 .StudentNameLayer {
-    background-color: #343a40;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -29,7 +28,6 @@
 }
 
 .QuestionLayer {
-    background-color: #343a40;
     min-height: 100vh;
     min-width: 100vw;
     display: flex;
@@ -74,7 +72,6 @@
 }
 
 .FinishPage {
-    background-color: #343a40;
     min-height: 100vh;
     display: flex;
     align-items: center;

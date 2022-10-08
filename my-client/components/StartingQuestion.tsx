@@ -1,25 +1,15 @@
-import {useEffect, useState} from "react";
 import styles from "../styles/StartingQuestion.module.css"
+import {MyCircularProgress} from "./MyCircularProgress";
+import {timeBetweenStartingComponents} from "../constant/ApplicationConstant";
 
-export interface StartingQuestionProps {
-    title: string
-    timeout: number
-    displayAfter: number
-}
-
-export default function StartingQuestion(props: StartingQuestionProps) {
-    const [open, setOpen] = useState<boolean>(false)
-
-    useEffect(() => {
-        setTimeout(() => setOpen(true), props.displayAfter)
-        setTimeout(() => setOpen(false), props.displayAfter + props.timeout)
-    }, [])
-    return ( open ?
-        <>
-            <div className={styles.StartingQuestionTitle}>
-                {props.title}
-            </div>
-        </>
-            : null
+export default function StartingQuestion() {
+    return (
+        <div className={styles.StartingQuestionTitle}>
+            <MyCircularProgress
+                timeout={timeBetweenStartingComponents}
+                duration={4}
+                size={15}
+            />
+        </div>
     )
 }

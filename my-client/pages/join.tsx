@@ -6,7 +6,6 @@ import {ExaminationData} from "./admin/examination";
 import {fetcher, fetcherWithForm} from "../modules/configuration/Configuration";
 import {useRouter} from "next/router";
 import {convertDate} from "../modules/utils/dateUtils";
-import StartingQuestion from "../components/StartingQuestion";
 import {translateKey, verifyAnswer} from "../modules/utils/verification";
 import ProgressQuestionBar from "../components/ProgressQuestionBar";
 import {StudentResult, StudentResultType} from "../components/StudentResult";
@@ -14,14 +13,14 @@ import DoneIcon from '@mui/icons-material/Done';
 import {
     timeBetweenQuestions,
     timeBetweenStartingComponents,
-    timeToDisplay3,
     timeToDisplayFirstQuestion
 } from "../constant/ApplicationConstant";
 import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
 import useSWR from "swr";
-import Script from "next/script";
+import {MyCircularProgress} from "../components/MyCircularProgress";
+import StartingQuestion from "../components/StartingQuestion";
 
 export interface StudentAnswer {
     id?: string
@@ -189,7 +188,7 @@ export default function AttendingExamination() {
         localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
         localStorage.setItem('studentName', `${studentAnswer.studentName}`)
     }
-    document.onvisibilitychange = showCheatingPage
+    // document.onvisibilitychange = showCheatingPage
 
     function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
@@ -302,7 +301,13 @@ export default function AttendingExamination() {
 
     return (
         <>
-            <style global jsx>{`body {margin: 0;}`}</style>
+            <style global jsx>
+                {`body {margin: 0;
+                background-image: url('/background.svg');
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-color: #343a40;}`}
+            </style>
             <Head>
                 <title>Play Homework</title>
                 <meta name="description" content="Student zone page" />
@@ -333,14 +338,7 @@ export default function AttendingExamination() {
 
                 </>
             }
-            {displayState.displayStartingComponent &&
-                <>
-                    <StartingQuestion title={"3"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3}/>
-                    <StartingQuestion title={"2"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + timeBetweenStartingComponents}/>
-                    <StartingQuestion title={"1"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + 2 * timeBetweenStartingComponents}/>
-                    <StartingQuestion title={"Go!"} timeout={timeBetweenStartingComponents} displayAfter={timeToDisplay3 + 3 * timeBetweenStartingComponents}/>
-                </>
-            }
+            {displayState.displayStartingComponent && <StartingQuestion />}
             {displayState.displayQuestion && examinationData &&
                 <>
                     <form className={styles.QuestionLayer}
