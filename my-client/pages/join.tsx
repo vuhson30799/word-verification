@@ -21,6 +21,7 @@ import Head from "next/head";
 import useSWR from "swr";
 import {MyCircularProgress} from "../components/MyCircularProgress";
 import StartingQuestion from "../components/StartingQuestion";
+import MyInput from "../components/MyInput";
 
 export interface StudentAnswer {
     id?: string
@@ -128,9 +129,9 @@ export default function AttendingExamination() {
     useSWR(currentQuestion.questionNumber % 5 == 0
     && currentQuestion.questionNumber != 0
         ? [`/api/answers/current-state`, 'post', {
-        ...studentAnswer,
-        questionNumber: currentQuestion.questionNumber + 1
-    }] : null, fetcherWithForm)
+            ...studentAnswer,
+            questionNumber: currentQuestion.questionNumber + 1
+        }] : null, fetcherWithForm)
     useEffect(() => {
         const lastExamId = localStorage.getItem('examId')
         const lastHomeworkId = localStorage.getItem('homeworkId')
@@ -171,8 +172,8 @@ export default function AttendingExamination() {
         }
     }, [studentAnswer.studentName.length])
 
-    if (error) return <MyToast message={error.message} severity={"error"} />
-    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"} />
+    if (error) return <MyToast message={error.message} severity={"error"}/>
+    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"}/>
     if (!data) return <MySpinner/>
     if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
     if (displayState.displayStartingComponent) setTimeout(() => setDisplayState({
@@ -188,6 +189,7 @@ export default function AttendingExamination() {
         localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
         localStorage.setItem('studentName', `${studentAnswer.studentName}`)
     }
+
     // document.onvisibilitychange = showCheatingPage
 
     function OnStartButtonClick(e: FormEvent) {
@@ -310,7 +312,7 @@ export default function AttendingExamination() {
             </style>
             <Head>
                 <title>Play Homework</title>
-                <meta name="description" content="Student zone page" />
+                <meta name="description" content="Student zone page"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
             </Head>
             {displayState.displayStudentName &&
@@ -318,18 +320,15 @@ export default function AttendingExamination() {
                     <form className={styles.StudentNameLayer}
                           onSubmit={(e) => OnStartButtonClick(e)}>
                         <FormControl className={styles.JoinFormControl} required={true}>
-                            <InputLabel htmlFor="studentName" className={styles.WhiteFont}>Your name is...</InputLabel>
-                            <OutlinedInput
-                                className={styles.WhiteFont}
-                                id="studentName"
-                                value={studentAnswer.studentName}
-                                onChange={(e) => setStudentAnswer({
-                                    ...studentAnswer,
-                                    studentName: e.target.value
-                                })}
-                                label="Your name is..."
-                                autoComplete="off"
-                            />
+                            <MyInput id="studentName"
+                                     value={studentAnswer.studentName}
+                                     onChange={(e) => setStudentAnswer({
+                                         ...studentAnswer,
+                                         studentName: e.target.value
+                                     })
+                                     }
+                                     placeholder="Your name is..."
+                                     autoComplete="off"/>
                         </FormControl>
                         <Button variant="contained"
                                 disabled={!allowance.start}
@@ -338,7 +337,7 @@ export default function AttendingExamination() {
 
                 </>
             }
-            {displayState.displayStartingComponent && <StartingQuestion />}
+            {displayState.displayStartingComponent && <StartingQuestion/>}
             {displayState.displayQuestion && examinationData &&
                 <>
                     <form className={styles.QuestionLayer}
@@ -378,7 +377,8 @@ export default function AttendingExamination() {
                             </Button>
                         </div>
                         {displayState.displayStudentResult ?
-                            displayState.displayKey ? <StudentResult type={StudentResultType.Wrong} /> : <StudentResult type={StudentResultType.Correct} />
+                            displayState.displayKey ? <StudentResult type={StudentResultType.Wrong}/> :
+                                <StudentResult type={StudentResultType.Correct}/>
                             : undefined
                         }
                     </form>
@@ -403,7 +403,8 @@ export default function AttendingExamination() {
 
                     <h1>Your result</h1>
                     <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                    <h5>Detecting cheating when you open another tab or different application. Your result will not be submitted. Please start over.</h5>
+                    <h5>Detecting cheating when you open another tab or different application. Your result will not be
+                        submitted. Please start over.</h5>
                     <Button variant="contained" onClick={onPlayingAgain}>
                         Play Again
                     </Button>
