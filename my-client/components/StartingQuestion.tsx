@@ -6,6 +6,7 @@ export default function StartingQuestion() {
     return (
         <div className={styles.StartingQuestionTitle}>
             <MyCircularProgress
+                finishStatement="Go!!!"
                 timeout={timeBetweenStartingComponents}
                 duration={4}
                 size={15}

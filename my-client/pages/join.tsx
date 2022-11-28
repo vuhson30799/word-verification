@@ -10,18 +10,15 @@ import {translateKey, verifyAnswer} from "../modules/utils/verification";
 import ProgressQuestionBar from "../components/ProgressQuestionBar";
 import {StudentResult, StudentResultType} from "../components/StudentResult";
 import DoneIcon from '@mui/icons-material/Done';
-import {
-    timeBetweenQuestions,
-    timeBetweenStartingComponents,
-    timeToDisplayFirstQuestion
-} from "../constant/ApplicationConstant";
+import {timeBetweenQuestions, timeToDisplayFirstQuestion} from "../constant/ApplicationConstant";
 import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
 import useSWR from "swr";
-import {MyCircularProgress} from "../components/MyCircularProgress";
 import StartingQuestion from "../components/StartingQuestion";
 import MyInput from "../components/MyInput";
+import {MyButton} from "../components/MyButton";
+import Typography from "@mui/material/Typography";
 
 export interface StudentAnswer {
     id?: string
@@ -319,6 +316,7 @@ export default function AttendingExamination() {
                 <>
                     <form className={styles.StudentNameLayer}
                           onSubmit={(e) => OnStartButtonClick(e)}>
+                        <Typography variant="h2" color="#eaeaea">WHO ARE YOU?</Typography>
                         <FormControl className={styles.JoinFormControl} required={true}>
                             <MyInput id="studentName"
                                      value={studentAnswer.studentName}
@@ -330,9 +328,8 @@ export default function AttendingExamination() {
                                      placeholder="Your name is..."
                                      autoComplete="off"/>
                         </FormControl>
-                        <Button variant="contained"
-                                disabled={!allowance.start}
-                                onClick={(e) => OnStartButtonClick(e)}>Start</Button>
+                        <MyButton disabled={!allowance.start}
+                                  onClick={(e) => OnStartButtonClick(e)}>Start</MyButton>
                     </form>
 
                 </>
@@ -342,9 +339,10 @@ export default function AttendingExamination() {
                 <>
                     <form className={styles.QuestionLayer}
                           onSubmit={(e) => onStudentAnswerSubmit(e)}>
-                        {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
-                                                                  timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                                                  handleTimeout={onStudentAnswerSubmit}/>}
+                        <ProgressQuestionBar displayed={allowance.answer}
+                                             className={styles.QuestionProgress}
+                                             timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
+                                             handleTimeout={onStudentAnswerSubmit}/>
                         <div className={styles.QuestionTitle}>
                             <h2>Question {currentQuestion.questionNumber + 1}: {examinationData.questions[currentQuestion.questionNumber].title}</h2>
                             {displayState.displayKey && !!examinationData &&

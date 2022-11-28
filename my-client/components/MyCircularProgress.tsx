@@ -5,11 +5,38 @@ import Typography from "@mui/material/Typography";
 import {useInterval} from "usehooks-ts";
 import {DefaultGradient} from "../constant/DefaultGradient";
 import {defaultGradientId} from "../constant/ApplicationConstant";
+import {OverridableStringUnion} from "@mui/types";
+import {Variant} from "@mui/material/styles/createTypography";
+import {TypographyPropsVariantOverrides} from "@mui/material/Typography/Typography";
 
 interface CircularProgressProps {
+    /**
+     * Finish statement when it counts to zero.
+     */
+    finishStatement: string
+    /**
+     * Size of the circle
+     */
     timeout: number
+    /**
+     * Size of the circle
+     */
     duration: number
+    /**
+     * Size of the component.
+     */
     size: number
+    /**
+     * Size of the circle.
+     */
+    circleSize?: number
+    /**
+     * Size of the number in circle.
+     */
+    fontSize?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>
+    /**
+     * Function to trigger when finish counting.
+     */
     onfinish?: () => void
 }
 
@@ -33,7 +60,15 @@ export function MyCircularProgress(props: CircularProgressProps) {
         <Box sx={{position: 'relative', display: 'inline-flex'}}>
             <CircularProgress variant="determinate"
                               value={progress} size={`${props.size}rem`}
-                              sx={{'& .MuiCircularProgress-circle': {stroke: `url(#${defaultGradientId})`}}}
+                              sx={{
+                                  '& .MuiCircularProgress-circle': {
+                                      strokeWidth: `${props.circleSize || '3px'}`,
+                                      stroke: `url(#${defaultGradientId})`
+                                  },
+                                  '& .MuiCircularProgress-svg': {
+                                      overflow: 'visible'
+                                  }
+            }}
             />
             <Box
                 sx={{
@@ -48,10 +83,10 @@ export function MyCircularProgress(props: CircularProgressProps) {
                 }}
             >
                 <Typography
-                    variant="h3"
+                    variant={props.fontSize || "h3"}
                     component="div"
                     color="#FFFFFF"
-                >{value == 0 ? "Go!!" : value}</Typography>
+                >{value == 0 ? props.finishStatement : value}</Typography>
             </Box>
         </Box>
         <DefaultGradient />

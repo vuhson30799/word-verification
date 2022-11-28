@@ -2,7 +2,10 @@ import {defaultGradientId} from "./ApplicationConstant";
 
 export function DefaultGradient() {
     return (
-        <svg>
+        <svg style={{
+            width: "0px",
+            height: "0px"
+        }}>
             <defs>
                 <radialGradient id={defaultGradientId}>
                     <stop offset="0" stopColor="#E05178"/>
