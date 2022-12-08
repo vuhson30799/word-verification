@@ -6,7 +6,6 @@ import {MyCircularProgress} from "./MyCircularProgress";
 import {timeBetweenStartingComponents} from "../constant/ApplicationConstant";
 
 export interface ProgressQuestionBarProps extends ComponentProps<any> {
-    displayed: boolean
     timeout: number
     handleTimeout: any
 }
@@ -65,15 +64,13 @@ export default function ProgressQuestionBar(props: ProgressQuestionBarProps) {
     }, [props.timeout, props.handleTimeout, props]);
 
 
-    return ( props.displayed ?
-        <>
-            { (!!props.timeout && progress >= 0) &&
-                <Box sx={{width: '100vw'}}>
-                    <LinearProgressWithLabel timeout={props.timeout}
-                        value={progress}
-                                             display={displayProgress}/>
-                </Box>
-            }
-        </> : <></>
-    );
+    return <>
+        { (!!props.timeout && progress >= 0) &&
+            <Box sx={{width: '100vw'}}>
+                <LinearProgressWithLabel timeout={props.timeout}
+                                         value={progress}
+                                         display={displayProgress}/>
+            </Box>
+        }
+    </>;
 }

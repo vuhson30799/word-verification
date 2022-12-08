@@ -339,10 +339,9 @@ export default function AttendingExamination() {
                 <>
                     <form className={styles.QuestionLayer}
                           onSubmit={(e) => onStudentAnswerSubmit(e)}>
-                        <ProgressQuestionBar displayed={allowance.answer}
-                                             className={styles.QuestionProgress}
-                                             timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                             handleTimeout={onStudentAnswerSubmit}/>
+                        {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
+                                                                  timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
+                                                                  handleTimeout={onStudentAnswerSubmit}/>}
                         <div className={styles.QuestionTitle}>
                             <h2>Question {currentQuestion.questionNumber + 1}: {examinationData.questions[currentQuestion.questionNumber].title}</h2>
                             {displayState.displayKey && !!examinationData &&
