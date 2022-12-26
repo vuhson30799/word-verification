@@ -1,6 +1,6 @@
-import React, {FormEvent, useEffect, useState} from "react";
+import React, {FormEvent, useCallback, useEffect, useState} from "react";
 import styles from "../styles/Join.module.css";
-import {Button, FormControl, InputLabel, OutlinedInput} from "@mui/material";
+import {FormControl, useMediaQuery} from "@mui/material";
 import useSWRImmutable from 'swr/immutable'
 import {ExaminationData} from "./admin/examination";
 import {fetcher, fetcherWithForm} from "../modules/configuration/Configuration";
@@ -8,9 +8,7 @@ import {useRouter} from "next/router";
 import {convertDate} from "../modules/utils/dateUtils";
 import {translateKey, verifyAnswer} from "../modules/utils/verification";
 import ProgressQuestionBar from "../components/ProgressQuestionBar";
-import {StudentResult, StudentResultType} from "../components/StudentResult";
-import DoneIcon from '@mui/icons-material/Done';
-import {timeBetweenQuestions, timeToDisplayFirstQuestion} from "../constant/ApplicationConstant";
+import {rightAnswerColor, timeToDisplayFirstQuestion, wrongAnswerColor} from "../constant/ApplicationConstant";
 import MyToast from "../components/MyToast";
 import {MySpinner} from "../components/MySpinner";
 import Head from "next/head";
@@ -19,6 +17,9 @@ import StartingQuestion from "../components/StartingQuestion";
 import MyInput from "../components/MyInput";
 import {MyButton} from "../components/MyButton";
 import Typography from "@mui/material/Typography";
+import {DisplayState, DisplayStateEnum, isDisplayed} from "../modules/join/display/DisplayService";
+import {TimeoutContext} from "../modules/join/context";
+import MyColorDiv from "../components/MyColorDiv";
 
 export interface StudentAnswer {
     id?: string
@@ -37,16 +38,6 @@ interface CurrentQuestion {
     studentAnswer: string
 }
 
-interface DisplayState {
-    displayStudentName: boolean
-    displayQuestion: boolean
-    displayStartingComponent: boolean
-    displayStudentResult: boolean
-    displayKey: boolean
-    displayFinishPage: boolean
-    displayCheatingPage: boolean
-}
-
 interface Allowance {
     answer: boolean
     start: boolean
@@ -58,13 +49,7 @@ export interface HomeworkExam {
 }
 
 const initialDisplayState: DisplayState = {
-    displayStudentName: true,
-    displayQuestion: false,
-    displayStartingComponent: false,
-    displayStudentResult: false,
-    displayKey: false,
-    displayFinishPage: false,
-    displayCheatingPage: false
+    components: [DisplayStateEnum.STUDENT_NAME]
 }
 
 const initialStudentAnswer: StudentAnswer = {
@@ -101,7 +86,20 @@ function shuffleExamination(examinationData: ExaminationData): ExaminationData {
 
 }
 
+function getAnswerColor(displayState: DisplayState) {
+    if (isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON)) return wrongAnswerColor
+    if (isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION)) return rightAnswerColor
+
+    //default color will be used
+    return undefined
+}
+
+function setVisible(predicate: boolean) {
+    return predicate ? 'visible' : 'hidden'
+}
+
 export default function AttendingExamination() {
+    const isSmallPhone = useMediaQuery('(max-width:430px)')
     const router = useRouter()
     const {examId, beginningDate, deadlineDate} = router.query
     const [examinationData, setExaminationData] = useState<ExaminationData | undefined>(undefined)
@@ -110,6 +108,7 @@ export default function AttendingExamination() {
 
     const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
+    const [triggerTimeout, setTriggerTimeout] = useState(false)
 
     const {
         data,
@@ -120,7 +119,7 @@ export default function AttendingExamination() {
     const {
         data: submitAnswerSuccess,
         error: submitAnswerError
-    } = useSWR<{ success: string }>(displayState.displayFinishPage ? ['/api/answers', 'post', studentAnswer] : null, fetcherWithForm)
+    } = useSWR<{ success: string }>(isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) ? ['/api/answers', 'post', studentAnswer] : null, fetcherWithForm)
 
     // update current state of student
     useSWR(currentQuestion.questionNumber % 5 == 0
@@ -169,32 +168,32 @@ export default function AttendingExamination() {
         }
     }, [studentAnswer.studentName.length])
 
-    if (error) return <MyToast message={error.message} severity={"error"}/>
-    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"}/>
-    if (!data) return <MySpinner/>
-    if (displayState.displayFinishPage && !submitAnswerSuccess) return <MySpinner/>
-    if (displayState.displayStartingComponent) setTimeout(() => setDisplayState({
-        ...displayState,
-        displayQuestion: true,
-        displayStartingComponent: false
-    }), timeToDisplayFirstQuestion)
-
-
-    window.onbeforeunload = function updateHomeworkLocalStorage(): void {
+    const updateHomeworkLocalStorage = useCallback(() => {
         localStorage.setItem('examId', `${examId}`)
         localStorage.setItem('homeworkId', `${data?.homeworkId}`)
         localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
         localStorage.setItem('studentName', `${studentAnswer.studentName}`)
-    }
+    }, [examId, data?.homeworkId, studentAnswer.trial, studentAnswer.studentName])
 
-    // document.onvisibilitychange = showCheatingPage
+    useEffect(() => {
+        window.onbeforeunload = updateHomeworkLocalStorage
+    }, [updateHomeworkLocalStorage])
+
+
+    if (error) return <MyToast message={error.message} severity={"error"}/>
+    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"}/>
+    if (!data) return <MySpinner/>
+    if (isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) && !submitAnswerSuccess) return <MySpinner/>
+    if (isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) setTimeout(() => setDisplayState({
+        components: [DisplayStateEnum.QUESTION]
+    }), timeToDisplayFirstQuestion)
+
+    document.onvisibilitychange = showCheatingPage
 
     function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
         setDisplayState({
-            ...displayState,
-            displayStudentName: false,
-            displayStartingComponent: true
+            components: [DisplayStateEnum.STARTING_COMPONENT]
         })
         setStudentAnswer({
             ...studentAnswer,
@@ -211,17 +210,14 @@ export default function AttendingExamination() {
 
     function showFinishPage() {
         setDisplayState({
-            ...displayState,
-            displayFinishPage: true,
-            displayQuestion: false
+            components: [DisplayStateEnum.FINISH_PAGE]
         })
     }
 
     function showCheatingPage() {
+        setTriggerTimeout(false)
         setDisplayState({
-            ...displayState,
-            displayCheatingPage: true,
-            displayQuestion: false
+            components: [DisplayStateEnum.CHEATING_PAGE]
         })
     }
 
@@ -233,10 +229,9 @@ export default function AttendingExamination() {
             ...allowance,
             answer: false
         })
-        if (!examinationData) throw new Error('Examination data is needed for answer verification')
-        const isRightAnswer = verifyAnswer(currentQuestion.studentAnswer, examinationData.questions[currentQuestion.questionNumber].keys)
+        const isRightAnswer = verifyAnswer(currentQuestion.studentAnswer, examinationData?.questions[currentQuestion.questionNumber].keys)
         if (isRightAnswer) {
-            setDisplayState({...displayState, displayStudentResult: true, displayKey: false})
+            setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.TO_NEXT_QUESTION]})
             setStudentAnswer({
                 ...studentAnswer,
                 correctAnswers: studentAnswer.correctAnswers + 1,
@@ -245,43 +240,47 @@ export default function AttendingExamination() {
                 finishAt: convertDate(new Date())
             })
         } else {
-            setDisplayState({...displayState, displayStudentResult: true, displayKey: true})
+            setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.KEY_BUTTON]})
             setStudentAnswer({
                 ...studentAnswer,
                 finishAt: convertDate(new Date())
             })
         }
+        setTriggerTimeout(true)
+    }
 
-        const noQuestionLeft = currentQuestion.questionNumber + 1 == examinationData.questions.length
+    function onNextButtonClick(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
+        e.preventDefault()
+        setTriggerTimeout(false)
+        const noQuestionLeft = currentQuestion.questionNumber + 1 == examinationData?.questions.length
         if (noQuestionLeft) {
-            setTimeout(showFinishPage, timeBetweenQuestions)
+            showFinishPage()
             return
         }
 
-        setTimeout(() => {
-            setCurrentQuestion({
-                studentAnswer: "",
-                questionNumber: currentQuestion.questionNumber + 1
-            })
-            setDisplayState({
-                ...displayState,
-                displayStudentResult: false,
-                displayKey: false
-            })
+        setCurrentQuestion({
+            studentAnswer: "",
+            questionNumber: currentQuestion.questionNumber + 1
+        })
 
-            setAllowance({
-                ...allowance,
-                answer: true
-            })
-        }, timeBetweenQuestions)
+        setAllowance({
+            ...allowance,
+            answer: true
+        })
+        setDisplayState({
+            components: [DisplayStateEnum.QUESTION]
+        })
 
+    }
+
+    function onKeyButtonClick(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
+        e.preventDefault()
+        setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.ANSWERS, DisplayStateEnum.TO_NEXT_QUESTION]})
     }
 
     function onPlayingAgain() {
         setDisplayState({
-            ...initialDisplayState,
-            displayStartingComponent: true,
-            displayStudentName: false
+            components: [DisplayStateEnum.STARTING_COMPONENT]
         })
         setCurrentQuestion(initialCurrentQuestion)
         setAllowance(initialAllowance)
@@ -299,32 +298,33 @@ export default function AttendingExamination() {
     }
 
     return (
-        <>
+        <TimeoutContext.Provider value={triggerTimeout}>
             <style global jsx>
-                {`body {margin: 0;
-                background-image: url('/background.svg');
-                background-repeat: no-repeat;
-                background-size: cover;
-                background-color: #343a40;}`}
+                {`body {
+                  margin: 0;
+                  background-image: url('/background.svg');
+                  background-repeat: no-repeat;
+                  background-size: cover;
+                  background-color: #343a40;
+                }`}
             </style>
             <Head>
                 <title>Play Homework</title>
                 <meta name="description" content="Student zone page"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
             </Head>
-            {displayState.displayStudentName &&
+            {isDisplayed(displayState, DisplayStateEnum.STUDENT_NAME) &&
                 <>
                     <form className={styles.StudentNameLayer}
                           onSubmit={(e) => OnStartButtonClick(e)}>
-                        <Typography variant="h2" color="#eaeaea">WHO ARE YOU?</Typography>
+                        <Typography variant="h2" color="#eaeaea" textAlign="center">WHO ARE YOU?</Typography>
                         <FormControl className={styles.JoinFormControl} required={true}>
                             <MyInput id="studentName"
                                      value={studentAnswer.studentName}
                                      onChange={(e) => setStudentAnswer({
                                          ...studentAnswer,
                                          studentName: e.target.value
-                                     })
-                                     }
+                                     })}
                                      placeholder="Your name is..."
                                      autoComplete="off"/>
                         </FormControl>
@@ -334,80 +334,97 @@ export default function AttendingExamination() {
 
                 </>
             }
-            {displayState.displayStartingComponent && <StartingQuestion/>}
-            {displayState.displayQuestion && examinationData &&
+            {isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT) && <StartingQuestion/>}
+            {isDisplayed(displayState, DisplayStateEnum.QUESTION) && examinationData &&
                 <>
                     <form className={styles.QuestionLayer}
                           onSubmit={(e) => onStudentAnswerSubmit(e)}>
-                        {allowance.answer && <ProgressQuestionBar className={styles.QuestionProgress}
-                                                                  timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                                                  handleTimeout={onStudentAnswerSubmit}/>}
+                        <ProgressQuestionBar className={styles.QuestionProgress}
+                                             style={{visibility: `${setVisible(allowance.answer)}`}}
+                                             timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
+                                             handleTimeout={onStudentAnswerSubmit}/>
                         <div className={styles.QuestionTitle}>
-                            <h2>Question {currentQuestion.questionNumber + 1}: {examinationData.questions[currentQuestion.questionNumber].title}</h2>
-                            {displayState.displayKey && !!examinationData &&
-                                <h5 className={styles.KeyContainer}>
-                                    {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
-                                        return <div key={index} className={styles.KeyStyle}>
-                                            <DoneIcon color={"success"}/>{translateKey(key)}
-                                        </div>
-                                    })}
-                                </h5>
-                            }
+                            <MyColorDiv style={{minHeight: '20vh', minWidth: '80vw'}}
+                                        value={`Question ${currentQuestion.questionNumber + 1}: ${examinationData.questions[currentQuestion.questionNumber].title}`}
+                            />
+                            <h5 className={styles.KeyContainer}
+                                style={{visibility: `${setVisible(isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
+                                {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
+                                    return <MyColorDiv key={index}
+                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, textAlign: 'center', fontSize: `${isSmallPhone && '0.75rem'}`}}
+                                                       value={translateKey(key)}
+                                    />
+                                })}
+                            </h5>
                         </div>
                         <div className={styles.AnswerSubmit}>
-                            <FormControl className={styles.JoinFormControl}>
-                                <InputLabel htmlFor="currentAnswer" className={styles.WhiteFont}>Your answer
-                                    is...</InputLabel>
-                                <OutlinedInput
-                                    className={styles.WhiteFont}
-                                    id="currentAnswer"
-                                    value={currentQuestion.studentAnswer}
-                                    autoComplete="off"
-                                    onChange={(e) => handleStudentAnswerChange(e.target.value)}
-                                />
+                            <FormControl className={styles.JoinFormControl}
+                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
+                                <MyInput id="currentAnswer"
+                                         backgroundImage={getAnswerColor(displayState)}
+                                         value={currentQuestion.studentAnswer}
+                                         autoComplete="off"
+                                         onChange={(e) => handleStudentAnswerChange(e.target.value)}/>
                             </FormControl>
-                            <Button className={styles.ButtonAnswerSubmit}
-                                    variant="contained"
-                                    disabled={!allowance.answer}
-                                    onClick={(e) => onStudentAnswerSubmit(e)}>
-                                Submit
-                            </Button>
+                            {allowance.answer &&
+                                <MyButton className={styles.ButtonAnswerSubmit}
+                                          variant="contained"
+                                          onClick={(e) => onStudentAnswerSubmit(e)}>
+                                    Submit
+                                </MyButton>
+                            }
+                            {isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION) &&
+                                <MyButton className={styles.ButtonAnswerSubmit}
+                                          variant="contained"
+                                          onClick={(e) => onNextButtonClick(e)}>
+                                    Next
+                                </MyButton>
+                            }
+                            {isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON) &&
+                                <MyButton className={styles.ButtonAnswerSubmit}
+                                          variant="contained"
+                                          onClick={(e) => onKeyButtonClick(e)}>
+                                    Answer
+                                </MyButton>
+                            }
                         </div>
-                        {displayState.displayStudentResult ?
-                            displayState.displayKey ? <StudentResult type={StudentResultType.Wrong}/> :
-                                <StudentResult type={StudentResultType.Correct}/>
-                            : undefined
-                        }
                     </form>
                 </>
             }
-            {displayState.displayFinishPage &&
+            {isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) &&
                 <div className={styles.FinishPage}>
-                    {examinationData && <h1>Examination - {examinationData.title}</h1>}
-                    <h1>Your result</h1>
-                    <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                    <Button variant="contained" onClick={onPlayingAgain}>
-                        Play Again
-                    </Button>
-                    {!!submitAnswerSuccess
-                        && <MyToast message={submitAnswerSuccess.success} severity="success"/>
-                    }
+                    <MyColorDiv style={{display: "flex", justifyContent: "space-around", flexDirection: "column",
+                        minHeight: `${isSmallPhone ? "35vh" : "50vh"}`,
+                        minWidth: `${isSmallPhone ? "60vw" : "40vw"}`,
+                        fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
+                        <h1>Your result</h1>
+                        <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
+                        <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
+                            Play Again
+                        </MyButton>
+                        {!!submitAnswerSuccess
+                            && <MyToast message={submitAnswerSuccess.success} severity="success"/>
+                        }
+                    </MyColorDiv>
                 </div>
             }
-            {displayState.displayCheatingPage &&
+            {isDisplayed(displayState, DisplayStateEnum.CHEATING_PAGE) &&
                 <div className={styles.FinishPage}>
-                    {examinationData && <h1>Examination - {examinationData.title}</h1>}
-
-                    <h1>Your result</h1>
-                    <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                    <h5>Detecting cheating when you open another tab or different application. Your result will not be
-                        submitted. Please start over.</h5>
-                    <Button variant="contained" onClick={onPlayingAgain}>
-                        Play Again
-                    </Button>
+                    <MyColorDiv style={{display: "flex", justifyContent: "space-around", flexDirection: "column",
+                        minHeight: `${isSmallPhone ? "35vh" : "50vh"}`,
+                        minWidth: `${isSmallPhone ? "60vw" : "40vw"}`,
+                        fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
+                        <h1>Your result</h1>
+                        <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
+                        <h5>Detecting cheating when you open another tab or different application. Your result will not be
+                            submitted. Please start over.</h5>
+                        <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
+                            Play Again
+                        </MyButton>
+                    </MyColorDiv>
 
                 </div>
             }
-        </>
+        </TimeoutContext.Provider>
     )
 }

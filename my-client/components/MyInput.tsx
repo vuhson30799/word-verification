@@ -14,6 +14,7 @@ const defaultInputProps: MyInputProps = {
     borderRadius: "40px",
     position: "relative",
     minWidth: "40vw",
+    textAlign: "start",
     '&::before': {
         content: '""',
         margin: "-3px",
@@ -34,6 +35,7 @@ export default function MyInput(props: MyInputProps) {
         <OutlinedInput
             sx={{
                 color: props.color || defaultInputProps.color,
+                textAlign: props.textAlign || defaultInputProps.textAlign,
                 fontFamily: props.fontFamily || defaultInputProps.fontFamily,
                 backgroundClip: props.backgroundClip || defaultInputProps.backgroundClip,
                 border: props.border || defaultInputProps.border,
@@ -41,7 +43,13 @@ export default function MyInput(props: MyInputProps) {
                 borderRadius: props.borderRadius || defaultInputProps.borderRadius,
                 position: props.position || defaultInputProps.position,
                 minWidth: props.minWidth || defaultInputProps.minWidth,
-                '&::before': props['&::before'] || defaultInputProps['&::before'],
+                minHeight: props.minHeight,
+                maxWidth: props.maxWidth,
+                fontSize: props.fontSize,
+                '&::before': {
+                    ...props['&::before'] || defaultInputProps['&::before'],
+                    minWidth: props.minWidth || defaultInputProps['&::before'].minWidth
+                },
                 '& .MuiOutlinedInput-notchedOutline': props['& .MuiOutlinedInput-notchedOutline'] || defaultInputProps['& .MuiOutlinedInput-notchedOutline']
             }}
             id={props.id}
@@ -49,6 +57,7 @@ export default function MyInput(props: MyInputProps) {
             placeholder={props.placeholder}
             autoComplete="off"
             onChange={props.onChange}
+            readOnly={props.readOnly}
         />
     )
 }

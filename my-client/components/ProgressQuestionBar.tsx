@@ -1,9 +1,10 @@
 import * as React from 'react';
-import {ComponentProps, useEffect, useState} from 'react';
+import {ComponentProps, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import LinearProgress, {LinearProgressProps} from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
 import {MyCircularProgress} from "./MyCircularProgress";
-import {timeBetweenStartingComponents} from "../constant/ApplicationConstant";
+import {TimeoutContext} from "../modules/join/context";
+import {useInterval} from "usehooks-ts";
 
 export interface ProgressQuestionBarProps extends ComponentProps<any> {
     timeout: number
@@ -14,6 +15,7 @@ interface LinearProgressWithLabelProps extends LinearProgressProps {
     timeout: number
     display: number
 }
+
 function LinearProgressWithLabel(props: LinearProgressWithLabelProps) {
     return (
         <Box sx={{display: 'flex', alignItems: 'center'}}>
@@ -38,9 +40,8 @@ function LinearProgressWithLabel(props: LinearProgressWithLabelProps) {
                     circleSize={6}
                     finishStatement="0"
                     fontSize="body1"
-                    timeout={timeBetweenStartingComponents}
-                                    duration={props.timeout}
-                                    size={3}/>
+                    timeout={props.timeout}
+                    size={3}/>
             </Box>
         </Box>
     );
@@ -49,28 +50,37 @@ function LinearProgressWithLabel(props: LinearProgressWithLabelProps) {
 export default function ProgressQuestionBar(props: ProgressQuestionBarProps) {
     const [progress, setProgress] = useState(100);
     const [displayProgress, setDisplayProgress] = useState(props.timeout);
+    const triggerTimeout = useContext(TimeoutContext)
+
+    const updateProgress = useCallback(() => {
+        const reducedProgress = 100 / props.timeout;
+        setProgress((prevProgress) => (prevProgress - reducedProgress >= 0 ? prevProgress - reducedProgress : 100));
+        setDisplayProgress(prevState => {
+            return prevState - 1
+        })
+    }, [props])
+
+    const calculateDelay = useMemo(() => {
+        if (displayProgress == 0 || triggerTimeout) {
+            props.handleTimeout(new CustomEvent('TimeoutEvent'))
+            return null
+        }
+        return 1000
+    }, [displayProgress, triggerTimeout, props])
+
+    useInterval(updateProgress, calculateDelay)
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setProgress((preProgress) => preProgress - (100 / props.timeout));
-            setDisplayProgress((prevState => {
-                if (prevState == 0) {
-                    props.handleTimeout(new CustomEvent('TimeoutEvent'))
-                }
-                return prevState - 1
-            }))
-        }, 1000)
-        return () => clearInterval(timer)
-    }, [props.timeout, props.handleTimeout, props]);
-
-
-    return <>
-        { (!!props.timeout && progress >= 0) &&
-            <Box sx={{width: '100vw'}}>
-                <LinearProgressWithLabel timeout={props.timeout}
-                                         value={progress}
-                                         display={displayProgress}/>
-            </Box>
+        setDisplayProgress(props.timeout)
+        if (triggerTimeout) {
+            setProgress(100)
         }
-    </>;
+    }, [props.timeout, triggerTimeout])
+
+
+    return <Box sx={{width: '100vw'}} {...props}>
+        <LinearProgressWithLabel timeout={props.timeout}
+                                 value={progress}
+                                 display={displayProgress}/>
+    </Box>;
 }

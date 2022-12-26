@@ -22,6 +22,7 @@
 
 .QuestionProgress {
     min-height: 2.5vh;
+    margin: 1vh 1vw;
 }
 
 .QuestionLayer {
@@ -37,10 +38,9 @@
     min-height: 40vh;
     min-width: 100vw;
     text-align: center;
-    background: radial-gradient(76.06% 76.06% at 53.17% 47.89%, #DF0B18 0%, #4200FF 100%);
     color: #eaeaea;
     margin-bottom: 10px;
-    margin-top: 15vh;
+    margin-top: 10vh;
     font-family: "Arial", sans-serif;
 }
 
@@ -49,7 +49,6 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-top: 10vh;
 }
 
 .ButtonAnswerSubmit {
@@ -59,8 +58,10 @@
 .KeyContainer {
     display: flex;
     justify-content: space-evenly;
-    color: #2ba825;
     flex-wrap: wrap;
+    margin-top: 5vh;
+    row-gap: 5vh;
+    min-height: 20vh;
 }
 
 .KeyStyle {

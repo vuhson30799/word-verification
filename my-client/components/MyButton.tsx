@@ -28,7 +28,7 @@ export function MyButton(props: MyButtonProps) {
         }}
         variant={props.variant || defaultButtonProps.variant}
         disabled={props.disabled}
-        onClick={props.onClick}>
+        onClick={props.onClick} style={props.style}>
         {props.children}
     </Button>
 }

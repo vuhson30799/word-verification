@@ -1,6 +1,7 @@
 import {decoding, emptyString, encoding} from "../../constant/ApplicationConstant";
 
-export function verifyAnswer(studentAnswer: string, keys: string[]): boolean {
+export function verifyAnswer(studentAnswer: string, keys?: string[]): boolean {
+    if (!keys) return false
     const decodedKeys = keys.map((key) => {
         const decodedKey = Buffer.from(key, encoding)
             .toString(decoding).replace(`${process.env.NEXT_PUBLIC_ENCODING_KEY}`, emptyString)
