@@ -7,7 +7,7 @@ export function verifyAnswer(studentAnswer: string, keys: string[]): boolean {
         return Buffer.from(decodedKey, encoding).toString(decoding)
     })
 
-    return decodedKeys.some(key => escapeSpecialCharacter(key) === escapeSpecialCharacter(studentAnswer.toLowerCase()))
+    return decodedKeys.some(key => preTransform(key) === preTransform(studentAnswer))
 }
 
 export function translateKey(key: string): string {
@@ -16,6 +16,9 @@ export function translateKey(key: string): string {
         .toString(decoding)
 }
 
-function escapeSpecialCharacter(input: string): string {
-    return input.replace(/[^a-zA-Z ]/g, "")
+function preTransform(input: string): string {
+    // replace all special characters, spaces and lower case input.
+    return input.replace(/[^a-zA-Z\s]/g, emptyString)
+        .trim()
+        .toLowerCase()
 }
