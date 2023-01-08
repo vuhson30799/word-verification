@@ -18,8 +18,8 @@ interface LinearProgressWithLabelProps extends LinearProgressProps {
 
 function LinearProgressWithLabel(props: LinearProgressWithLabelProps) {
     return (
-        <Box sx={{display: 'flex', alignItems: 'center'}}>
-            <Box sx={{width: '91vw', mr: 1, margin: '0 1vw 0 1vw'}}>
+        <Box sx={{display: 'flex', alignItems: 'center', paddingLeft: '15vw'}}>
+            <Box sx={{width: '60vw', mr: 1, margin: '0 1vw 0 1vw'}}>
                 <LinearProgress
                     sx={{
                         height: "10px",

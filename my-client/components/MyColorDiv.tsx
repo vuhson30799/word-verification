@@ -11,7 +11,7 @@ const defaultInputProps = {
     backgroundClip: "padding-box",
     border: "3px solid transparent",
     backgroundImage: "linear-gradient(to right top, #38253D, #1C1E2E)",
-    borderRadius: "40px",
+    borderRadius: "25px",
     position: "relative",
     minWidth: "30vw",
     textAlign: "justify",

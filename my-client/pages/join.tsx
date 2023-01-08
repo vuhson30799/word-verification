@@ -344,14 +344,14 @@ export default function AttendingExamination() {
                                              timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
                                              handleTimeout={onStudentAnswerSubmit}/>
                         <div className={styles.QuestionTitle}>
-                            <MyColorDiv style={{minHeight: '20vh', minWidth: '80vw'}}
+                            <MyColorDiv style={{minWidth: '80vw', padding: '32px 32px'}}
                                         value={`Question ${currentQuestion.questionNumber + 1}: ${examinationData.questions[currentQuestion.questionNumber].title}`}
                             />
                             <h5 className={styles.KeyContainer}
                                 style={{visibility: `${setVisible(isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
                                 {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
                                     return <MyColorDiv key={index}
-                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, textAlign: 'center', fontSize: `${isSmallPhone && '0.75rem'}`}}
+                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, display: 'flex', justifyContent: 'center', fontSize: `${isSmallPhone && '0.75rem'}`}}
                                                        value={translateKey(key)}
                                     />
                                 })}
@@ -359,7 +359,7 @@ export default function AttendingExamination() {
                         </div>
                         <div className={styles.AnswerSubmit}>
                             <FormControl className={styles.JoinFormControl}
-                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
+                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`, margin: '5px 0 10px 0'}}>
                                 <MyInput id="currentAnswer"
                                          backgroundImage={getAnswerColor(displayState)}
                                          value={currentQuestion.studentAnswer}
