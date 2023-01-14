@@ -215,6 +215,7 @@ export default function AttendingExamination() {
     }
 
     function showCheatingPage() {
+        if (isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE)) return
         setTriggerTimeout(false)
         setDisplayState({
             components: [DisplayStateEnum.CHEATING_PAGE]
@@ -325,6 +326,7 @@ export default function AttendingExamination() {
                                          ...studentAnswer,
                                          studentName: e.target.value
                                      })}
+                                     autoFocus={true}
                                      placeholder="Your name is..."
                                      autoComplete="off"/>
                         </FormControl>
@@ -363,6 +365,7 @@ export default function AttendingExamination() {
                                 <MyInput id="currentAnswer"
                                          backgroundImage={getAnswerColor(displayState)}
                                          value={currentQuestion.studentAnswer}
+                                         autoFocus={true}
                                          autoComplete="off"
                                          onChange={(e) => handleStudentAnswerChange(e.target.value)}/>
                             </FormControl>

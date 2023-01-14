@@ -52,6 +52,7 @@ export default function MyInput(props: MyInputProps) {
                 },
                 '& .MuiOutlinedInput-notchedOutline': props['& .MuiOutlinedInput-notchedOutline'] || defaultInputProps['& .MuiOutlinedInput-notchedOutline']
             }}
+            autoFocus={props.autoFocus}
             id={props.id}
             value={props.value}
             placeholder={props.placeholder}
