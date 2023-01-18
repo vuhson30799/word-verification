@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
+import {equalTo, get, onValue, orderByChild, query, ref, set, update} from "firebase/database";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
 import {toAnswers, toHomeworks} from "../../../modules/utils/dataUtils";
@@ -61,5 +61,15 @@ async function deleteExamination(req: NextApiRequest, res: NextApiResponse) {
     })
 
     await update(ref(database), updates);
+
+    //Update number of examination because firebase database does not support it.
+    get(query(ref(database, '/counter/examination'))).then(snapshot => {
+        const totalExams = <number>snapshot.val()
+        if (totalExams) {
+            set(ref(database, '/counter/examination'), totalExams - 1).then()
+        } else {
+            set(ref(database, '/counter/examination'), 0).then()
+        }
+    })
     return res.status(200).json({message: 'This examination is deleted successfully. All homework and students answers are also deleted accordingly.'})
 }

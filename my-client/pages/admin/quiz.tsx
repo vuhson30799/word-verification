@@ -27,7 +27,7 @@ export default function Quiz() {
     const [file, setFile] = useState<File | undefined>(undefined)
     const [submit, setSubmit] = useState<boolean>(false)
     const router = useRouter()
-    const {data, error} = useSWRImmutable(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
+    const {data, error} = useSWRImmutable(submit ? ['/api/latest-exams', 'post', examination] : null, fetcherWithForm)
     if (error) return <MyToast message={error.message} severity={"error"} />
     if (submit && !data) return <MySpinner/>
 
