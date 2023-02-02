@@ -153,7 +153,7 @@ export default function AttendingExamination() {
             }
             setExaminationData(shuffleExamination(data.examination))
         }
-    }, [data])
+    }, [data, studentAnswer.studentName])
     useEffect(() => {
         if (studentAnswer.studentName.length === 0) {
             setAllowance({
