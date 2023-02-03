@@ -19,7 +19,7 @@ export function translateKey(key: string): string {
 
 function preTransform(input: string): string {
     // replace all special characters, spaces and lower case input.
+    // do not trim due to some trick of students on their phone.
     return input.replace(/[^a-zA-Z\s]/g, emptyString)
-        .trim()
         .toLowerCase()
 }
