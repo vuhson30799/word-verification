@@ -2,7 +2,7 @@ import {Admin} from "../../layout/Admin";
 import styles from "../../styles/Examination.module.css"
 import {fetcher} from "../../modules/configuration/Configuration";
 import {MySpinner} from "../../components/MySpinner";
-import {Grid, Pagination, Paper, Stack} from "@mui/material";
+import {Grid, Paper} from "@mui/material";
 import Link from "next/link";
 import Image from 'next/image'
 import {getRandomColor} from "../../modules/utils/color";
@@ -11,7 +11,6 @@ import MyToast from "../../components/MyToast";
 import React from "react";
 import {orderBy} from "lodash";
 import useSWR from "swr";
-import {pageSize} from "../../constant/ApplicationConstant";
 
 
 export interface Question {
@@ -31,21 +30,11 @@ export interface ExaminationData {
 }
 
 function Examination() {
-    const [page, setPage] = React.useState<number>(0);
-    const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-        setPage(value - 1);
-    };
     const {
         data: examinations,
         error
-    } = useSWR<ExaminationData[]>([`/api/latest-exams?page=${page}`, 'get'], fetcher)
-
-    const {
-        data: totalExams,
-        error: fetchTotalExamError
-    } = useSWR<number>(['/api/counter?q=examination', 'get'], fetcher)
-    if (error || fetchTotalExamError) return <MyToast message={error?.message || fetchTotalExamError?.message}
-                                                      severity={"error"}/>
+    } = useSWR<ExaminationData[]>(['/api/exams', 'get'], fetcher)
+    if (error) return <MyToast message={error.message} severity={"error"} />
     if (!examinations) return <MySpinner/>
     return (
         <Admin>
@@ -79,15 +68,6 @@ function Examination() {
                                 </Grid>
                             )
                         })
-                    }
-                    {totalExams &&
-                        <Grid item xs={12} md={12} xl={12}>
-                            <Stack spacing={2} sx={{display: "flex", alignItems: "center"}}>
-                                <Pagination count={Math.ceil(totalExams / pageSize)}
-                                            color="secondary"
-                                            onChange={handleChange}/>
-                            </Stack>
-                        </Grid>
                     }
                 </Grid>
             </div>

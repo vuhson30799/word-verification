@@ -3,9 +3,9 @@ export const decoding = 'utf-8'
 
 export const emptyString = ''
 
+export const timeBetweenQuestions = 5000
 export const timeToDisplayFirstQuestion = 5000
-
-export const pageSize = 10
+export const timeBetweenStartingComponents = 1000
 
 export const defaultGradientId = 'default-gradient'
 
