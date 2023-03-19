@@ -1,0 +1,23 @@
+.OralCheckingContainer {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.InputOralChecking {
+    min-width: 80vw;
+    height: 15vh !important;
+    overflow: scroll !important;
+
+}
+
+.ShuffleButton {
+    max-width: 30vw;
+}
+
+.OutputOralChecking {
+    min-width: 80vw;
+}
