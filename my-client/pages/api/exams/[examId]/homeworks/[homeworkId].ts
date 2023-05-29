@@ -1,13 +1,14 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
-import {database} from "../../../../../modules/firebase/FirebaseService";
+import {CollectionType, getCollection} from "../../../../../modules/firebase/FirebaseService";
 import {toAnswers} from "../../../../../modules/utils/dataUtils";
 import {StudentAnswer} from "../../../../join";
+import {deleteDoc, doc, getDocs, query, where} from "@firebase/firestore";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
         case 'DELETE':
-            return deleteHomework(req, res)
+            await deleteHomework(req, res)
+            break
         default:
             return res.status(405).json({message: 'Request is not supported'})
     }
@@ -15,21 +16,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
 async function deleteHomework(req: NextApiRequest, res: NextApiResponse) {
     const {examId, homeworkId} = req.query
-    const updates: Record<string, any> = {}
-
-    // delete homework
-    updates[`/homeworks/${homeworkId}`] = null
+    const homeworkCollection = getCollection(CollectionType.HOMEWORK)
+    const answerQuery = query(getCollection(CollectionType.ANSWER), where('examId', '==', `${examId}`))
+    const answerSnaps = await getDocs(answerQuery)
+    if (answerSnaps.empty) {
+        await deleteDoc(doc(homeworkCollection, `${homeworkId}`))
+        return res.status(200).json({message: 'This homework is deleted successfully. Student answers are not existed yet.'})
+    }
+    const answers: StudentAnswer[] = toAnswers(answerSnaps).filter((answer) => answer.homeworkId === homeworkId)
     // delete all answer related
-    await onValue(query(ref(database, `/answers`), orderByChild('examId'),
-        equalTo(`${examId}`)), (snapshot) => {
-        if (snapshot.val()) {
-            const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homeworkId)
-            answers.forEach(answer => {
-                if (answer.id) updates[`/answers/${answer.id}`] = null
-            })
-        }
-    })
+    for (const answer of answers) {
+        if (answer.id) await deleteDoc(doc(getCollection(CollectionType.ANSWER), `${answer.id}`))
+    }
 
-    await update(ref(database), updates);
+    await deleteDoc(doc(homeworkCollection, `${homeworkId}`))
     return res.status(200).json({message: 'This homework is deleted successfully. All students answers are also deleted accordingly.'})
 }

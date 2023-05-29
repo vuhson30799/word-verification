@@ -1,42 +1,47 @@
-export function toExaminations(object: any) {
-    const examIds = Object.keys(object)
-    return examIds.map(examId => {
+import {QuerySnapshot} from "@firebase/firestore";
+
+export function toExaminations(querySnapshot: QuerySnapshot) {
+    const examSnaps = querySnapshot.docs
+    return examSnaps.map(examSnap => {
+        const exam = examSnap.data()
         return {
-            id: examId,
-            title: object[examId].title,
-            questions: object[examId].questions,
-            createdDate: object[examId].createdDate,
-            grade: object[examId].grade,
-            creator: object[examId].creator
+            id: examSnap.id,
+            title: exam.title,
+            questions: exam.questions,
+            createdDate: exam.createdDate,
+            grade: exam.grade,
+            creator: exam.creator
         }
     })
 }
 
-export function toHomeworks(object: any) {
-    const homeworkIds = Object.keys(object)
-    return homeworkIds.map(homeworkId => {
+export function toHomeworks(querySnapshot: QuerySnapshot) {
+    const homeworkSnaps = querySnapshot.docs
+    return homeworkSnaps.map(homeworkSnap => {
+        const homework = homeworkSnap.data()
         return {
-            id: homeworkId,
-            url: object[homeworkId].url,
-            beginningDate: object[homeworkId].beginningDate,
-            deadlineDate: object[homeworkId].deadlineDate
+            id: homeworkSnap.id,
+            url: homework.url,
+            beginningDate: homework.beginningDate,
+            deadlineDate: homework.deadlineDate
         }
     })
 }
 
-export function toAnswers(object: any) {
-    const answerIds = Object.keys(object)
-    return answerIds.map(answerId => {
+export function toAnswers(querySnapshot: QuerySnapshot) {
+    const answerSnaps = querySnapshot.docs
+    return answerSnaps.map(answerSnap => {
+        const answer = answerSnap.data()
         return {
-            id: answerId,
-            examId: object[answerId].examId,
-            homeworkId: object[answerId].homeworkId,
-            studentName: object[answerId].studentName,
-            correctAnswers: object[answerId].correctAnswers,
-            trial: object[answerId].trial,
-            questionNumber: object[answerId].questionNumber,
-            beginningAt: object[answerId].beginningAt,
-            finishAt: object[answerId].finishAt
+            id: answerSnap.id,
+            examId: answer.examId,
+            homeworkId: answer.homeworkId,
+            studentName: answer.studentName,
+            correctAnswers: answer.correctAnswers,
+            trial: answer.trial,
+            questionNumber: answer.questionNumber,
+            beginningAt: answer.beginningAt,
+            finishAt: answer.finishAt
         }
     })
 }

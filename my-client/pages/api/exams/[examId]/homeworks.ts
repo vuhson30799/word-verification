@@ -1,39 +1,38 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {equalTo, onValue, orderByChild, push, query, ref} from "firebase/database";
-import {database} from "../../../../modules/firebase/FirebaseService";
+import {CollectionType, getCollection} from "../../../../modules/firebase/FirebaseService";
 import {toHomeworks} from "../../../../modules/utils/dataUtils";
 import {AssignHomeworkData} from "../../../../components/AssignHomeWorkModal";
+import {addDoc, getDocs, query, where} from "@firebase/firestore";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
         case 'GET':
-            getHomeworks(req, res)
+            await getHomeworks(req, res)
             break
         case 'POST':
-            createHomework(req, res)
+            await createHomework(req, res)
             break
         default:
             res.status(405).json({message: 'Request is not supported'})
     }
 }
 
-function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
+async function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
     const {examId} = req.query
-    onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
-        equalTo(`${examId}`)), (snapshot) => {
-        if (snapshot.val()) {
-            const homeworkData = toHomeworks(snapshot.val())
-            res.status(200).json(homeworkData)
-        } else {
-            res.status(404).json({message: `Homework not found for exam ${examId}`})
-        }
-    })
+    const homeworkQuery = query(getCollection(CollectionType.HOMEWORK), where('examId', '==', `${examId}`))
+    const homeworkSnaps = await getDocs(homeworkQuery)
+    if (!homeworkSnaps.empty) {
+        const homeworkData = toHomeworks(homeworkSnaps)
+        res.status(200).json(homeworkData)
+    } else {
+        res.status(404).json({message: `Homework not found for exam ${examId}`})
+    }
 }
 
-function createHomework(req: NextApiRequest, res: NextApiResponse) {
+async function createHomework(req: NextApiRequest, res: NextApiResponse) {
     const {examId} = req.query
     const assignHomeworkData = <AssignHomeworkData> req.body
     const url = `${req.headers.origin}/join?examId=${examId}&beginningDate=${assignHomeworkData.beginningDate}&deadlineDate=${assignHomeworkData.deadlineDate}`
-    push(ref(database, '/homeworks'), {url, examId, ...assignHomeworkData})
+    await addDoc(getCollection(CollectionType.HOMEWORK), {url, examId, ...assignHomeworkData})
     res.status(200).send(url)
 }
