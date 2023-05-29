@@ -1,64 +1,65 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {CollectionType, getCollection} from "../../../modules/firebase/FirebaseService";
+import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
+import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
 import {toAnswers, toHomeworks} from "../../../modules/utils/dataUtils";
 import {StudentAnswer} from "../../join";
-import {deleteDoc, doc, getDoc, getDocs, query, where} from "@firebase/firestore";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
         case 'GET':
-            await retrieveExamination(req, res)
-            break
+            return retrieveExamination(req, res)
         case 'DELETE':
-            await deleteExamination(req, res)
-            break
+            return deleteExamination(req, res)
         default:
-            res.status(405).json({message: 'Request is not supported'})
+            return res.status(405).json({message: 'Request is not supported'})
     }
 }
 
-async function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
+function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
     const {examId} = req.query
     console.log(`Retrieving examination ${examId} from database.`)
-    const docSnap = await getDoc(doc(getCollection(CollectionType.EXAMINATION), `${examId}`))
-    const examinationData = <ExaminationData> docSnap.data()
-    if (examinationData) {
-        console.log(`Retrieved examination ${examId} from database.`)
-        res.status(200).json(examinationData)
-    } else {
-        console.log(`Error when try retrieving examination ${examId} from database.`)
-        res.status(404).json({message: `Examination with id: ${examId} not found `})
-    }
+    onValue(ref(database, `/examinations/${examId}`), (snapshot) => {
+        const examinationData = <ExaminationData> snapshot.val()
+        if (examinationData) {
+            res.status(200).json(examinationData)
+            console.log(`Retrieved examination ${examId} from database.`)
+        } else {
+            res.status(404).json({message: `Examination with id: ${examId} not found `})
+            console.log(`Error when try retrieving examination ${examId} from database.`)
+        }
+    }, {
+        onlyOnce: true
+    })
 }
 
 async function deleteExamination(req: NextApiRequest, res: NextApiResponse) {
     const {examId} = req.query
-    const examCollection = getCollection(CollectionType.EXAMINATION)
-    const homeworkQuery = query(getCollection(CollectionType.HOMEWORK), where('examId', '==', `${examId}`))
-    const homeworkSnaps = await getDocs(homeworkQuery)
-    if (homeworkSnaps.empty) {
-        await deleteDoc(doc(examCollection, `${examId}`))
-        return res.status(200).json({message: 'This examination is deleted successfully. There is no homework existed.'})
-    }
-
-    const homeworkData = toHomeworks(homeworkSnaps)
-    // delete all homework related
-    for (const homework of homeworkData) {
-        const answerQuery = query(getCollection(CollectionType.ANSWER), where('examId', '==', `${examId}`))
-        const answerSnaps = await getDocs(answerQuery)
-        if (answerSnaps.empty) {
-            continue
+    const updates: Record<string, any> = {}
+    // delete examination
+    updates[`/examinations/${examId}`] = null
+    // delete homework of this examination
+    await onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
+        equalTo(`${examId}`)), async (snapshot) => {
+        if (snapshot.val()) {
+            const homeworkData = toHomeworks(snapshot.val())
+            for (const homework of homeworkData) {
+                updates[`/homeworks/${homework.id}`] = null
+                // delete all answer related
+                await onValue(query(ref(database, `/answers`), orderByChild('examId'),
+                    equalTo(`${examId}`)), (snapshot) => {
+                    if (snapshot.val()) {
+                        const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homework.id)
+                        answers.forEach(answer => {
+                            if (answer.id) updates[`/answers/${answer.id}`] = null
+                        })
+                    }
+                })
+            }
         }
-        const answers: StudentAnswer[] = toAnswers(answerSnaps).filter((answer) => answer.homeworkId === homework.id)
-        // delete all answer related
-        for (const answer of answers) {
-            if (answer.id) await deleteDoc(doc(getCollection(CollectionType.ANSWER), `${answer.id}`))
-        }
 
-        await deleteDoc(doc(getCollection(CollectionType.HOMEWORK), `${homework.id}`))
-    }
+    })
 
-    await deleteDoc(doc(examCollection, `${examId}`))
+    await update(ref(database), updates);
     return res.status(200).json({message: 'This examination is deleted successfully. All homework and students answers are also deleted accordingly.'})
 }
