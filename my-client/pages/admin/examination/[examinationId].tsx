@@ -48,7 +48,7 @@ export default function ExaminationDetail() {
                 <Grid item xs={2} md={2} xl={2}/>
                 <Grid item xs={8} md={8} xl={8}>
                     <Paper className={styles.Paper} elevation={3}>
-                        <Image src="/logo.png" width="90px" height="90px"
+                        <Image src="/logo.png" width={90} height={90}
                                alt="logo.png"
                                style={{backgroundColor: getRandomColor()}}/>
                         <div className={styles.ExaminationInfo}>

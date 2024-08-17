@@ -48,7 +48,7 @@ function Examination() {
                                     <Grid item xs={8} md={8} xl={8}>
                                         <Link href={`/admin/examination/${examination.id}`}>
                                             <Paper className={styles.Paper} elevation={3}>
-                                                <Image src="/logo.png" width="90px" height="90px"
+                                                <Image src="/logo.png" width={90} height={90}
                                                        alt="logo.png"
                                                        style={{backgroundColor: getRandomColor()}}/>
                                                 <div className={styles.ExaminationInfo}>
