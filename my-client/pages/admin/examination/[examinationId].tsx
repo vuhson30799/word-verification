@@ -90,7 +90,7 @@ export default function ExaminationDetail() {
                     </div>
                     <>
                         {!!questions && questions.length !== 0 ?
-                            questions.map((question, key) => {
+                            questions.filter(q => !!q).map((question, key) => {
                                 return (
                                     <div key={key}>
                                         <div>
