@@ -354,7 +354,7 @@ export default function AttendingExamination() {
                                 {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
                                     return <MyColorDiv key={index}
                                                        style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, display: 'flex', justifyContent: 'center', fontSize: `${isSmallPhone && '0.75rem'}`}}
-                                                       value={translateKey(key)}
+                                                       value={isDisplayed(displayState, DisplayStateEnum.ANSWERS) ? translateKey(key) : "Good try! Find another way ^^"}
                                     />
                                 })}
                             </h5>
