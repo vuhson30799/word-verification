@@ -1,3 +1,7 @@
+import {decoding, encoding} from "../../constant/ApplicationConstant";
+import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
+import {de} from "date-fns/locale";
+
 export function toExaminations(object: any) {
     const examIds = Object.keys(object)
     return examIds.map(examId => {
@@ -39,4 +43,20 @@ export function toAnswers(object: any) {
             finishAt: object[answerId].finishAt
         }
     })
+}
+
+export function encodeHomeworkUrl(examId: string, assignHomeworkData: AssignHomeworkData) {
+    return Buffer.from(`${examId}|${assignHomeworkData.beginningDate}|${assignHomeworkData.deadlineDate}`, decoding).toString(encoding)
+}
+
+export function decodeHomeworkUrl(url: string) {
+    const inputs = Buffer.from(url, encoding).toString(decoding).split('|')
+    if (inputs.length !== 3) {
+        throw new Error(`Could not decode homework url: ${url}`)
+    }
+    return {
+        examId: inputs[0],
+        beginningDate: inputs[1],
+        deadlineDate: inputs[2]
+    }
 }

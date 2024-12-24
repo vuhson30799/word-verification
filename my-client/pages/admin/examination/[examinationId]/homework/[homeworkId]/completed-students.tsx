@@ -7,8 +7,8 @@ import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow}
 import MyToast from "../../../../../../components/MyToast";
 import {MySpinner} from "../../../../../../components/MySpinner";
 import {groupBy, orderBy, uniq} from "lodash";
-import {DataGrid, GridColDef, GridRowsProp, GridToolbar} from "@mui/x-data-grid";
-import {useCallback, useMemo} from "react";
+import {DataGrid, GridColDef, GridToolbar} from "@mui/x-data-grid";
+import {useCallback} from "react";
 import Box from "@mui/material/Box";
 import {compareAsc, format} from "date-fns";
 
@@ -49,7 +49,8 @@ export default function CompletedStudents() {
     {field: 'studentName', headerName: 'Student Name', minWidth: 500},
     {field: 'correctAnswers', headerName: 'Correct Answers', minWidth: 150},
     {field: 'trial', headerName: 'Trial'},
-    {field: 'beginningAt',
+    {
+      field: 'beginningAt',
       headerName: 'Start At',
       minWidth: 300,
       valueFormatter: value => format(Date.parse(value), "HH:mm dd/MM/yyyy"),
@@ -59,7 +60,8 @@ export default function CompletedStudents() {
         return compareAsc(d1, d2)
       }
     },
-    {field: 'finishAt',
+    {
+      field: 'finishAt',
       headerName: 'Finish At',
       minWidth: 300,
       valueFormatter: value => format(Date.parse(value), "HH:mm dd/MM/yyyy"),
@@ -73,13 +75,13 @@ export default function CompletedStudents() {
 
   return (
     <Admin>
-      <Box sx={{ padding: '0 20px', height: '85vh', width: '100%' }}>
+      <Box sx={{padding: '0 20px', height: '85vh', width: '100%'}}>
         <DataGrid rows={highestStudentAnswers(studentAnswers, ['correctAnswers'])}
                   columns={columns}
                   disableColumnFilter
                   disableColumnSelector
                   disableDensitySelector
-                  slots={{ toolbar: GridToolbar }}
+                  slots={{toolbar: GridToolbar}}
                   slotProps={{
                     toolbar: {
                       showQuickFilter: true,

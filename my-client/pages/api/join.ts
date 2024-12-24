@@ -3,6 +3,8 @@ import {ExaminationData} from "../admin/examination";
 import {encoding} from "../../constant/ApplicationConstant";
 import {HomeworkData} from "../admin/examination/[examinationId]/homework";
 import {HomeworkExam} from "../join";
+import {decodeHomeworkUrl} from "../../modules/utils/dataUtils";
+import {isEmpty} from "lodash";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
@@ -15,7 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiResponse) {
-    const {examId, beginningDate, deadlineDate} = req.query
+    const query = req.query
+    const data = query.q
+    const {examId, beginningDate, deadlineDate} = !isEmpty(data)
+      ? decodeHomeworkUrl(`${data}`)
+      // to be removed when all homework uses new structure: with 'data' query
+      : req.query
     if (!req.headers.referer) {
         res.status(400).json({message: 'There are something wrong with this request.\nPlease contact admin for more information'})
         return

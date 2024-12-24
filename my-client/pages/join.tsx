@@ -20,6 +20,8 @@ import Typography from "@mui/material/Typography";
 import {DisplayState, DisplayStateEnum, isDisplayed} from "../modules/join/display/DisplayService";
 import {TimeoutContext} from "../modules/join/context";
 import MyColorDiv from "../components/MyColorDiv";
+import {isEmpty} from "lodash";
+import {decodeHomeworkUrl} from "../modules/utils/dataUtils";
 
 export interface StudentAnswer {
     id?: string
@@ -101,7 +103,11 @@ function setVisible(predicate: boolean) {
 export default function AttendingExamination() {
     const isSmallPhone = useMediaQuery('(max-width:430px)')
     const router = useRouter()
-    const {examId, beginningDate, deadlineDate} = router.query
+    const {q} = router.query
+    const {examId, beginningDate, deadlineDate} = !isEmpty(q)
+      ? decodeHomeworkUrl(`${q}`)
+      // to be removed when all homework uses new structure: with 'data' query
+      : router.query
     const [examinationData, setExaminationData] = useState<ExaminationData | undefined>(undefined)
     const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
     const [allowance, setAllowance] = useState<Allowance>(initialAllowance)
@@ -113,8 +119,8 @@ export default function AttendingExamination() {
     const {
         data,
         error
-    } = useSWRImmutable<HomeworkExam>(!!examId && !!beginningDate && !!deadlineDate ?
-        [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}`, 'get'] : null, fetcher)
+    } = useSWRImmutable<HomeworkExam>((examId && beginningDate && deadlineDate) || q ?
+        [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}&q=${q ?? ''}`, 'get'] : null, fetcher)
 
     const {
         data: submitAnswerSuccess,
