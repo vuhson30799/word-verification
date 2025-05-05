@@ -20,7 +20,7 @@ function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
     const {examId} = req.query
     console.log(`Retrieving examination ${examId} from database.`)
     onValue(ref(database, `/examinations/${examId}`), (snapshot) => {
-        const examinationData = <ExaminationData> snapshot.val()
+        const examinationData = <ExaminationData>snapshot.val()
         if (examinationData) {
             res.status(200).json(examinationData)
             console.log(`Retrieved examination ${examId} from database.`)
@@ -39,25 +39,26 @@ async function deleteExamination(req: NextApiRequest, res: NextApiResponse) {
     // delete examination
     updates[`/examinations/${examId}`] = null
     // delete homework of this examination
-    await onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
+    onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
         equalTo(`${examId}`)), async (snapshot) => {
         if (snapshot.val()) {
             const homeworkData = toHomeworks(snapshot.val())
             for (const homework of homeworkData) {
                 updates[`/homeworks/${homework.id}`] = null
                 // delete all answer related
-                await onValue(query(ref(database, `/answers`), orderByChild('examId'),
-                    equalTo(`${examId}`)), (snapshot) => {
+                onValue(query(ref(database, `/answers`), orderByChild('examId'),
+                    equalTo(`${examId}`)), async (snapshot) => {
                     if (snapshot.val()) {
                         const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homework.id)
                         answers.forEach(answer => {
                             if (answer.id) updates[`/answers/${answer.id}`] = null
                         })
                     }
+                    await update(ref(database), updates);
                 })
             }
         }
-
+        await update(ref(database), updates);
     })
 
     await update(ref(database), updates);
