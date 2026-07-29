@@ -25,8 +25,14 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import QuizIcon from '@mui/icons-material/Quiz';
+import SchoolIcon from '@mui/icons-material/School';
+import GroupIcon from '@mui/icons-material/Group';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'next/link';
+import {useRouter} from 'next/router';
 import styles from '../styles/MySearchAppBar.module.css'
+import {useAuth} from '../modules/auth/AuthContext';
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -103,6 +109,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 export default function MySearchAppBar() {
     const [open, setOpen] = React.useState(false);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const {user, refresh} = useAuth();
+    const router = useRouter();
 
     const handleDrawerOpen = () => {
         setOpen(true);
@@ -122,6 +130,13 @@ export default function MySearchAppBar() {
         setAnchorEl(null);
     };
 
+    const handleLogout = async () => {
+        handleMenuClose();
+        await fetch('/api/auth/logout', {method: 'POST'});
+        await refresh();
+        await router.push('/admin/login');
+    };
+
     const menuId = 'primary-search-account-menu';
     const renderMenu = (
         <Menu
@@ -138,8 +153,13 @@ export default function MySearchAppBar() {
             open={isMenuOpen}
             onClose={handleMenuClose}
         >
-            <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-            <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+            <MenuItem disabled>{user?.username}</MenuItem>
+            <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                    <LogoutIcon fontSize="small"/>
+                </ListItemIcon>
+                Logout
+            </MenuItem>
         </Menu>
     );
 
@@ -234,6 +254,38 @@ export default function MySearchAppBar() {
                                 </ListItem>
                             </Link>
                         </List>
+                        {user?.role === 'admin' &&
+                            <>
+                                <Divider />
+                                <ListItemText primary="Configuration" sx={{px: 2, pt: 1}}/>
+                                <List>
+                                    <Link href="/admin/configuration/classes">
+                                        <ListItem button >
+                                            <ListItemIcon>
+                                                <SchoolIcon/>
+                                            </ListItemIcon>
+                                            <ListItemText primary="Classes"/>
+                                        </ListItem>
+                                    </Link>
+                                    <Link href="/admin/configuration/students">
+                                        <ListItem button >
+                                            <ListItemIcon>
+                                                <GroupIcon/>
+                                            </ListItemIcon>
+                                            <ListItemText primary="Students"/>
+                                        </ListItem>
+                                    </Link>
+                                    <Link href="/admin/configuration/assistants">
+                                        <ListItem button >
+                                            <ListItemIcon>
+                                                <SupervisorAccountIcon/>
+                                            </ListItemIcon>
+                                            <ListItemText primary="Assistants"/>
+                                        </ListItem>
+                                    </Link>
+                                </List>
+                            </>
+                        }
                         <Divider />
                     </Drawer>
                     {renderMenu}

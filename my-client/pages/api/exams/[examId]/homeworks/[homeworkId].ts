@@ -3,8 +3,11 @@ import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/datab
 import {database} from "../../../../../modules/firebase/FirebaseService";
 import {toAnswers} from "../../../../../modules/utils/dataUtils";
 import {StudentAnswer} from "../../../../join";
+import {requireRole} from "../../../../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
+
     switch (req.method) {
         case 'DELETE':
             return deleteHomework(req, res)

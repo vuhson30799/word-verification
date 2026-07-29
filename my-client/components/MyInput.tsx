@@ -59,6 +59,7 @@ export default function MyInput(props: MyInputProps) {
             autoComplete="off"
             onChange={props.onChange}
             readOnly={props.readOnly}
+            type={props.type}
         />
     )
 }

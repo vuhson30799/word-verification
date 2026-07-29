@@ -2,12 +2,15 @@ import {NextApiRequest, NextApiResponse} from "next";
 import {equalTo, onValue, orderByChild, query, ref} from "firebase/database";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {toAnswers} from "../../../modules/utils/dataUtils";
+import {requireRole} from "../../../modules/auth/requireAuth";
 
 export interface AnswerSearchCriteria {
     examinationId: string
     homeworkId: string
 }
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
+
     switch (req.method) {
         case 'POST':
             searchAnswers(req, res)

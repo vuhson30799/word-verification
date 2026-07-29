@@ -2,8 +2,23 @@ import {MyFooter} from "../components/MyFooter";
 import MySearchAppBar from "../components/MySearchAppBar";
 import style from "../styles/AdminLayout.module.css"
 import Head from "next/head";
+import {useEffect} from "react";
+import {useRouter} from "next/router";
+import {useAuth} from "../modules/auth/AuthContext";
+import {MySpinner} from "../components/MySpinner";
 
 export function Admin({children}: any) {
+    const {user, loading} = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/admin/login')
+        }
+    }, [loading, user, router])
+
+    if (loading || !user) return <MySpinner/>
+
     return (
         <div className={style.adminLayout}>
             <Head>

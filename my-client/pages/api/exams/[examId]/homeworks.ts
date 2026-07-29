@@ -3,8 +3,11 @@ import {equalTo, onValue, orderByChild, push, query, ref} from "firebase/databas
 import {database} from "../../../../modules/firebase/FirebaseService";
 import {encodeHomeworkUrl, toHomeworks} from "../../../../modules/utils/dataUtils";
 import {AssignHomeworkData} from "../../../../components/AssignHomeWorkModal";
+import {requireRole} from "../../../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!requireRole(req, res, ['admin', 'assistant'])) return
+
   switch (req.method) {
     case 'GET':
       getHomeworks(req, res)

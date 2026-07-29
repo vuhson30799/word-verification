@@ -4,8 +4,11 @@ import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
 import {toAnswers, toHomeworks} from "../../../modules/utils/dataUtils";
 import {StudentAnswer} from "../../join";
+import {requireRole} from "../../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
+
     switch (req.method) {
         case 'GET':
             return retrieveExamination(req, res)

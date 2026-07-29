@@ -3,8 +3,11 @@ import {database} from "../../modules/firebase/FirebaseService";
 import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
 import {toExaminations} from "../../modules/utils/dataUtils";
+import {requireRole} from "../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
+
     switch (req.method) {
         case 'GET':
             getExaminations(req, res)
