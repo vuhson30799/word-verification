@@ -3,7 +3,7 @@ import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
 import {de} from "date-fns/locale";
 
 export function toExaminations(object: any) {
-    const examIds = Object.keys(object)
+    const examIds = Object.keys(object || {})
     return examIds.map(examId => {
         return {
             id: examId,
@@ -17,7 +17,7 @@ export function toExaminations(object: any) {
 }
 
 export function toHomeworks(object: any) {
-    const homeworkIds = Object.keys(object)
+    const homeworkIds = Object.keys(object || {})
     return homeworkIds.map(homeworkId => {
         return {
             id: homeworkId,
@@ -29,7 +29,7 @@ export function toHomeworks(object: any) {
 }
 
 export function toAnswers(object: any) {
-    const answerIds = Object.keys(object)
+    const answerIds = Object.keys(object || {})
     return answerIds.map(answerId => {
         return {
             id: answerId,
