@@ -1,11 +1,11 @@
 .adminLayout {
     display: flex;
-    justify-content: center;
     min-height: 100vh;
-    font-family: "Arial", serif;
+    background: #FBFAF7;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .main {
-    margin: 10vh 5px 8vh 0;
-    min-width: 80vw;
+    flex: 1;
+    min-width: 0;
 }
