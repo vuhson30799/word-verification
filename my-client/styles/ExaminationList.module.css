@@ -1,0 +1,156 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    background: #FBFAF7;
+    padding: 40px 48px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.headerTitle {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: #1C1B1F;
+}
+
+.headerSubtitle {
+    font-size: 14.5px;
+    color: #8A8578;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid #E4E1DA;
+    border-radius: 12px;
+    padding: 10px 16px 10px 14px;
+    width: 260px;
+}
+
+.searchBox svg {
+    flex-shrink: 0;
+    color: #ACA89C;
+}
+
+.searchInput {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    width: 100%;
+    color: #1C1B1F;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.searchInput::placeholder {
+    color: #ACA89C;
+}
+
+.newExamButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1C4A63;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #E4E1DA;
+    border-radius: 18px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+    box-shadow: 0 20px 40px -24px rgba(28, 27, 31, 0.25);
+    transform: translateY(-2px);
+}
+
+.cardIcon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cardIcon svg {
+    color: #fff;
+}
+
+.cardTitle {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 16.5px;
+    margin-bottom: 6px;
+}
+
+.cardBadge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #1C4A63;
+    background: #EEF3F5;
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.cardFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: #8A8578;
+    border-top: 1px solid #F0EDE5;
+    padding-top: 12px;
+}
+
+.emptyState {
+    padding: 60px 0;
+    text-align: center;
+    color: #8A8578;
+    font-size: 15px;
+}
