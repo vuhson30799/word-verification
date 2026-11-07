@@ -1,8 +1,23 @@
 import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
 
-export const fetcher = async (url: string, method: string) => {
+const LOGIN_PATH = '/admin/login'
+
+/**
+ * Sends unauthenticated users on admin pages to the login page. The returned promise never settles,
+ * so the calling page keeps its loading state instead of flashing an error notification.
+ */
+const redirectToLoginIfUnauthenticated = (response: Response): Promise<never> | undefined => {
+    if (response.status !== 401 || typeof window === 'undefined') return undefined
+    if (!window.location.pathname.startsWith('/admin') || window.location.pathname === LOGIN_PATH) return undefined
+    window.location.replace(LOGIN_PATH)
+    return new Promise<never>(() => {})
+}
+
+export const fetcher = async ([url, method]: [string, string]) => {
     const response = await fetch(url, {method})
     if (response.status === 200) return response.json()
+    const redirect = redirectToLoginIfUnauthenticated(response)
+    if (redirect) return redirect
     const data = await response.json()
     throw new Error(data.message)
 }
@@ -12,6 +27,8 @@ export const fetcherWithForm = async ([url, method, object]: [string, string, an
         body: JSON.stringify(object)
     })
     if (response.status === 200) return response.json()
+    const redirect = redirectToLoginIfUnauthenticated(response)
+    if (redirect) return redirect
     const data = await response.json()
     throw new Error(data.message)
 }
