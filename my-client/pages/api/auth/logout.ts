@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {serialize} from "cookie";
+import {stringifySetCookie} from "cookie";
 import {SESSION_COOKIE_NAME} from "../../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -12,7 +12,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 function logout(req: NextApiRequest, res: NextApiResponse) {
-    res.setHeader('Set-Cookie', serialize(SESSION_COOKIE_NAME, '', {
+    res.setHeader('Set-Cookie', stringifySetCookie({
+        name: SESSION_COOKIE_NAME,
+        value: '',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

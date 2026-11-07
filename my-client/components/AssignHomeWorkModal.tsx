@@ -66,34 +66,34 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
             >
                 <Box className={styles.AssignHomeworkModal}>
                     <Grid container rowSpacing={3}>
-                        <Grid item xl={2} xs={2} md={2}/>
-                        <Grid item xl={10} xs={10} md={10}>
+                        <Grid size={{xl: 2, xs: 2, md: 2}}/>
+                        <Grid size={{xl: 10, xs: 10, md: 10}}>
                             <Typography id="modal-modal-title" variant="h6" component="h2">
                                 {props.title}
                             </Typography>
                         </Grid>
-                        <Grid item xl={1} xs={1} md={1}/>
-                        <Grid item xl={10} xs={10} md={10}>
+                        <Grid size={{xl: 1, xs: 1, md: 1}}/>
+                        <Grid size={{xl: 10, xs: 10, md: 10}}>
                             <form>
                                 <Grid container rowSpacing={3}>
-                                    <Grid item xl={12} xs={12} md={12}>
+                                    <Grid size={{xl: 12, xs: 12, md: 12}}>
                                         <MyDateTimePicker label="Beginning date" date={assignHomeworkData.beginningDate} handleChange={handleBeginningDateChange}/>
                                     </Grid>
-                                    <Grid item xl={12} xs={12} md={12}>
+                                    <Grid size={{xl: 12, xs: 12, md: 12}}>
                                         <MyDateTimePicker label="Deadline date" date={assignHomeworkData.deadlineDate} handleChange={handleDeadlineDateChange}/>
                                     </Grid>
                                 </Grid>
                             </form>
                         </Grid>
-                        <Grid item xl={1} xs={1} md={1}/>
-                        <Grid item xl={2} xs={2} md={2}/>
-                        <Grid item xl={10} xs={10} md={10}>
+                        <Grid size={{xl: 1, xs: 1, md: 1}}/>
+                        <Grid size={{xl: 2, xs: 2, md: 2}}/>
+                        <Grid size={{xl: 10, xs: 10, md: 10}}>
                             <Button variant="contained"
                                     onClick={() => setSubmit(true)}>
                                 Assign
                             </Button>
                         </Grid>
-                        <Grid item xl={12} xs={12} md={12}/>
+                        <Grid size={{xl: 12, xs: 12, md: 12}}/>
                     </Grid>
                 </Box>
             </Modal>

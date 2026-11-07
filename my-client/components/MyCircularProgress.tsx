@@ -6,8 +6,8 @@ import {useInterval} from "usehooks-ts";
 import {DefaultGradient} from "../constant/DefaultGradient";
 import {defaultGradientId} from "../constant/ApplicationConstant";
 import {OverridableStringUnion} from "@mui/types";
-import {Variant} from "@mui/material/styles/createTypography";
-import {TypographyPropsVariantOverrides} from "@mui/material/Typography/Typography";
+import {TypographyVariant as Variant} from "@mui/material/styles";
+import {TypographyPropsVariantOverrides} from "@mui/material/Typography";
 import {TimeoutContext} from "../modules/join/context";
 
 interface CircularProgressProps {

@@ -324,7 +324,7 @@ export default function AttendingExamination() {
                 <>
                     <form className={styles.StudentNameLayer}
                           onSubmit={(e) => OnStartButtonClick(e)}>
-                        <Typography variant="h2" color="#eaeaea" textAlign="center">WHO ARE YOU?</Typography>
+                        <Typography variant="h2" sx={{color: "#eaeaea", textAlign: "center"}}>WHO ARE YOU?</Typography>
                         <FormControl className={styles.JoinFormControl} required={true}>
                             <MyInput id="studentName"
                                      value={studentAnswer.studentName}

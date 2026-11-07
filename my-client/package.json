@@ -3,43 +3,43 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-with-env.js",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
-    "@mui/icons-material": "^5.6.0",
-    "@mui/material": "^5.6.0",
-    "@mui/x-data-grid": "^7.13.0",
-    "@mui/x-date-pickers": "^5.0.0-alpha.0",
-    "@types/cookie": "^0.6.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@mui/system": "^9.5.0",
+    "@mui/x-data-grid": "^9.17.0",
+    "@mui/x-date-pickers": "^9.17.0",
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.3",
-    "cookie": "^0.6.0",
-    "date-fns": "^2.28.0",
-    "firebase": "^9.8.3",
+    "cookie": "^2.0.2",
+    "date-fns": "^4.4.0",
+    "firebase": "^13.2.0",
     "jsonwebtoken": "^9.0.3",
-    "lodash": "^4.17.21",
-    "next": "14.2.2",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "read-excel-file": "^5.3.4",
-    "swr": "^1.2.2",
-    "usehooks-ts": "^2.7.2"
+    "lodash": "^4.18.1",
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "read-excel-file": "^9.3.14",
+    "swr": "^2.5.1",
+    "usehooks-ts": "^3.1.1"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.149",
-    "@types/node": "17.0.23",
-    "@types/react": "17.0.43",
-    "@types/react-dom": "17.0.14",
-    "eslint": "8.12.0",
-    "eslint-config-next": "12.1.4",
-    "typescript": "4.6.3"
+    "@types/lodash": "4.17.27",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.14.0",
+    "eslint-config-next": "16.4.5",
+    "typescript": "^6.0.3"
   },
   "engines": {
-    "node": "18.x"
+    "node": "26.x"
   }
 }

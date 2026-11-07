@@ -1,6 +1,6 @@
 import {NextApiRequest, NextApiResponse} from "next";
 import {equalTo, get, orderByChild, query, ref} from "firebase/database";
-import {serialize} from "cookie";
+import {stringifySetCookie} from "cookie";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {verifyPassword} from "../../../modules/auth/PasswordService";
 import {createSessionToken} from "../../../modules/auth/SessionService";
@@ -40,7 +40,9 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
 
 function issueSession(res: NextApiResponse, payload: {role: 'admin' | 'assistant', username: string, assistantId?: string}) {
     const token = createSessionToken(payload)
-    res.setHeader('Set-Cookie', serialize(SESSION_COOKIE_NAME, token, {
+    res.setHeader('Set-Cookie', stringifySetCookie({
+        name: SESSION_COOKIE_NAME,
+        value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

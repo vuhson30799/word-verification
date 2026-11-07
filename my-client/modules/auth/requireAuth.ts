@@ -1,5 +1,5 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {parse} from "cookie";
+import {parseCookie} from "cookie";
 import {Role, SessionPayload, verifySessionToken} from "./SessionService";
 
 export const SESSION_COOKIE_NAME = 'wv_session'
@@ -7,7 +7,7 @@ export const SESSION_COOKIE_NAME = 'wv_session'
 export function getSession(req: NextApiRequest): SessionPayload | null {
     const cookieHeader = req.headers.cookie
     if (!cookieHeader) return null
-    const token = parse(cookieHeader)[SESSION_COOKIE_NAME]
+    const token = parseCookie(cookieHeader)[SESSION_COOKIE_NAME]
     if (!token) return null
     return verifySessionToken(token)
 }

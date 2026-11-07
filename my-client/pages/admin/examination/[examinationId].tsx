@@ -45,8 +45,8 @@ export default function ExaminationDetail() {
     return (
         <Admin>
             <Grid rowSpacing={2} container>
-                <Grid item xs={2} md={2} xl={2}/>
-                <Grid item xs={8} md={8} xl={8}>
+                <Grid size={{xs: 2, md: 2, xl: 2}}/>
+                <Grid size={{xs: 8, md: 8, xl: 8}}>
                     <Paper className={styles.Paper} elevation={3}>
                         <Image src="/logo.png" width={90} height={90}
                                alt="logo.png"
@@ -123,7 +123,7 @@ export default function ExaminationDetail() {
                         </Button>
                     </div>
                 </Grid>
-                <Grid item xs={2} md={2} xl={2}/>
+                <Grid size={{xs: 2, md: 2, xl: 2}}/>
             </Grid>
         </Admin>
     )

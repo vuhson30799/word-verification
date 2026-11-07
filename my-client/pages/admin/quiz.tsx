@@ -89,7 +89,7 @@ export default function Quiz() {
         <Admin>
             <form>
                 <Grid container className={styles.QuizForm}>
-                    <Grid item xs={12} md={12} xl={12}>
+                    <Grid size={{xs: 12, md: 12, xl: 12}}>
                         <FormControl className={styles.QuizFormControl}>
                             <InputLabel htmlFor="title">Title</InputLabel>
                             <OutlinedInput
@@ -100,7 +100,7 @@ export default function Quiz() {
                             />
                         </FormControl>
                     </Grid>
-                    <Grid item xs={6} md={6} xl={6}>
+                    <Grid size={{xs: 6, md: 6, xl: 6}}>
                         <FormControl className={styles.QuizFormControl}>
                             <MyDateTimePicker date={examination.createdDate}
                                               handleChange={handleDateChange}
@@ -108,7 +108,7 @@ export default function Quiz() {
                         </FormControl>
 
                     </Grid>
-                    <Grid item xs={6} md={6} xl={6}>
+                    <Grid size={{xs: 6, md: 6, xl: 6}}>
                         <FormControl className={styles.QuizFormControl}>
                             <InputLabel id="grade">Grade</InputLabel>
                             <Select
@@ -127,10 +127,10 @@ export default function Quiz() {
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={12} xl={12}>
+                    <Grid size={{xs: 12, md: 12, xl: 12}}>
                         <Divider className={styles.QuizFormControl}/>
                     </Grid>
-                    <Grid item xs={12} md={12} xl={12}>
+                    <Grid size={{xs: 12, md: 12, xl: 12}}>
                         <div className={styles.QuizFormControl}>
                             <strong>
                                 To add questions, please upload the file following this &nbsp;
@@ -139,12 +139,12 @@ export default function Quiz() {
                             </strong>
                         </div>
                     </Grid>
-                    <Grid item xs={12} md={12} xl={12}>
+                    <Grid size={{xs: 12, md: 12, xl: 12}}>
                         <FormControl className={styles.QuizFormControl}>
                             <MyFileUpload file={file} handleFileChange={handleFileChange}/>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={12} xl={12}>
+                    <Grid size={{xs: 12, md: 12, xl: 12}}>
                         <div className={styles.QuizFormControl}>
                             <Button variant="contained"
                                     onClick={handleSubmitForm}

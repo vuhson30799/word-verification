@@ -1,7 +1,6 @@
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 import {DateTimePicker} from "@mui/x-date-pickers";
-import {TextField} from "@mui/material";
 
 export interface MyDateTimePickerProps {
     label: string
@@ -14,10 +13,10 @@ export default function MyDateTimePicker(props: MyDateTimePickerProps) {
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
                 label={props.label}
-                inputFormat="yyyy-MM-dd hh:mm:ss"
-                value={props.date}
+                format="yyyy-MM-dd hh:mm:ss"
+                value={props.date ? new Date(props.date) : null}
                 onChange={props.handleChange}
-                renderInput={(params) => <TextField id="createdDate" {...params} />}
+                slotProps={{textField: {id: "createdDate"}}}
             />
         </LocalizationProvider>
     )

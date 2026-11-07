@@ -4,7 +4,7 @@ import {useRouter} from 'next/router';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import SchoolIcon from '@mui/icons-material/School';
 import BugReportIcon from '@mui/icons-material/BugReport';

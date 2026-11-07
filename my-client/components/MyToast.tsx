@@ -3,7 +3,7 @@ import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import {Alert} from "@mui/material";
-import {AlertColor} from "@mui/material/Alert/Alert";
+import {AlertColor} from "@mui/material/Alert";
 
 export interface MyToastProps {
     message: string,

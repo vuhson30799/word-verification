@@ -1,9 +1,9 @@
 import {Question} from "../../pages/admin/examination";
-import readXlsxFile from "read-excel-file";
+import {readSheet} from "read-excel-file/browser";
 import {emptyString} from "../../constant/ApplicationConstant";
 
 export function extractQuestionsFromExcel(file: File): Promise<Question[]> {
-    return readXlsxFile(file).then((rows) => {
+    return readSheet(file).then((rows) => {
         let questions: Question[] = []
         rows.forEach((row, index) => {
             if (index >= 2) {

@@ -6,7 +6,7 @@ export const fetcher = async (url: string, method: string) => {
     const data = await response.json()
     throw new Error(data.message)
 }
-export const fetcherWithForm = async (url: string, method: string, object: any) => {
+export const fetcherWithForm = async ([url, method, object]: [string, string, any]) => {
     const response = await fetch(url, {
         method,
         body: JSON.stringify(object)
@@ -15,7 +15,7 @@ export const fetcherWithForm = async (url: string, method: string, object: any) 
     const data = await response.json()
     throw new Error(data.message)
 }
-export const assignHomeworkFetcher = (url: string, method: string, assignHomeworkData: AssignHomeworkData) => {
+export const assignHomeworkFetcher = ([url, method, assignHomeworkData]: [string, string, AssignHomeworkData]) => {
     return fetch(url, {
         method,
         headers: {

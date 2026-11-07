@@ -1,4 +1,4 @@
-import {onValue, push, ref} from "firebase/database";
+import {get, push, ref} from "firebase/database";
 import {database} from "../../modules/firebase/FirebaseService";
 import {NextApiRequest, NextApiResponse} from "next";
 import {ExaminationData} from "../admin/examination";
@@ -20,9 +20,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 }
 
-function getExaminations(req: NextApiRequest, res: NextApiResponse) {
+async function getExaminations(req: NextApiRequest, res: NextApiResponse) {
     console.log('Getting examination from database.')
-    onValue(ref(database, `/examinations`), (snapshot => {
+    try {
+        const snapshot = await get(ref(database, `/examinations`))
         const examinations = toExaminations(snapshot.val())
         if (examinations) {
             res.status(200).json(examinations)
@@ -31,7 +32,10 @@ function getExaminations(req: NextApiRequest, res: NextApiResponse) {
             res.status(404).send({message: 'This examination is not existed.'})
             console.log('Error when try getting examination.')
         }
-    }));
+    } catch (error) {
+        console.log('Error when try getting examination.', error)
+        res.status(500).json({message: error instanceof Error ? error.message : 'Cannot read examinations.'})
+    }
 }
 
 function createExamination(req: NextApiRequest, res: NextApiResponse) {
