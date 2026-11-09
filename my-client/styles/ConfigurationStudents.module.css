@@ -89,8 +89,8 @@
 
 .columns {
     display: grid;
-    grid-template-columns: 1.6fr 1.2fr 1fr 1fr 1.3fr 76px;
-    padding: 0 20px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr) 72px;
+    padding: 0 21px;
     font-size: 12px;
     font-weight: 700;
     color: #ACA89C;
@@ -104,7 +104,7 @@
 
 .row {
     display: grid;
-    grid-template-columns: 1.6fr 1.2fr 1fr 1fr 1.3fr 76px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr) 72px;
     align-items: center;
     background: #fff;
     border: 1px solid #E4E1DA;

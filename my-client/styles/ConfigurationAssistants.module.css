@@ -1,0 +1,170 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1C4A63;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.description {
+    font-size: 14px;
+    color: #8A8578;
+    margin-top: -16px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.columns,
+.row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1.4fr) 200px;
+}
+
+.columns {
+    padding: 0 21px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ACA89C;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.columns span:last-child {
+    justify-self: end;
+}
+
+.row {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #E4E1DA;
+    border-radius: 14px;
+    padding: 14px 20px;
+}
+
+.person {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding-right: 10px;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: #5B564A;
+}
+
+.name {
+    font-size: 14.5px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.role {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1C4A63;
+    background: #EEF3F5;
+    border-radius: 999px;
+    padding: 3px 10px;
+    width: fit-content;
+}
+
+.username {
+    font-size: 14px;
+    color: #5B564A;
+    overflow-wrap: anywhere;
+    padding-right: 10px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    justify-self: end;
+}
+
+.passwordButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #E4E1DA;
+    color: #5B564A;
+    border-radius: 9px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.deleteButton {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    border: 1px solid #F4D8D8;
+    background: #FDF3F3;
+    color: #D64545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.emptyState {
+    padding: 60px 0;
+    text-align: center;
+    color: #8A8578;
+    font-size: 15px;
+}
+
+@media (max-width: 900px) {
+    .columns {
+        display: none;
+    }
+
+    .row {
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+        padding: 14px;
+    }
+
+    .actions {
+        justify-self: start;
+    }
+
+    .addButton {
+        width: 100%;
+        justify-content: center;
+    }
+}

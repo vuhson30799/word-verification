@@ -1,4 +1,5 @@
 import {ClassData} from "../configuration/classes";
+import {AssistantData} from "../configuration/assistants";
 import {StudentData} from "../configuration/students";
 import {decoding, encoding} from "../../constant/ApplicationConstant";
 import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
@@ -86,5 +87,13 @@ export function toStudents(students: any): StudentData[] {
         phone: students[studentId].phone || '',
         parentPhone: students[studentId].parentPhone || '',
         classIds: students[studentId].classIds || []
+    }))
+}
+
+export function toAssistants(assistants: any): AssistantData[] {
+    return Object.keys(assistants || {}).map(assistantId => ({
+        id: assistantId,
+        name: assistants[assistantId].name || assistants[assistantId].username,
+        username: assistants[assistantId].username
     }))
 }

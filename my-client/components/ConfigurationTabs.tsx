@@ -5,7 +5,7 @@ import styles from "../styles/Configuration.module.css";
 const TABS = [
     {label: 'Classes', href: '/admin/configuration/classes', available: true},
     {label: 'Students', href: '/admin/configuration/students', available: true},
-    {label: 'Assistants', href: '/admin/configuration/assistants', available: false},
+    {label: 'Assistants', href: '/admin/configuration/assistants', available: true},
 ]
 
 export default function ConfigurationTabs() {
