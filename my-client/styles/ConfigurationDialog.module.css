@@ -1,0 +1,89 @@
+.paper {
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    padding: 26px 24px 22px;
+    border-radius: 20px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #1C1B1F;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #8A8578;
+    margin: 4px 0 20px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #5B564A;
+}
+
+.input {
+    border: 1px solid #E4E1DA;
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 14.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1C1B1F;
+    outline: none;
+    background: #fff;
+}
+
+.input:focus {
+    border-color: #1C4A63;
+}
+
+.error {
+    font-size: 13px;
+    color: #D64545;
+    margin-bottom: 4px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.cancelButton,
+.submitButton {
+    border-radius: 12px;
+    padding: 11px 22px;
+    font-weight: 600;
+    font-size: 14.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+}
+
+.cancelButton {
+    background: transparent;
+    border: 1.5px solid #E4E1DA;
+    color: #5B564A;
+}
+
+.submitButton {
+    background: #1C4A63;
+    border: 1.5px solid #1C4A63;
+    color: #fff;
+}
+
+.submitButton:disabled,
+.cancelButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

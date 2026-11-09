@@ -1,6 +1,6 @@
+import {ClassData} from "../configuration/classes";
 import {decoding, encoding} from "../../constant/ApplicationConstant";
 import {AssignHomeworkData} from "../../components/AssignHomeWorkModal";
-import {de} from "date-fns/locale";
 
 export function toExaminations(object: any) {
     const examIds = Object.keys(object || {})
@@ -59,4 +59,18 @@ export function decodeHomeworkUrl(url: string) {
         beginningDate: inputs[1],
         deadlineDate: inputs[2]
     }
+}
+
+export function toClasses(classes: any, students: any): ClassData[] {
+    const studentCounts: Record<string, number> = {}
+    Object.values<any>(students || {}).forEach(student => {
+        if (student.classId) studentCounts[student.classId] = (studentCounts[student.classId] || 0) + 1
+    })
+    return Object.keys(classes || {}).map(classId => ({
+        id: classId,
+        name: classes[classId].name,
+        grade: classes[classId].grade,
+        academicYear: classes[classId].academicYear,
+        studentCount: studentCounts[classId] || 0
+    }))
 }
