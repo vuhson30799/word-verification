@@ -1,36 +1,49 @@
-import {Button} from "@mui/material";
-import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import styles from "../styles/MyFileUpload.module.css"
-import {ChangeEvent} from "react";
+import {ChangeEvent, DragEvent, useState} from "react";
 
 export interface MyFileUploadProps {
     file: File | undefined,
     handleFileChange: (e: ChangeEvent<HTMLInputElement>) => void
+    accept?: string
+    hint?: string
+    invalid?: boolean
 }
 
 export default function MyFileUpload(props: MyFileUploadProps) {
-    return (
-        <>
-            <label htmlFor="file">
-                <input accept="*"
-                       id="file"
-                       type="file"
-                       onChange={props.handleFileChange}
-                       hidden={true}
-                />
-                {!props.file ?
-                    <Button variant="outlined" component="div" className={styles.ButtonUpload}>
-                        <div><CloudUploadOutlinedIcon className={styles.CloudUpload}/></div>
-                        <div>Click to upload file</div>
-                    </Button>
-                    : undefined
-                }
-                {props.file ?
-                    <div>{props.file.name}</div>
-                    : undefined
-                }
+    const [dragging, setDragging] = useState(false)
 
-            </label>
-        </>
+    function handleDrop(e: DragEvent<HTMLLabelElement>) {
+        e.preventDefault()
+        setDragging(false)
+        if (e.dataTransfer.files.length === 0) return
+        props.handleFileChange({target: {files: e.dataTransfer.files}} as ChangeEvent<HTMLInputElement>)
+    }
+
+    return (
+        <label htmlFor="file"
+               className={`${styles.dropzone} ${dragging ? styles.dropzoneActive : ''} ${props.invalid ? styles.dropzoneInvalid : ''}`}
+               onDragOver={(e) => {
+                   e.preventDefault()
+                   setDragging(true)
+               }}
+               onDragLeave={() => setDragging(false)}
+               onDrop={handleDrop}>
+            <input accept={props.accept ?? "*"}
+                   id="file"
+                   type="file"
+                   onChange={props.handleFileChange}
+                   hidden={true}
+            />
+            <div className={styles.iconBox}>
+                <UploadFileOutlinedIcon fontSize="small"/>
+            </div>
+            <div className={styles.primaryText}>
+                {props.file ? props.file.name : 'Drag your file here, or click to upload'}
+            </div>
+            <div className={styles.secondaryText}>
+                {props.file ? 'Click to choose a different file' : props.hint}
+            </div>
+        </label>
     )
 }

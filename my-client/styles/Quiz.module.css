@@ -1,20 +1,179 @@
-.QuizForm {
-    align-content: flex-start;
-    width: 50vw;
-}
-
-.QuizFormControl {
+.page {
+    display: flex;
+    justify-content: center;
+    background: #FBFAF7;
+    padding: 44px 48px;
     width: 100%;
-    padding-left: 5px;
-    margin-top: 15px;
+    box-sizing: border-box;
 }
 
-.QuizTemplateLink {
-    color: #0070f3;
-    text-decoration-line: underline;
+.form {
+    width: 100%;
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
 }
 
-.QuizSubmitButton {
-    background-color: brown;
-    float: right;
+.title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0 0 6px;
+    color: #1C1B1F;
+}
+
+.subtitle {
+    font-size: 14.5px;
+    color: #8A8578;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5B564A;
+}
+
+.input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1.5px solid #E4E1DA;
+    border-radius: 13px;
+    padding: 13px 16px;
+    font-size: 15px;
+    color: #1C1B1F;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.input::placeholder {
+    color: #ACA89C;
+}
+
+.input:focus {
+    border-color: #1C4A63;
+}
+
+.row {
+    display: flex;
+    gap: 20px;
+}
+
+.segmented {
+    display: flex;
+    background: #F0EDE5;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.segment {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: #6B6F76;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+}
+
+.segmentActive {
+    background: #1C4A63;
+    color: #fff;
+    font-weight: 600;
+}
+
+.divider {
+    height: 1px;
+    background: #EDEAE2;
+    margin: 6px 0;
+}
+
+.uploadSection {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.uploadHint {
+    font-size: 14px;
+    color: #5B564A;
+    line-height: 1.6;
+}
+
+.templateLink {
+    color: #1C4A63;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: #C9D6DA;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.cancelButton {
+    background: transparent;
+    border: 1.5px solid #E4E1DA;
+    color: #5B564A;
+    border-radius: 12px;
+    padding: 12px 22px;
+    font-weight: 600;
+    font-size: 14.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+}
+
+.submitButton {
+    background: #1C4A63;
+    border: none;
+    color: #fff;
+    border-radius: 12px;
+    padding: 12px 26px;
+    font-weight: 600;
+    font-size: 14.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .page {
+        padding: 20px;
+    }
+
+    .row {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .submitButton {
+        flex: 1;
+    }
+}
+
+.inputError {
+    border-color: #C0392B;
+}
+
+.errorText {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #C0392B;
 }

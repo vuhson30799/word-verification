@@ -1,10 +1,6 @@
-import {Button, FormControl, Grid, InputLabel, OutlinedInput, Select, SelectChangeEvent} from "@mui/material";
 import React, {ChangeEvent, useState} from "react";
 import {ExaminationData} from "./examination";
-import MyDateTimePicker from "../../components/MyDateTimePicker";
-import MenuItem from "@mui/material/MenuItem";
 import {Admin} from "../../layout/Admin";
-import Divider from "@mui/material/Divider";
 import styles from "../../styles/Quiz.module.css"
 import MyFileUpload from "../../components/MyFileUpload";
 import {fetcherWithForm} from "../../modules/configuration/Configuration";
@@ -14,6 +10,29 @@ import MyToast from "../../components/MyToast";
 import {convertDate} from "../../modules/utils/dateUtils";
 import {extractQuestionsFromExcel} from "../../modules/utils/excelService";
 import useSWRImmutable from "swr/immutable";
+
+const GRADES = [10, 11, 12]
+
+type ExaminationErrors = Partial<Record<'title' | 'grade' | 'createdDate' | 'questions', string>>
+
+function validateExamination(examination: ExaminationData, file: File | undefined): ExaminationErrors {
+    const errors: ExaminationErrors = {}
+    if (!examination.title.trim()) errors.title = 'Title is required.'
+    if (!GRADES.includes(examination.grade)) errors.grade = 'Grade is required.'
+    if (!examination.createdDate || isNaN(Date.parse(examination.createdDate))) {
+        errors.createdDate = 'Created date is required.'
+    }
+    if (!file) {
+        errors.questions = 'Upload a question file.'
+    } else if (examination.questions.length === 0) {
+        errors.questions = 'The uploaded file contains no questions.'
+    }
+    return errors
+}
+
+function FieldError({message}: { message?: string }) {
+    return message ? <span className={styles.errorText} role="alert">{message}</span> : null
+}
 
 export default function Quiz() {
     const [examination, setExamination] = useState<ExaminationData>({
@@ -26,6 +45,8 @@ export default function Quiz() {
     })
     const [file, setFile] = useState<File | undefined>(undefined)
     const [submit, setSubmit] = useState<boolean>(false)
+    const [showErrors, setShowErrors] = useState<boolean>(false)
+    const errors: ExaminationErrors = showErrors ? validateExamination(examination, file) : {}
     const router = useRouter()
     const {data, error} = useSWRImmutable(submit ? ['/api/exams', 'post', examination] : null, fetcherWithForm)
     if (error) return <MyToast message={error.message} severity={"error"} />
@@ -40,13 +61,11 @@ export default function Quiz() {
 
     function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return
-        setFile(e.target.files[0])
-        extractQuestionsFromExcel(e.target.files[0]).then(questions => {
-            setExamination({
-                ...examination,
-                questions
-            })
-        })
+        const selected = e.target.files[0]
+        setFile(selected)
+        extractQuestionsFromExcel(selected)
+            .then(questions => setExamination(current => ({...current, questions})))
+            .catch(() => setExamination(current => ({...current, questions: []})))
     }
 
     function handleChange(fieldName: string, value: string) {
@@ -74,87 +93,104 @@ export default function Quiz() {
         }
     }
 
-    function handleDateChange(date: Date | null) {
+    function handleDateChange(value: string) {
         setExamination({
             ...examination,
-            createdDate: date ? convertDate(date) : ''
+            createdDate: value ? `${value}:00` : ''
         })
     }
 
     function handleSubmitForm() {
+        setShowErrors(true)
+        if (Object.keys(validateExamination(examination, file)).length > 0) return
         setSubmit(true)
+    }
+
+    function handleCancel() {
+        router.push('/admin/examination')
+            .then(() => console.log('redirect to view examinations'))
     }
 
     return (
         <Admin>
-            <form>
-                <Grid container className={styles.QuizForm}>
-                    <Grid size={{xs: 12, md: 12, xl: 12}}>
-                        <FormControl className={styles.QuizFormControl}>
-                            <InputLabel htmlFor="title">Title</InputLabel>
-                            <OutlinedInput
-                                id="title"
-                                value={examination.title}
-                                onChange={(e) => handleChange("title", e.target.value)}
-                                label="title"
-                            />
-                        </FormControl>
-                    </Grid>
-                    <Grid size={{xs: 6, md: 6, xl: 6}}>
-                        <FormControl className={styles.QuizFormControl}>
-                            <MyDateTimePicker date={examination.createdDate}
-                                              handleChange={handleDateChange}
-                                              label={"Created date"}/>
-                        </FormControl>
+            <div className={styles.page}>
+                <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
+                    <div>
+                        <h1 className={styles.title}>Create a new exam</h1>
+                        <span className={styles.subtitle}>Set the basics, then upload your question bank.</span>
+                    </div>
 
-                    </Grid>
-                    <Grid size={{xs: 6, md: 6, xl: 6}}>
-                        <FormControl className={styles.QuizFormControl}>
-                            <InputLabel id="grade">Grade</InputLabel>
-                            <Select
-                                labelId="grade"
-                                id="grade"
-                                value={`${examination.grade}`}
-                                label="Grade"
-                                onChange={(e: SelectChangeEvent) => handleChange("grade", e.target.value)}
-                            >
-                                <MenuItem value="">
-                                    <em>None</em>
-                                </MenuItem>
-                                <MenuItem value={10}>Grade 10</MenuItem>
-                                <MenuItem value={11}>Grade 11</MenuItem>
-                                <MenuItem value={12}>Grade 12</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid size={{xs: 12, md: 12, xl: 12}}>
-                        <Divider className={styles.QuizFormControl}/>
-                    </Grid>
-                    <Grid size={{xs: 12, md: 12, xl: 12}}>
-                        <div className={styles.QuizFormControl}>
-                            <strong>
-                                To add questions, please upload the file following this &nbsp;
-                                <a className={styles.QuizTemplateLink} href="/template.xlsx">template</a>
-                                &nbsp; then please upload the file here.
-                            </strong>
+                    <div className={styles.field}>
+                        <label className={styles.label} htmlFor="title">Title</label>
+                        <input
+                            id="title"
+                            className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
+                            aria-invalid={!!errors.title}
+                            placeholder="e.g. Unit 6 — Phrasal Verbs"
+                            value={examination.title}
+                            onChange={(e) => handleChange("title", e.target.value)}
+                        />
+                        <FieldError message={errors.title}/>
+                    </div>
+
+                    <div className={styles.row}>
+                        <div className={styles.field}>
+                            <span className={styles.label} id="grade-label">Grade</span>
+                            <div className={styles.segmented} role="radiogroup" aria-labelledby="grade-label">
+                                {GRADES.map(grade => (
+                                    <button
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={examination.grade === grade}
+                                        key={grade}
+                                        className={`${styles.segment} ${examination.grade === grade ? styles.segmentActive : ''}`}
+                                        onClick={() => handleChange("grade", `${grade}`)}>
+                                        {grade}
+                                    </button>
+                                ))}
+                            </div>
+                            <FieldError message={errors.grade}/>
                         </div>
-                    </Grid>
-                    <Grid size={{xs: 12, md: 12, xl: 12}}>
-                        <FormControl className={styles.QuizFormControl}>
-                            <MyFileUpload file={file} handleFileChange={handleFileChange}/>
-                        </FormControl>
-                    </Grid>
-                    <Grid size={{xs: 12, md: 12, xl: 12}}>
-                        <div className={styles.QuizFormControl}>
-                            <Button variant="contained"
-                                    onClick={handleSubmitForm}
-                                    className={styles.QuizSubmitButton}>
-                                Submit
-                            </Button>
+                        <div className={styles.field}>
+                            <label className={styles.label} htmlFor="createdDate">Created date</label>
+                            <input
+                                id="createdDate"
+                                type="datetime-local"
+                                className={`${styles.input} ${errors.createdDate ? styles.inputError : ''}`}
+                                aria-invalid={!!errors.createdDate}
+                                value={examination.createdDate.slice(0, 16)}
+                                onChange={(e) => handleDateChange(e.target.value)}
+                            />
+                            <FieldError message={errors.createdDate}/>
                         </div>
-                    </Grid>
-                </Grid>
-            </form>
+                    </div>
+
+                    <div className={styles.divider}/>
+
+                    <div className={styles.uploadSection}>
+                        <div className={styles.uploadHint}>
+                            Add questions by uploading a filled-in spreadsheet — download the{' '}
+                            <a className={styles.templateLink} href="/template.xlsx">question template</a>
+                            {' '}first if you don&apos;t have one.
+                        </div>
+                        <MyFileUpload file={file}
+                                      handleFileChange={handleFileChange}
+                                      accept=".xlsx"
+                                      hint=".xlsx up to 5MB"
+                                      invalid={!!errors.questions}/>
+                        <FieldError message={errors.questions}/>
+                    </div>
+
+                    <div className={styles.actions}>
+                        <button type="button" className={styles.cancelButton} onClick={handleCancel}>
+                            Cancel
+                        </button>
+                        <button type="button" className={styles.submitButton} onClick={handleSubmitForm}>
+                            Create exam
+                        </button>
+                    </div>
+                </form>
+            </div>
         </Admin>
     )
 }

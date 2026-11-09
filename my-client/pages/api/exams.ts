@@ -53,6 +53,7 @@ function createExamination(req: NextApiRequest, res: NextApiResponse) {
 function getInvalidMessage(examination: ExaminationData): string | undefined {
     if (!examination.title) return 'Missing title for this examination'
     if (!examination.grade) return 'Missing grade for this examination'
+    if (!examination.createdDate || isNaN(Date.parse(examination.createdDate))) return 'Missing or invalid created date for this examination'
     if (!examination.creator) return 'Missing creator for this examination'
     if (!examination.questions || examination.questions.length == 0) return 'Missing questions for this examination'
 
