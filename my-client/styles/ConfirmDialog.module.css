@@ -1,0 +1,59 @@
+.paper {
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    padding: 26px 24px 22px;
+    border-radius: 20px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #1C1B1F;
+    margin-bottom: 8px;
+}
+
+.message {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #6B6F76;
+    overflow-wrap: anywhere;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.cancelButton,
+.confirmButton {
+    border-radius: 12px;
+    padding: 11px 22px;
+    font-weight: 600;
+    font-size: 14.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+}
+
+.cancelButton {
+    background: transparent;
+    border: 1.5px solid #E4E1DA;
+    color: #5B564A;
+}
+
+.cancelButton:hover {
+    background: #FBFAF7;
+}
+
+.confirmButton {
+    background: #D64545;
+    border: 1.5px solid #D64545;
+    color: #fff;
+}
+
+.confirmButton:hover {
+    background: #BF3B3B;
+}

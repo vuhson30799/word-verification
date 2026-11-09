@@ -9,12 +9,14 @@ import {MySpinner} from "./MySpinner";
 import MyToast from "./MyToast";
 import styles from "../styles/AssignHomeworkModal.module.css"
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AddIcon from '@mui/icons-material/Add';
 import useSWRImmutable from "swr/immutable";
 
 export interface AssignHomeworkModalProps {
     title: string
     examinationId: string
     onChange: any
+    buttonClassName?: string
 }
 
 export interface AssignHomeworkData {
@@ -53,11 +55,17 @@ export default function AssignHomeworkModal(props: AssignHomeworkModalProps) {
     }
 
     return (
-        <div className={styles.AssignHomework}>
-            <Button variant="contained" endIcon={<AssignmentIcon/>}
-                    onClick={() => setOpen(true)}>
-                {props.title}
-            </Button>
+        <div className={props.buttonClassName ? undefined : styles.AssignHomework}>
+            {props.buttonClassName
+                ? <button type="button" className={props.buttonClassName} onClick={() => setOpen(true)}>
+                    <AddIcon fontSize="small"/>
+                    {props.title}
+                </button>
+                : <Button variant="contained" endIcon={<AssignmentIcon/>}
+                          onClick={() => setOpen(true)}>
+                    {props.title}
+                </Button>
+            }
             <Modal
                 open={open}
                 aria-labelledby="modal-modal-title"

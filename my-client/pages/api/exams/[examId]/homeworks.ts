@@ -24,12 +24,7 @@ function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
   const {examId} = req.query
   onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
     equalTo(`${examId}`)), (snapshot) => {
-    if (snapshot.val()) {
-      const homeworkData = toHomeworks(snapshot.val())
-      res.status(200).json(homeworkData)
-    } else {
-      res.status(404).json({message: `Homework not found for exam ${examId}`})
-    }
+    res.status(200).json(toHomeworks(snapshot.val()))
   })
 }
 

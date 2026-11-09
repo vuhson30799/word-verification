@@ -52,4 +52,12 @@ There is **no auth/route-guarding** on `/admin/*` — anyone with the URL can re
 - `configuration/Configuration.ts` — app-wide config
 - `utils/` — color, date, data-mapping, Excel import (`read-excel-file`) helpers, and word-verification logic
 
-**Shared components** (`components/`): generic MUI wrappers prefixed `My*` (`MyButton`, `MyInput`, `MyDateTimePicker`, `MyFileUpload`, `MyToast`, `MySpinner`, `MyCircularProgress`, `MySearchAppBar`, `MyFooter`) plus feature-specific widgets (`AssignHomeWorkModal`, `HomeworkSplitButton`, `ProgressQuestionBar`, `StartingQuestion`).
+**Shared components** (`components/`): generic MUI wrappers prefixed `My*` (`MyButton`, `MyInput`, `MyDateTimePicker`, `MyFileUpload`, `MyToast`, `MySpinner`, `MyCircularProgress`, `MySearchAppBar`, `MyFooter`) plus feature-specific widgets (`AssignHomeWorkModal`, `ProgressQuestionBar`, `StartingQuestion`).
+
+## Design file
+
+`my-client/.claude/docs/Word Verification Redesign - Standalone.html` is a bundled page: its template is a JSON string inside `<script type="__bundler/template">`, and the loader rebuilds the page from it in the browser. A rewrite that parses fine can still render as raw text.
+
+- Whenever you edit this file, render the result before reporting it done. Use headless Chrome with `--allow-file-access-from-files --virtual-time-budget=10000` and `--screenshot`, then look at the screenshot, including the screens you didn't touch. Checking only that the HTML or JSON parses is not enough.
+- When re-encoding the template, escape the two-character sequence `<` + `/` as `<\u002F` and `<!--` as `<\u0021--`, exactly as the original does, or the browser ends the script block early.
+- Keep a backup of the file in the scratchpad before overwriting it.
