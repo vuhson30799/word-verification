@@ -47,7 +47,7 @@ async function deleteClass(req: NextApiRequest, res: NextApiResponse) {
     const {classId} = req.query
     try {
         const students = await get(ref(database, '/students'))
-        const hasStudents = Object.values<any>(students.val() || {}).some(student => student.classId === classId)
+        const hasStudents = Object.values<any>(students.val() || {}).some(student => (student.classIds || []).includes(classId))
         if (hasStudents) {
             return res.status(409).json({message: 'This class still has students. Move or remove them first.'})
         }

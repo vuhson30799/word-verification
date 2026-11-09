@@ -87,3 +87,60 @@
     opacity: 0.6;
     cursor: default;
 }
+
+.row {
+    display: flex;
+    gap: 14px;
+}
+
+.row .field {
+    flex: 1;
+    min-width: 0;
+}
+
+.chipBox {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: #FBFAF7;
+    border: 1.5px solid #E4E1DA;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1C4A63;
+    background: #EEF3F5;
+    border-radius: 999px;
+    padding: 4px 6px 4px 10px;
+}
+
+.chipRemove {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #8A8578;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.addChip {
+    border: none;
+    background: transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    color: #8A8578;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+
+.addChip:disabled {
+    color: #D6D1C4;
+    cursor: default;
+}
