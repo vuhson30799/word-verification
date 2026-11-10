@@ -140,6 +140,8 @@ export default function ExaminationDetail() {
                         <AssignHomeworkModal title="Assign homework"
                                              buttonClassName={styles.primaryButton}
                                              examinationId={examination.id}
+                                             examinationTitle={examination.title}
+                                             grade={examination.grade}
                                              onChange={handleHomeworkAssigned}/>
                         <button type="button" className={styles.dangerButton}
                                 title="Delete examination" aria-label="Delete examination"

@@ -60,6 +60,8 @@ export default function Homework() {
 
     const assignButton = (
         <AssignHomeworkModal title="Assign homework"
+                             examinationTitle={examination?.title}
+                             grade={examination?.grade}
                              buttonClassName={styles.primaryButton}
                              examinationId={`${examinationId}`}
                              onChange={() => refreshHomeworks()}/>

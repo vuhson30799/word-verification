@@ -28,11 +28,29 @@ function getHomeworks(req: NextApiRequest, res: NextApiResponse) {
   })
 }
 
-function createHomework(req: NextApiRequest, res: NextApiResponse) {
+async function createHomework(req: NextApiRequest, res: NextApiResponse) {
   const {examId} = req.query
   const assignHomeworkData = <AssignHomeworkData>req.body
+  if (!assignHomeworkData || !Number.isFinite(Date.parse(assignHomeworkData.beginningDate)) ||
+      !Number.isFinite(Date.parse(assignHomeworkData.deadlineDate)) ||
+      Date.parse(assignHomeworkData.deadlineDate) <= Date.parse(assignHomeworkData.beginningDate)) {
+    return res.status(400).json({message: 'Deadline must be after the beginning date.'})
+  }
+  if (assignHomeworkData.studentIds !== undefined && (!Array.isArray(assignHomeworkData.studentIds) ||
+      !assignHomeworkData.studentIds.length || assignHomeworkData.studentIds.some(id => typeof id !== 'string' || !id))) {
+    return res.status(400).json({message: 'Select at least one valid student.'})
+  }
   const encodedHomeworkData = encodeHomeworkUrl(`${examId}`, assignHomeworkData)
   const url = `${req.headers.origin}/join?q=${encodedHomeworkData}&s=euqinu`
-  push(ref(database, '/homeworks'), {url, examId, ...assignHomeworkData})
-  res.status(200).send(url)
+  try {
+    await push(ref(database, '/homeworks'), {
+      url, examId,
+      beginningDate: assignHomeworkData.beginningDate,
+      deadlineDate: assignHomeworkData.deadlineDate,
+      ...(assignHomeworkData.studentIds ? {studentIds: [...new Set(assignHomeworkData.studentIds)]} : {})
+    })
+    res.status(200).send(url)
+  } catch {
+    res.status(500).json({message: 'Could not assign homework. Please try again.'})
+  }
 }

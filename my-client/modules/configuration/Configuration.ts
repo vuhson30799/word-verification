@@ -39,5 +39,13 @@ export const assignHomeworkFetcher = ([url, method, assignHomeworkData]: [string
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(assignHomeworkData)
-    }).then(res => res.text())
+    }).then(async res => {
+        if (!res.ok) {
+            const redirect = redirectToLoginIfUnauthenticated(res)
+            if (redirect) return redirect
+            const data = await res.json().catch(() => ({}))
+            throw new Error(data.message || 'Could not assign homework. Please try again.')
+        }
+        return res.text()
+    })
 }

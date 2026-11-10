@@ -10,11 +10,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     switch (req.method) {
         case 'GET':
-            getExaminations(req, res)
-            break
+            return getExaminations(req, res)
         case 'POST':
-            createExamination(req, res)
-            break
+            return createExamination(req, res)
         default:
             res.status(405).json({message: 'Request is not supported'})
     }
