@@ -15,7 +15,7 @@ function updateCurrentStudentAnswerState(req: NextApiRequest, res: NextApiRespon
     let studentAnswer
     try {
         studentAnswer = JSON.parse(req.body)
-        push(ref(database, '/answers'), studentAnswer).then(() => {
+        return push(ref(database, '/answers'), studentAnswer).then(() => {
             return res.status(200).json({success: 'Your answer has been recorded.'})
         }, () => {
             return res.status(400).json({message: 'Your answer has not been submitted. Retrying..'})

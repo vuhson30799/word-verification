@@ -1,10 +1,11 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {ExaminationData} from "../admin/examination";
+import type {ExaminationData} from "../admin/examination";
 import {encoding} from "../../constant/ApplicationConstant";
-import {HomeworkData} from "../admin/examination/[examinationId]/homework";
-import {HomeworkExam} from "../join";
-import {decodeHomeworkUrl} from "../../modules/utils/dataUtils";
-import {isEmpty} from "lodash";
+import type {HomeworkData} from "../admin/examination/[examinationId]/homework";
+import type {HomeworkExam} from "../join";
+import {decodeHomeworkUrl, toHomeworks} from "../../modules/utils/dataUtils";
+import {equalTo, get, orderByChild, query, ref} from "firebase/database";
+import {database} from "../../modules/firebase/FirebaseService";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
@@ -17,42 +18,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiResponse) {
-    const query = req.query
-    const data = query.q
-    const {examId, beginningDate, deadlineDate} = !isEmpty(data)
-      ? decodeHomeworkUrl(`${data}`)
-      // to be removed when all homework uses new structure: with 'data' query
-      : req.query
-    if (!req.headers.referer) {
-        res.status(400).json({message: 'There are something wrong with this request.\nPlease contact admin for more information'})
-        return
-    }
-    const url = new URL(req.headers.referer)
-    const homeworkData = await fetch(`${url.origin}/api/exams/${examId}/homeworks`, {method: 'GET'})
-    if (homeworkData.status !== 200) {
-        const response = await homeworkData.json()
-        res.status(400).json({message: response.message})
-        return
-    }
-
-    const homeworks: HomeworkData[] = await homeworkData.json()
-    const homework = homeworks.find((homeworkData) => homeworkData.beginningDate === beginningDate && homeworkData.deadlineDate === deadlineDate)
-    if (homework && validateHomework(homework)) {
-        const examinationData = await fetch(`${url.origin}/api/exams/${examId}`, {method: 'GET'})
-        if (examinationData.status !== 200) {
-            const response = await examinationData.json()
-            res.status(examinationData.status).json({message: response.message})
-            return
+    try {
+        const {examId, beginningDate, deadlineDate} = req.query.q
+            ? decodeHomeworkUrl(`${req.query.q}`)
+            : req.query
+        if (typeof examId !== 'string' || !examId || /[.#$\[\]\/]/.test(examId) ||
+            typeof beginningDate !== 'string' || typeof deadlineDate !== 'string') {
+            return res.status(400).json({message: 'Invalid homework link.'})
         }
-        const examination: ExaminationData = await examinationData.json()
+        // Public homework links must work without an admin session. Read the
+        // specific homework here rather than calling authenticated admin APIs.
+        const snapshot = await get(query(ref(database, '/homeworks'), orderByChild('examId'), equalTo(examId)))
+        const homework = toHomeworks(snapshot.val()).find(item =>
+            item.beginningDate === beginningDate && item.deadlineDate === deadlineDate)
+        if (!homework || !validateHomework(homework)) {
+            return res.status(400).json({message: 'This homework is no longer valid.'})
+        }
+        const examinationSnapshot = await get(ref(database, `/examinations/${examId}`))
+        const examination = examinationSnapshot.val() as ExaminationData | null
+        if (!examination) return res.status(404).json({message: 'This examination no longer exists.'})
         const homeworkExam: HomeworkExam = {
-            examination: encodeExamination(examination),
+            examination: encodeExamination({...examination, id: examId}),
             homeworkId: homework.id
         }
-
-        res.status(200).json(homeworkExam)
-    } else {
-        res.status(400).json({message: 'This homework is no longer valid.'})
+        return res.status(200).json(homeworkExam)
+    } catch (error) {
+        if (error instanceof Error && error.message.startsWith('Could not decode homework url:')) {
+            return res.status(400).json({message: 'Invalid homework link.'})
+        }
+        return res.status(500).json({message: 'Could not load this homework. Please try again.'})
     }
 }
 

@@ -129,10 +129,12 @@ export default function AttendingExamination() {
 
     // update current state of student
     useSWR(currentQuestion.questionNumber % 5 == 0
-    && currentQuestion.questionNumber != 0
+    && !!studentAnswer.beginningAt && !!studentAnswer.studentName.trim()
+    && !isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE)
         ? [`/api/answers/current-state`, 'post', {
             ...studentAnswer,
-            questionNumber: currentQuestion.questionNumber + 1
+            questionNumber: currentQuestion.questionNumber + 1,
+            finishAt: ''
         }] : null, fetcherWithForm)
     useEffect(() => {
         const lastExamId = localStorage.getItem('examId')

@@ -6,7 +6,7 @@ import {useRouter} from "next/router";
 import {useAuth} from "../modules/auth/AuthContext";
 import {MySpinner} from "../components/MySpinner";
 
-export function Admin({children}: any) {
+export function Admin({children, className}: any) {
     const {user, loading} = useAuth()
     const router = useRouter()
 
@@ -19,7 +19,7 @@ export function Admin({children}: any) {
     if (loading || !user) return <MySpinner/>
 
     return (
-        <div className={style.adminLayout}>
+        <div className={`${style.adminLayout} ${className ?? ''}`}>
             <Head>
                 <title>Admin</title>
                 <meta name="description" content="Admin layout" />
