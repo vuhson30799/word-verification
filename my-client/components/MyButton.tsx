@@ -26,6 +26,7 @@ export function MyButton(props: MyButtonProps) {
             borderRadius: props.borderRadius || defaultButtonProps.borderRadius,
             minWidth: props.minWidth || defaultButtonProps.minWidth
         }}
+        className={props.className}
         variant={props.variant || defaultButtonProps.variant}
         disabled={props.disabled}
         onClick={props.onClick} style={props.style}>

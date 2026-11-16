@@ -39,7 +39,10 @@ export default function MyFileUpload(props: MyFileUploadProps) {
                 <UploadFileOutlinedIcon fontSize="small"/>
             </div>
             <div className={styles.primaryText}>
-                {props.file ? props.file.name : 'Drag your file here, or click to upload'}
+                {props.file ? props.file.name : <>
+                    <span className={styles.desktopPrompt}>Drag your file here, or click to upload</span>
+                    <span className={styles.mobilePrompt}>Tap to upload file</span>
+                </>}
             </div>
             <div className={styles.secondaryText}>
                 {props.file ? 'Click to choose a different file' : props.hint}

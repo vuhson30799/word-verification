@@ -188,7 +188,9 @@ function Students() {
                                             </button>
                                         </div>
                                         <div className={styles.mobileMeta}>
-                                            {[student.phone, student.facebook && facebookLabel(student.facebook)].filter(Boolean).join(' · ')}
+                                            {student.phone && <a href={`tel:${student.phone.replace(/[^\d+]/g, '')}`}>Student: {student.phone}</a>}
+                                            {student.parentPhone && <a href={`tel:${student.parentPhone.replace(/[^\d+]/g, '')}`}>Parent: {student.parentPhone}</a>}
+                                            {student.facebook && <a href={facebookHref(student.facebook)} target="_blank" rel="noopener noreferrer">{facebookLabel(student.facebook)}</a>}
                                         </div>
                                     </div>
                                 ))}

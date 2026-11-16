@@ -145,13 +145,14 @@ function HomeworkRow({homework, onResults, onDelete}: {
                 <span className={styles.statusDot}/>
                 {STATUS_LABELS[status]}
             </span>
-            <span>{formatDateTime(homework.beginningDate)}</span>
-            <span>{formatDateTime(homework.deadlineDate)}</span>
+            <span data-label="Beginning">{formatDateTime(homework.beginningDate)}</span>
+            <span data-label="Deadline">{formatDateTime(homework.deadlineDate)}</span>
             <div className={styles.actions}>
                 <button type="button" className={styles.iconButton}
                         title={copied ? 'Copied' : 'Copy homework link'} aria-label="Copy homework link"
                         onClick={handleCopy}>
                     {copied ? <CheckIcon fontSize="small"/> : <ContentCopyIcon fontSize="small"/>}
+                    <span className={styles.copyLabel}>{copied ? 'Copied' : 'Copy link'}</span>
                 </button>
                 <button type="button" className={styles.textButton} onClick={onResults}>Results</button>
                 <button type="button" className={`${styles.iconButton} ${styles.iconButtonDanger}`}

@@ -9,3 +9,19 @@
     flex: 1;
     min-width: 0;
 }
+
+.mobileHeader, .mobileTabs { display:none; }
+.drawer { width:min(320px, 90vw); max-width:100%; }
+.closeDrawer { position:absolute; top:12px; right:12px; width:44px; height:44px; display:grid; place-items:center; z-index:1; background:#fff; border:1px solid #e4e1da; border-radius:12px; color:#5b564a; cursor:pointer; }
+@media (max-width:900px) {
+    .adminLayout { flex-direction:column; min-height:100dvh; }
+    .main { width:100%; padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
+    .mobileHeader { display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:1100; min-height:64px; padding:8px 20px; padding-top:max(8px, env(safe-area-inset-top)); background:#fff; border-bottom:1px solid #edeae2; }
+    .headerButton { display:grid; place-items:center; flex-shrink:0; height:44px; width:36px; background:transparent; border:0; color:#1c1b1f; cursor:pointer; }
+    .mobileTitle { flex:1; min-width:0; font:700 15px 'Space Grotesk',sans-serif; color:#1c1b1f; }
+    .accountButton { flex-shrink:0; width:32px; height:32px; border:0; border-radius:50%; background:#d9d3c4; color:#5b564a; font:700 11px 'Space Grotesk',sans-serif; cursor:pointer; }
+    .mobileTabs { display:flex; position:fixed; bottom:0; inset-inline:0; z-index:1100; align-items:center; justify-content:space-around; gap:8px; padding:8px 12px max(10px, env(safe-area-inset-bottom)); background:#fff; border-top:1px solid #edeae2; }
+    .mobileTabs a { display:flex; flex:1; align-items:center; justify-content:center; flex-direction:column; gap:4px; min-height:44px; padding:4px; color:#6b6f76; font-size:10.5px; font-weight:500; border-radius:10px; }
+    .mobileTabs .activeTab { color:#1c4a63; font-weight:700; background:#eef3f5; }
+    .headerButton:focus-visible, .accountButton:focus-visible, .mobileTabs a:focus-visible, .closeDrawer:focus-visible { outline:2px solid #1c4a63; outline-offset:2px; }
+}

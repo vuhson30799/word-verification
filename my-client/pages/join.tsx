@@ -116,6 +116,27 @@ export default function AttendingExamination() {
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
     const [triggerTimeout, setTriggerTimeout] = useState(false)
 
+    useEffect(() => {
+        const viewport = window.visualViewport
+        if (!viewport) return
+
+        // Keep the mobile controls above keyboards that shrink only the visual viewport.
+        const updateKeyboardInset = () => {
+            const inset = viewport.scale === 1
+                ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+                : 0
+            document.documentElement.style.setProperty('--join-keyboard-inset', `${inset}px`)
+        }
+        updateKeyboardInset()
+        viewport.addEventListener('resize', updateKeyboardInset)
+        viewport.addEventListener('scroll', updateKeyboardInset)
+        return () => {
+            viewport.removeEventListener('resize', updateKeyboardInset)
+            viewport.removeEventListener('scroll', updateKeyboardInset)
+            document.documentElement.style.removeProperty('--join-keyboard-inset')
+        }
+    }, [])
+
     const {
         data,
         error
@@ -361,7 +382,7 @@ export default function AttendingExamination() {
                                 style={{visibility: `${setVisible(isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
                                 {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
                                     return <MyColorDiv key={index}
-                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, display: 'flex', justifyContent: 'center', fontSize: `${isSmallPhone && '0.75rem'}`}}
+                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, display: 'flex', justifyContent: 'center', fontSize: isSmallPhone ? '1rem' : undefined}}
                                                        value={isDisplayed(displayState, DisplayStateEnum.ANSWERS) ? translateKey(key) : "Good try! Find another way ^^"}
                                     />
                                 })}
@@ -369,7 +390,7 @@ export default function AttendingExamination() {
                         </div>
                         <div className={styles.AnswerSubmit}>
                             <FormControl className={styles.JoinFormControl}
-                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`, margin: '5px 0 10px 0'}}>
+                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
                                 <MyInput id="currentAnswer"
                                          backgroundImage={getAnswerColor(displayState)}
                                          value={currentQuestion.studentAnswer}

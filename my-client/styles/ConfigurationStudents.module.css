@@ -263,3 +263,21 @@
         width: 100%;
     }
 }
+
+@media(max-width:900px) {
+    .filters, .filterLeft { width:100%; align-items:stretch; }
+    .searchBox { width:100%; min-height:44px; }
+    .searchInput { min-width:0; font-size:16px; }
+    .pills { gap:6px; }
+    .pill { min-height:40px; padding:8px 12px; }
+    .row { grid-template-columns:minmax(0,1fr) auto; border-radius:16px; }
+    .studentCell { padding:0; }
+    .studentName { font-size:14px; }
+    .classChips { grid-row:2; }
+    .actions { grid-row:1; gap:4px; }
+    .iconButton { width:40px; height:40px; }
+    .mobileMeta { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .mobileMeta a { color:#5b564a; text-decoration:underline; text-decoration-color:#d8d4ca; overflow-wrap:anywhere; }
+    .addButton { min-height:46px; font-size:14px; }
+}
+@media(max-width:350px) { .actions { grid-column:1 / -1 !important; grid-row:auto; justify-self:start; } }

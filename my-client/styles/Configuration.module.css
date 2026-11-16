@@ -217,3 +217,20 @@
         grid-template-columns: 1fr;
     }
 }
+
+@media(max-width:900px) {
+    .page { padding:18px 20px 24px; gap:16px; }
+    .title { font-size:22px; margin-bottom:14px; }
+    .toolbar { align-items:stretch; }
+    .tabs { width:100%; gap:3px; }
+    .tab { flex:1; text-align:center; min-width:0; min-height:42px; padding:10px 6px; font-size:12.5px; }
+    .yearPicker { width:100%; min-width:0; min-height:44px; }
+    .yearSelect { min-width:0; flex:1; font-size:16px; width:100%; }
+    .grid { grid-template-columns:minmax(0,1fr); gap:10px; }
+    .card { padding:16px; border-radius:16px; gap:10px; }
+    .cardName { font-size:17px; }
+    .cardHeader { flex-wrap:wrap; }
+    .manageLink { display:flex; align-items:center; min-height:44px; }
+    .menuButton { width:44px; height:44px; }
+    .addCard { flex-direction:row; min-height:70px; padding:18px; border-radius:16px; }
+}

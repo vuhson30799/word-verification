@@ -49,6 +49,10 @@
     align-items: center;
 }
 
+.AnswerSubmit > .JoinFormControl {
+    margin: 5px 0 10px;
+}
+
 .ButtonAnswerSubmit {
     max-width: 20vw;
 }
@@ -76,4 +80,25 @@
     flex-direction: column;
     color: #eaeaea;
     font-family: "Arial", sans-serif;
+}
+
+@media(max-width:900px) {
+    .StudentNameLayer, .FinishPage { min-height:100dvh; padding:24px 20px; gap:20px; }
+    .StudentNameLayer h2 { font-size:clamp(28px, 8vw, 42px); }
+    .JoinFormControl { width:min(100%, 480px); min-width:0; max-width:100%; }
+    .JoinFormControl :global(.MuiOutlinedInput-root) { min-width:0; width:100%; }
+    .JoinFormControl input { font-size:16px; }
+    .StudentNameLayer > button { width:min(100%,480px); min-height:48px; }
+    .QuestionLayer { min-height:100dvh; min-width:0; width:100%; padding:20px 12px calc(190px + clamp(64px, 28svh, 260px) + env(safe-area-inset-bottom)); }
+    .QuestionProgress { margin-top:12px; max-width:100%; }
+    .QuestionTitle { min-height:0; min-width:0; width:100%; margin-top:5vh; }
+    .QuestionTitle > div { min-width:0 !important; max-width:100%; padding:24px 16px !important; margin:0; overflow-wrap:anywhere; }
+    .KeyContainer { height:auto; min-height:80px; gap:12px; margin:20px 0; }
+    .KeyContainer > div { min-width:0 !important; max-width:100%; margin:0; padding:10px 14px; line-height:1.5; text-align:center; overflow-wrap:anywhere; }
+    .AnswerSubmit { position:fixed; inset-inline:0; bottom:max(var(--join-keyboard-inset, 0px), clamp(64px, 28svh, 260px)); z-index:10; width:100%; gap:12px; padding:12px 12px calc(16px + env(safe-area-inset-bottom)); background:linear-gradient(180deg, transparent, #1c0e24 16px); }
+    .AnswerSubmit > .JoinFormControl { margin:0; }
+    .ButtonAnswerSubmit { min-width:160px; max-width:100%; min-height:48px; }
+    .FinishPage > div { min-width:0 !important; width:100%; max-width:480px; padding:20px !important; margin:0; text-align:center; overflow-wrap:anywhere; }
+    .FinishPage h1 { font-size:clamp(24px,7vw,36px); }
+    .FinishPage h5 { line-height:1.6; }
 }

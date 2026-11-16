@@ -18,7 +18,7 @@ function initialsOf(username?: string): string {
     return username.trim().slice(0, 2).toUpperCase();
 }
 
-export default function Sidebar() {
+export default function Sidebar({mobile = false, onNavigate}: {mobile?: boolean; onNavigate?: () => void}) {
     const {user, refresh} = useAuth();
     const router = useRouter();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -33,6 +33,7 @@ export default function Sidebar() {
 
     const handleLogout = async () => {
         handleMenuClose();
+        onNavigate?.();
         await fetch('/api/auth/logout', {method: 'POST'});
         await refresh();
         await router.push('/admin/login');
@@ -41,7 +42,7 @@ export default function Sidebar() {
     const isActive = (href: string) => router.pathname === href || router.pathname.startsWith(`${href}/`);
 
     return (
-        <nav className={styles.sidebar}>
+        <nav className={`${styles.sidebar} ${mobile ? styles.mobileSidebar : ''}`} aria-label={mobile ? "Navigation drawer" : "Sidebar"} onClick={event => {if ((event.target as HTMLElement).closest('a')) onNavigate?.()}}>
             <div className={styles.top}>
                 <Link href="/admin/examination" className={styles.logo}>
                     <div className={styles.logoMark}/>

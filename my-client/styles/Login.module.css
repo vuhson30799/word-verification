@@ -254,3 +254,20 @@
     color: #ACA89C;
     text-align: center;
 }
+
+@media(max-width:700px) {
+    .Page { min-height:100dvh; background:#fbfaf7; padding:max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom)); align-items:center; }
+    .Card { min-height:0; background:transparent; box-shadow:none; border:0; gap:26px; max-width:380px; }
+    .BrandSide { background:transparent; padding:0; align-items:center; }
+    .BrandLogoRow { gap:9px; }
+    .BrandLogoName { color:#1c1b1f; font-size:15px; }
+    .BrandGlow, .BrandHeadline, .BrandFooter { display:none; }
+    .FormSide { padding:0; width:100%; background:transparent; }
+    .FormContent { max-width:none; gap:18px; }
+    .FormTitle { font-family:'Space Grotesk',sans-serif; font-size:23px; text-align:center; }
+    .Input { font-size:16px; min-height:48px; }
+    .SubmitButton { min-height:48px; }
+    .PasswordToggle { width:44px; height:44px; right:4px; align-items:center; justify-content:center; }
+    .Row { flex-wrap:wrap; gap:12px; }
+    .HelperText { font-size:11.5px; line-height:1.6; }
+}

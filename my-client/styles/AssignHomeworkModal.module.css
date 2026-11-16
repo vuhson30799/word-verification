@@ -43,4 +43,17 @@
 .cancel { background:transparent; border:1.5px solid #e4e1da; color:#5b564a; }
 .assign { background:#1c4a63; border:1.5px solid #1c4a63; color:white; padding:10px 20px; }
 .assign:hover:not(:disabled) { background:#163c50; }
-@media(max-width:600px) { .dialog { margin:12px; max-width:calc(100% - 24px); max-height:calc(100dvh - 24px); } .form { padding:22px 16px; } .dates { flex-direction:column; max-width:none; } .rosterHeader { align-items:flex-start; } .footer { flex-wrap:wrap; } .footer > span { width:100%; } }
+@media(max-width:600px) { .dialog.dialog { margin:12px; max-width:calc(100% - 24px); max-height:calc(100dvh - 24px); } .form { padding:22px 16px; } .dates { flex-direction:column; max-width:none; } .rosterHeader { align-items:flex-start; } .footer { flex-wrap:wrap; } .footer > span { width:100%; } }
+
+@media(max-width:600px) {
+    .header p { overflow-wrap:anywhere; }
+    .close { min-width:40px; min-height:40px; }
+    .dates input, .search input { font-size:16px; }
+    .rosterHeader { flex-wrap:wrap; }
+    .removeAll { min-height:40px; }
+    .chip { min-height:36px; }
+    .chip button { min-width:28px; min-height:28px; }
+    .results button { min-height:44px; flex-wrap:wrap; overflow-wrap:anywhere; }
+    .showAll { min-height:40px; }
+    .footer .assign, .footer .cancel { flex:1; min-height:46px; }
+}

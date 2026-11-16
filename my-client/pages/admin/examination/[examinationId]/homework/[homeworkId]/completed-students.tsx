@@ -32,7 +32,7 @@ export default function CompletedStudents() {
     const homeworkPath = `/admin/examination/${examinationId}/homework`
     const rows = data?.rows.filter(row => normalizeStudentName(row.name).includes(normalizeStudentName(search))) ?? []
 
-    return <Admin className={styles.layout}>
+    return <Admin>
         <Head><title>Homework results — Word Verification</title></Head>
         <div className={styles.page}>
             <header>

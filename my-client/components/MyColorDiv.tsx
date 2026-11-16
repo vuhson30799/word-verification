@@ -28,7 +28,6 @@ const defaultInputProps = {
         inset: 0,
         zIndex: "-1",
         position: "absolute",
-        minWidth: "30vw",
     }
 }
 export default function MyColorDiv(props: MyColorProps) {

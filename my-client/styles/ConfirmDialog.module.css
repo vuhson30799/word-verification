@@ -57,3 +57,9 @@
 .confirmButton:hover {
     background: #BF3B3B;
 }
+
+@media(max-width:600px) {
+    .paper.paper { margin:12px; width:calc(100% - 24px); max-width:calc(100% - 24px); padding:22px 16px; max-height:calc(100dvh - 24px); }
+    .actions { flex-direction:column-reverse; gap:8px; }
+    .actions > button { min-height:46px; width:100%; padding:12px; }
+}

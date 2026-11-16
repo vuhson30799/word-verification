@@ -178,3 +178,9 @@
     color: #C7C2B4;
     text-align: center;
 }
+
+@media (max-width:900px) {
+    .sidebar { display:none; }
+    .mobileSidebar { display:flex; width:100%; min-height:100dvh; position:static; border:0; padding:76px 18px 24px; gap:32px; }
+    .mobileSidebar .navItem, .mobileSidebar .utilityItem { min-height:44px; }
+}
