@@ -1,4 +1,4 @@
-import React, {FormEvent, useCallback, useEffect, useState} from "react";
+import React, {FormEvent, useCallback, useEffect, useRef, useState} from "react";
 import styles from "../styles/Join.module.css";
 import {FormControl, useMediaQuery} from "@mui/material";
 import useSWRImmutable from 'swr/immutable'
@@ -115,6 +115,13 @@ export default function AttendingExamination() {
     const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
     const [triggerTimeout, setTriggerTimeout] = useState(false)
+    const questionFormRef = useRef<HTMLFormElement>(null)
+
+    useEffect(() => {
+        if (!isDisplayed(displayState, DisplayStateEnum.QUESTION)) return
+        const selector = allowance.answer ? '#currentAnswer' : 'button[type="submit"]'
+        questionFormRef.current?.querySelector<HTMLElement>(selector)?.focus()
+    }, [displayState, allowance.answer, currentQuestion.questionNumber])
 
     useEffect(() => {
         const viewport = window.visualViewport
@@ -368,8 +375,14 @@ export default function AttendingExamination() {
             {isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT) && <StartingQuestion/>}
             {isDisplayed(displayState, DisplayStateEnum.QUESTION) && examinationData &&
                 <>
-                    <form className={styles.QuestionLayer}
-                          onSubmit={(e) => onStudentAnswerSubmit(e)}>
+                    <form ref={questionFormRef}
+                          className={styles.QuestionLayer}
+                          onSubmit={(e) => {
+                              if (allowance.answer) onStudentAnswerSubmit(e)
+                              else if (isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON)) onKeyButtonClick(e)
+                              else if (isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION)) onNextButtonClick(e)
+                              else e.preventDefault()
+                          }}>
                         <ProgressQuestionBar className={styles.QuestionProgress}
                                              style={{visibility: `${setVisible(allowance.answer)}`}}
                                              timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
@@ -398,27 +411,12 @@ export default function AttendingExamination() {
                                          autoComplete="off"
                                          onChange={(e) => handleStudentAnswerChange(e.target.value)}/>
                             </FormControl>
-                            {allowance.answer &&
-                                <MyButton className={styles.ButtonAnswerSubmit}
-                                          variant="contained"
-                                          onClick={(e) => onStudentAnswerSubmit(e)}>
-                                    Submit
-                                </MyButton>
-                            }
-                            {isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION) &&
-                                <MyButton className={styles.ButtonAnswerSubmit}
-                                          variant="contained"
-                                          onClick={(e) => onNextButtonClick(e)}>
-                                    Next
-                                </MyButton>
-                            }
-                            {isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON) &&
-                                <MyButton className={styles.ButtonAnswerSubmit}
-                                          variant="contained"
-                                          onClick={(e) => onKeyButtonClick(e)}>
-                                    Answer
-                                </MyButton>
-                            }
+                            <MyButton className={styles.ButtonAnswerSubmit}
+                                      variant="contained"
+                                      type="submit">
+                                {allowance.answer ? 'Submit'
+                                    : isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON) ? 'Answer' : 'Next'}
+                            </MyButton>
                         </div>
                     </form>
                 </>

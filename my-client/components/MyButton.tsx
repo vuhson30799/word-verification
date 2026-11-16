@@ -28,6 +28,7 @@ export function MyButton(props: MyButtonProps) {
         }}
         className={props.className}
         variant={props.variant || defaultButtonProps.variant}
+        type={props.type ?? "button"}
         disabled={props.disabled}
         onClick={props.onClick} style={props.style}>
         {props.children}
