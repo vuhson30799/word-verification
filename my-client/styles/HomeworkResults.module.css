@@ -24,6 +24,9 @@
 .item { background:#fff; border:1px solid #e4e1da; border-radius:14px; padding:14px 20px; }
 .student { display:flex; align-items:center; gap:10px; min-width:0; font-size:14.5px; font-weight:600; overflow-wrap:anywhere; }
 .avatar { width:30px; height:30px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font:700 11.5px 'Space Grotesk',sans-serif; color:#5b564a; }
+.location { display:flex; flex-direction:column; gap:3px; margin-top:6px; font-size:11px; font-weight:400; color:#8a8578; }
+.location a { color:#1c4a63; text-decoration:underline; }
+.location a:focus-visible { outline:2px solid #1c4a63; outline-offset:2px; }
 .avatar0 { background:#d9d3c4; }
 .avatar1 { background:#e7c9da; }
 .avatar2 { background:#c7d6dc; }

@@ -1,5 +1,6 @@
 import type {StudentAnswer} from '../../pages/join';
 import type {StudentData} from '../configuration/students';
+import type {TestLocation} from '../join/location';
 
 export type ResultStatus = 'finished' | 'inProgress' | 'notJoined'
 export interface HomeworkResultRow {
@@ -13,6 +14,7 @@ export interface HomeworkResultRow {
     questionNumber: number | null
     joinedAt: string | null
     finishedAt: string | null
+    location: TestLocation | null
 }
 
 export interface HomeworkResultsData {
@@ -20,6 +22,7 @@ export interface HomeworkResultsData {
     grade: number
     beginningDate: string
     deadlineDate: string
+    minimumCorrectAnswers: number
     questionCount: number
     assignedCount: number
     legacyRoster: boolean
@@ -61,7 +64,8 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
             score: best ? best.correctAnswers : null,
             questionNumber: latest?.questionNumber ?? null,
             joinedAt: attempt?.beginningAt && timestamp(attempt.beginningAt) ? attempt.beginningAt : null,
-            finishedAt: best?.finishAt ?? null
+            finishedAt: best?.finishAt ?? null,
+            location: attempt?.location ?? null
         }
     }
 

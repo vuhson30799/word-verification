@@ -60,7 +60,7 @@ export default function CompletedStudents() {
                             {['Student', 'Status', 'Score', 'Joined at', 'Finished at'].map(label => <span key={label} role="columnheader">{label}</span>)}
                             <span role="columnheader" className={styles.srOnly}>Notify</span>
                         </div>
-                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount}/>)}
+                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount} minimumCorrectAnswers={data.minimumCorrectAnswers}/>)}
                     </div>
                     {!rows.length && <div className={styles.empty} role="status">{search.trim() ? 'No students match your search.' : 'No students assigned or answers recorded for this homework.'}</div>}
                     <span className={styles.srOnly} role="status">{rows.length} students shown</span>
@@ -73,11 +73,24 @@ function Summary({label, value, color}: {label: string; value: number; color: Re
     return <div className={styles.stat}><span>{label}</span><strong className={styles[color]}>{value}</strong></div>
 }
 
-function ResultRow({row, index, questionCount}: {row: HomeworkResultRow; index: number; questionCount: number}) {
+function ResultRow({row, index, questionCount, minimumCorrectAnswers}: {row: HomeworkResultRow; index: number; questionCount: number; minimumCorrectAnswers: number}) {
     return <div className={`${styles.row} ${styles.item}`} role="row">
-        <div className={styles.student} role="cell"><span className={`${styles.avatar} ${styles[`avatar${index % 5}`]}`} aria-hidden="true">{initialsOf(row.name)}</span><span>{row.name}</span></div>
+        <div className={styles.student} role="cell">
+            <span className={`${styles.avatar} ${styles[`avatar${index % 5}`]}`} aria-hidden="true">{initialsOf(row.name)}</span>
+            <div>
+                <span>{row.name}</span>
+                <div className={styles.location}>
+                    {row.location ?
+                        <a href={`https://www.google.com/maps/search/?api=1&query=${row.location.latitude},${row.location.longitude}`}
+                           target="_blank" rel="noopener noreferrer" aria-label={`View test location for ${row.name} on map`}>
+                            Address (Accuracy: {Math.round(row.location.accuracyMeters)} m)
+                        </a>
+                        : <span>Location not recorded</span>}
+                </div>
+            </div>
+        </div>
         <span className={`${styles.status} ${styles[row.status]}`} role="cell"><i/>{STATUS_LABEL[row.status]}</span>
-        <span className={`${styles.score} ${row.status !== 'finished' ? styles.muted : ''}`} role="cell" data-label="Score">{row.status === 'finished' ? `${row.score} / ${questionCount}` : row.status === 'inProgress' && row.questionNumber !== null ? `Q${row.questionNumber} / ${questionCount}` : '—'}</span>
+        <span className={`${styles.score} ${row.status !== 'finished' ? styles.muted : ''}`} role="cell" data-label="Score">{row.status === 'finished' ? `${row.score} / ${questionCount} · ${(row.score ?? 0) >= minimumCorrectAnswers ? 'Passed' : 'Not passed'}` : row.status === 'inProgress' && row.questionNumber !== null ? `Q${row.questionNumber} / ${questionCount}` : '—'}</span>
         <span className={styles.date} role="cell" data-label="Joined at">{displayDate(row.joinedAt)}</span>
         <span className={styles.date} role="cell" data-label="Finished at">{displayDate(row.finishedAt)}</span>
         <div className={styles.notify} role="cell">

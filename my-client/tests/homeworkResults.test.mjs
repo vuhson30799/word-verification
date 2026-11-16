@@ -70,3 +70,19 @@ test('legacy progress checkpoints with finishAt are not completed submissions', 
     assert.equal(result.summary.finished, 0)
     assert.equal(result.summary.averageScore, null)
 })
+
+test('location belongs to the displayed best attempt, rather than a later attempt', () => {
+    const location = {latitude: 10.7, longitude: 106.6, accuracyMeters: 30, capturedAt: '2026-07-05T08:00:00Z'}
+    const result = buildHomeworkResults([], [
+        answer({correctAnswers: 22, finishAt: '2026-07-05T08:30:00', location}),
+        answer({correctAnswers: 12, trial: 2, finishAt: '2026-07-05T09:30:00', location: {...location, latitude: 11}})
+    ])
+    assert.deepEqual(result.rows[0].location, location)
+})
+
+test('progress includes location and older attempts without location remain supported', () => {
+    const location = {latitude: 10.7, longitude: 106.6, accuracyMeters: 30, capturedAt: '2026-07-05T08:00:00Z'}
+    assert.deepEqual(buildHomeworkResults([], [answer({questionNumber: 6, location})]).rows[0].location, location)
+    assert.equal(buildHomeworkResults([], [answer()]).rows[0].location, null)
+    assert.equal(buildHomeworkResults([student('an', 'Nguyễn An')], []).rows[0].location, null)
+})

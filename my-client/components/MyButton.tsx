@@ -24,7 +24,12 @@ export function MyButton(props: MyButtonProps) {
             backgroundClip: props.backgroundClip || defaultButtonProps.backgroundClip,
             backgroundImage: props.backgroundImage || defaultButtonProps.backgroundImage,
             borderRadius: props.borderRadius || defaultButtonProps.borderRadius,
-            minWidth: props.minWidth || defaultButtonProps.minWidth
+            minWidth: props.minWidth || defaultButtonProps.minWidth,
+            '&.Mui-disabled': {
+                backgroundImage: 'none',
+                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                color: 'rgba(255, 255, 255, 0.4) !important'
+            }
         }}
         className={props.className}
         variant={props.variant || defaultButtonProps.variant}

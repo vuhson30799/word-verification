@@ -13,6 +13,7 @@ export function toExaminations(object: any) {
             questions: object[examId].questions,
             createdDate: object[examId].createdDate,
             grade: object[examId].grade,
+            minimumCorrectAnswers: object[examId].minimumCorrectAnswers,
             creator: object[examId].creator
         }
     })
@@ -42,7 +43,8 @@ export function toAnswers(object: any) {
             trial: object[answerId].trial,
             questionNumber: object[answerId].questionNumber,
             beginningAt: object[answerId].beginningAt,
-            finishAt: object[answerId].finishAt
+            finishAt: object[answerId].finishAt,
+            location: object[answerId].location
         }
     })
 }

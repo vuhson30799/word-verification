@@ -22,6 +22,9 @@ import {TimeoutContext} from "../modules/join/context";
 import MyColorDiv from "../components/MyColorDiv";
 import {isEmpty} from "lodash";
 import {decodeHomeworkUrl} from "../modules/utils/dataUtils";
+import {requestTestLocation, TestLocation} from "../modules/join/location";
+
+import {minimumCorrectAnswers} from "../modules/utils/examinationPassing";
 
 export interface StudentAnswer {
     id?: string
@@ -33,6 +36,7 @@ export interface StudentAnswer {
     questionNumber?: number
     beginningAt?: string
     finishAt?: string
+    location?: TestLocation
 }
 
 interface CurrentQuestion {
@@ -42,7 +46,6 @@ interface CurrentQuestion {
 
 interface Allowance {
     answer: boolean
-    start: boolean
 }
 
 export interface HomeworkExam {
@@ -70,8 +73,7 @@ const initialCurrentQuestion: CurrentQuestion = {
 }
 
 const initialAllowance: Allowance = {
-    answer: true,
-    start: true
+    answer: true
 }
 
 function shuffleExamination(examinationData: ExaminationData): ExaminationData {
@@ -116,6 +118,17 @@ export default function AttendingExamination() {
     const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
     const [triggerTimeout, setTriggerTimeout] = useState(false)
     const questionFormRef = useRef<HTMLFormElement>(null)
+    const locationRequestPending = useRef(false)
+    const [requestingLocation, setRequestingLocation] = useState(false)
+    const [locationError, setLocationError] = useState('')
+
+    useEffect(() => {
+        if (!isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) return
+        const timeout = setTimeout(() => setDisplayState({
+            components: [DisplayStateEnum.QUESTION]
+        }), timeToDisplayFirstQuestion)
+        return () => clearTimeout(timeout)
+    }, [displayState])
 
     useEffect(() => {
         if (!isDisplayed(displayState, DisplayStateEnum.QUESTION)) return
@@ -190,19 +203,6 @@ export default function AttendingExamination() {
             setExaminationData(shuffleExamination(data.examination))
         }
     }, [data, studentAnswer.studentName])
-    useEffect(() => {
-        if (studentAnswer.studentName.length === 0) {
-            setAllowance({
-                ...allowance,
-                start: false
-            })
-        } else {
-            setAllowance({
-                ...allowance,
-                start: true
-            })
-        }
-    }, [studentAnswer.studentName.length])
 
     const updateHomeworkLocalStorage = useCallback(() => {
         localStorage.setItem('examId', `${examId}`)
@@ -220,21 +220,29 @@ export default function AttendingExamination() {
     if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"}/>
     if (!data) return <MySpinner/>
     if (isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) && !submitAnswerSuccess) return <MySpinner/>
-    if (isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) setTimeout(() => setDisplayState({
-        components: [DisplayStateEnum.QUESTION]
-    }), timeToDisplayFirstQuestion)
 
     document.onvisibilitychange = showCheatingPage
 
-    function OnStartButtonClick(e: FormEvent) {
+    async function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
-        setDisplayState({
-            components: [DisplayStateEnum.STARTING_COMPONENT]
-        })
-        setStudentAnswer({
-            ...studentAnswer,
-            beginningAt: convertDate(new Date())
-        })
+        if (!studentAnswer.studentName.trim() || locationRequestPending.current) return
+        locationRequestPending.current = true
+        setRequestingLocation(true)
+        setLocationError('')
+        try {
+            const location = await requestTestLocation()
+            setStudentAnswer(previous => ({
+                ...previous,
+                location,
+                beginningAt: convertDate(new Date())
+            }))
+            setDisplayState({components: [DisplayStateEnum.STARTING_COMPONENT]})
+        } catch (error) {
+            setLocationError(error instanceof Error ? error.message : 'Could not get your location. Please retry.')
+        } finally {
+            locationRequestPending.current = false
+            setRequestingLocation(false)
+        }
     }
 
     function handleStudentAnswerChange(value: string) {
@@ -251,7 +259,8 @@ export default function AttendingExamination() {
     }
 
     function showCheatingPage() {
-        if (isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE)) return
+        if (!isDisplayed(displayState, DisplayStateEnum.QUESTION)
+            && !isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) return
         setTriggerTimeout(false)
         setDisplayState({
             components: [DisplayStateEnum.CHEATING_PAGE]
@@ -316,8 +325,10 @@ export default function AttendingExamination() {
     }
 
     function onPlayingAgain() {
+        setLocationError('')
+        setTriggerTimeout(false)
         setDisplayState({
-            components: [DisplayStateEnum.STARTING_COMPONENT]
+            components: [DisplayStateEnum.STUDENT_NAME]
         })
         setCurrentQuestion(initialCurrentQuestion)
         setAllowance(initialAllowance)
@@ -325,7 +336,6 @@ export default function AttendingExamination() {
             setExaminationData(shuffleExamination(data.examination))
             setStudentAnswer({
                 ...initialStudentAnswer,
-                beginningAt: convertDate(new Date()),
                 studentName: studentAnswer.studentName,
                 trial: studentAnswer.trial + 1,
                 examId: `${examId}`,
@@ -366,8 +376,19 @@ export default function AttendingExamination() {
                                      placeholder="Your name is..."
                                      autoComplete="off"/>
                         </FormControl>
-                        <MyButton disabled={!allowance.start}
-                                  onClick={(e) => OnStartButtonClick(e)}>Start</MyButton>
+                        <Typography id="location-explanation" sx={{color: '#eaeaea', textAlign: 'center', maxWidth: 480}}>
+                            📍 Taking the test from Mars? Share your location to start.
+                            Saved once per attempt with your results.
+                        </Typography>
+                        {locationError && <Typography role="alert" sx={{color: '#ffb4ab', textAlign: 'center', maxWidth: 480}}>
+                            {locationError} You cannot start the test without sharing your location.
+                        </Typography>}
+                        {requestingLocation && <Typography role="status" sx={{color: '#eaeaea'}}>
+                            📍 Finding your test headquarters… Tap Allow in your browser!
+                        </Typography>}
+                        <MyButton type="submit" disabled={!studentAnswer.studentName.trim() || requestingLocation}>
+                            {requestingLocation ? 'Getting location…' : locationError ? 'Retry location and start test' : 'Share location and start test'}
+                        </MyButton>
                     </form>
 
                 </>
@@ -429,6 +450,7 @@ export default function AttendingExamination() {
                         fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
                         <h1>Your result</h1>
                         <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
+                        {examinationData && <p>{studentAnswer.correctAnswers >= minimumCorrectAnswers(examinationData) ? 'Passed' : 'Not passed'} · Minimum {minimumCorrectAnswers(examinationData)} correct answers</p>}
                         <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
                             Play Again
                         </MyButton>
