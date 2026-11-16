@@ -5,6 +5,8 @@ import {ExaminationData} from "../admin/examination";
 import {toExaminations} from "../../modules/utils/dataUtils";
 import {requireRole} from "../../modules/auth/requireAuth";
 
+import {defaultMaximumIncorrectAnswers, isValidMaximumIncorrectAnswers} from "../../modules/utils/examinationPassing";
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!requireRole(req, res, ['admin', 'assistant'])) return
 
@@ -38,6 +40,9 @@ async function getExaminations(req: NextApiRequest, res: NextApiResponse) {
 
 function createExamination(req: NextApiRequest, res: NextApiResponse) {
     const examination = <ExaminationData>JSON.parse(req.body)
+    if (examination.maximumIncorrectAnswers === undefined) {
+        examination.maximumIncorrectAnswers = defaultMaximumIncorrectAnswers(examination.questions?.length ?? 0)
+    }
     const invalidMessage = getInvalidMessage(examination)
     if (invalidMessage) {
         res.status(400).send({message: invalidMessage})
@@ -55,5 +60,6 @@ function getInvalidMessage(examination: ExaminationData): string | undefined {
     if (!examination.creator) return 'Missing creator for this examination'
     if (!examination.questions || examination.questions.length == 0) return 'Missing questions for this examination'
 
+    if (!isValidMaximumIncorrectAnswers(examination.maximumIncorrectAnswers, examination.questions.length)) return 'Maximum incorrect answers must be a whole number between 0 and the total questions'
     return undefined
 }

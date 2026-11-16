@@ -13,7 +13,7 @@ export function toExaminations(object: any) {
             questions: object[examId].questions,
             createdDate: object[examId].createdDate,
             grade: object[examId].grade,
-            minimumCorrectAnswers: object[examId].minimumCorrectAnswers,
+            maximumIncorrectAnswers: object[examId].maximumIncorrectAnswers,
             creator: object[examId].creator
         }
     })

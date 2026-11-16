@@ -24,7 +24,7 @@ import {isEmpty} from "lodash";
 import {decodeHomeworkUrl} from "../modules/utils/dataUtils";
 import {requestTestLocation, TestLocation} from "../modules/join/location";
 
-import {minimumCorrectAnswers} from "../modules/utils/examinationPassing";
+import {hasPassedExamination, maximumIncorrectAnswers} from "../modules/utils/examinationPassing";
 
 export interface StudentAnswer {
     id?: string
@@ -450,7 +450,18 @@ export default function AttendingExamination() {
                         fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
                         <h1>Your result</h1>
                         <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                        {examinationData && <p>{studentAnswer.correctAnswers >= minimumCorrectAnswers(examinationData) ? 'Passed' : 'Not passed'} · Minimum {minimumCorrectAnswers(examinationData)} correct answers</p>}
+                        {examinationData && <>
+                            {hasPassedExamination(studentAnswer.correctAnswers, examinationData.questions.length, maximumIncorrectAnswers(examinationData)) ?
+                                <div className={`${styles.PassingMessage} ${styles.SuccessMessage}`}>
+                                    <span className={styles.SuccessIcon} aria-hidden="true">🎉</span>
+                                    <h2 className={styles.SuccessTitle}>You passed!</h2>
+                                    <p className={styles.SuccessCaption}>Your brain needs a holiday now. <span aria-hidden="true">😎</span></p>
+                                </div> :
+                            <div className={styles.PassingMessage}>
+                                <p className={styles.PassingGoal}>Get at least <strong>{examinationData.questions.length - maximumIncorrectAnswers(examinationData)}</strong> answers right to pass.</p>
+                                <p className={styles.PassingEncouragement}>Your brain can snack after! <span aria-hidden="true">🧠🍪</span></p>
+                            </div>}
+                        </>}
                         <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
                             Play Again
                         </MyButton>

@@ -22,7 +22,7 @@ export interface HomeworkResultsData {
     grade: number
     beginningDate: string
     deadlineDate: string
-    minimumCorrectAnswers: number
+    maximumIncorrectAnswers: number
     questionCount: number
     assignedCount: number
     legacyRoster: boolean

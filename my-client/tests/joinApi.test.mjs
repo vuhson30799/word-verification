@@ -14,7 +14,7 @@ const queryParams = {examId:'exam1',beginningDate:start,deadlineDate:end}
 async function request({query=queryParams, expired=false, missingExam=false, fail=false, method='GET'} = {}) {
     const records = {
         '/homeworks':{hw1:{examId:'exam1',beginningDate:start,deadlineDate:expired?'2000-01-08T23:59:00':end}},
-        '/examinations/exam1':missingExam?null:{title:'Homework',questions:[{title:'Test',keys:['Answer'],timeout:30,questionType:'text'}],grade:10,createdDate:start,creator:'Teacher'}
+        '/examinations/exam1':missingExam?null:{title:'Homework',maximumIncorrectAnswers:1,questions:[{title:'Test',keys:['Answer'],timeout:30,questionType:'text'}],grade:10,createdDate:start,creator:'Teacher'}
     }
     const cache = new Map()
     const calls = []
@@ -48,6 +48,7 @@ test('public join API loads homework without a cookie or referer and encodes ans
     assert.equal(res.body.homeworkId,'hw1')
     assert.equal(res.body.examination.id,'exam1')
     assert.notEqual(res.body.examination.questions[0].keys[0],'Answer')
+    assert.equal(res.body.examination.maximumIncorrectAnswers,1)
     assert.deepEqual(res.calls,['/homeworks','/examinations/exam1'])
 })
 

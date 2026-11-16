@@ -1,3 +1,4 @@
+import {hasPassedExamination} from "../../../../../../modules/utils/examinationPassing";
 import {useRouter} from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
@@ -60,7 +61,7 @@ export default function CompletedStudents() {
                             {['Student', 'Status', 'Score', 'Joined at', 'Finished at'].map(label => <span key={label} role="columnheader">{label}</span>)}
                             <span role="columnheader" className={styles.srOnly}>Notify</span>
                         </div>
-                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount} minimumCorrectAnswers={data.minimumCorrectAnswers}/>)}
+                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount} maximumIncorrectAnswers={data.maximumIncorrectAnswers}/>)}
                     </div>
                     {!rows.length && <div className={styles.empty} role="status">{search.trim() ? 'No students match your search.' : 'No students assigned or answers recorded for this homework.'}</div>}
                     <span className={styles.srOnly} role="status">{rows.length} students shown</span>
@@ -73,7 +74,7 @@ function Summary({label, value, color}: {label: string; value: number; color: Re
     return <div className={styles.stat}><span>{label}</span><strong className={styles[color]}>{value}</strong></div>
 }
 
-function ResultRow({row, index, questionCount, minimumCorrectAnswers}: {row: HomeworkResultRow; index: number; questionCount: number; minimumCorrectAnswers: number}) {
+function ResultRow({row, index, questionCount, maximumIncorrectAnswers}: {row: HomeworkResultRow; index: number; questionCount: number; maximumIncorrectAnswers: number}) {
     return <div className={`${styles.row} ${styles.item}`} role="row">
         <div className={styles.student} role="cell">
             <span className={`${styles.avatar} ${styles[`avatar${index % 5}`]}`} aria-hidden="true">{initialsOf(row.name)}</span>
@@ -90,7 +91,7 @@ function ResultRow({row, index, questionCount, minimumCorrectAnswers}: {row: Hom
             </div>
         </div>
         <span className={`${styles.status} ${styles[row.status]}`} role="cell"><i/>{STATUS_LABEL[row.status]}</span>
-        <span className={`${styles.score} ${row.status !== 'finished' ? styles.muted : ''}`} role="cell" data-label="Score">{row.status === 'finished' ? `${row.score} / ${questionCount} · ${(row.score ?? 0) >= minimumCorrectAnswers ? 'Passed' : 'Not passed'}` : row.status === 'inProgress' && row.questionNumber !== null ? `Q${row.questionNumber} / ${questionCount}` : '—'}</span>
+        <span className={`${styles.score} ${row.status !== 'finished' ? styles.muted : ''}`} role="cell" data-label="Score">{row.status === 'finished' ? `${row.score} / ${questionCount} · ${hasPassedExamination(row.score ?? 0, questionCount, maximumIncorrectAnswers) ? 'Passed' : 'Not passed'}` : row.status === 'inProgress' && row.questionNumber !== null ? `Q${row.questionNumber} / ${questionCount}` : '—'}</span>
         <span className={styles.date} role="cell" data-label="Joined at">{displayDate(row.joinedAt)}</span>
         <span className={styles.date} role="cell" data-label="Finished at">{displayDate(row.finishedAt)}</span>
         <div className={styles.notify} role="cell">

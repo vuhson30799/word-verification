@@ -11,9 +11,11 @@ import {convertDate} from "../../modules/utils/dateUtils";
 import {extractQuestionsFromExcel} from "../../modules/utils/excelService";
 import useSWRImmutable from "swr/immutable";
 
+import {defaultMaximumIncorrectAnswers, isValidMaximumIncorrectAnswers} from "../../modules/utils/examinationPassing";
+
 const GRADES = [10, 11, 12]
 
-type ExaminationErrors = Partial<Record<'title' | 'grade' | 'createdDate' | 'questions', string>>
+type ExaminationErrors = Partial<Record<'title' | 'grade' | 'createdDate' | 'questions' | 'maximumIncorrectAnswers', string>>
 
 function validateExamination(examination: ExaminationData, file: File | undefined): ExaminationErrors {
     const errors: ExaminationErrors = {}
@@ -27,6 +29,9 @@ function validateExamination(examination: ExaminationData, file: File | undefine
     } else if (examination.questions.length === 0) {
         errors.questions = 'The uploaded file contains no questions.'
     }
+    if (!isValidMaximumIncorrectAnswers(examination.maximumIncorrectAnswers, examination.questions.length)) {
+        errors.maximumIncorrectAnswers = `Enter a whole number from 0 to ${examination.questions.length}.`
+    }
     return errors
 }
 
@@ -38,6 +43,7 @@ export default function Quiz() {
     const [examination, setExamination] = useState<ExaminationData>({
         id: "",
         questions: [],
+        maximumIncorrectAnswers: 0,
         title: "",
         createdDate: convertDate(new Date()),
         creator: "Phuong Lien",
@@ -64,7 +70,7 @@ export default function Quiz() {
         const selected = e.target.files[0]
         setFile(selected)
         extractQuestionsFromExcel(selected)
-            .then(questions => setExamination(current => ({...current, questions})))
+            .then(questions => setExamination(current => ({...current, questions, maximumIncorrectAnswers: defaultMaximumIncorrectAnswers(questions.length)})))
             .catch(() => setExamination(current => ({...current, questions: []})))
     }
 
@@ -179,6 +185,17 @@ export default function Quiz() {
                                       hint=".xlsx up to 5MB"
                                       invalid={!!errors.questions}/>
                         <FieldError message={errors.questions}/>
+                    </div>
+
+                    <div className={styles.field}>
+                        <label className={styles.label} htmlFor="maximumIncorrectAnswers">Maximum incorrect answers allowed</label>
+                        <input id="maximumIncorrectAnswers" type="number" min={0} max={examination.questions.length} step={1}
+                               className={`${styles.input} ${errors.maximumIncorrectAnswers ? styles.inputError : ''}`}
+                               aria-invalid={!!errors.maximumIncorrectAnswers}
+                               value={Number.isNaN(examination.maximumIncorrectAnswers) ? '' : examination.maximumIncorrectAnswers}
+                               onChange={event => setExamination(current => ({...current, maximumIncorrectAnswers: event.target.value === '' ? NaN : Number(event.target.value)}))}/>
+                        <span>Out of {examination.questions.length} questions. Each upload defaults to 10%, rounded down.</span>
+                        <FieldError message={errors.maximumIncorrectAnswers}/>
                     </div>
 
                     <div className={styles.actions}>

@@ -82,6 +82,81 @@
     font-family: "Arial", sans-serif;
 }
 
+.PassingMessage {
+    box-sizing: border-box;
+    width: calc(100% - 24px);
+    max-width: 520px;
+    margin: 12px auto;
+    padding: 20px 24px;
+    border: 1px solid rgba(224, 159, 255, 0.25);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(181, 65, 226, 0.15), rgba(224, 81, 120, 0.08));
+    text-align: center;
+}
+
+.PassingGoal {
+    margin: 0;
+    color: #f8efff;
+    font-size: clamp(16px, 2vw, 20px);
+    line-height: 1.7;
+    text-wrap: balance;
+}
+
+.PassingGoal strong {
+    display: inline-block;
+    padding: 0 9px;
+    border-radius: 8px;
+    background: rgba(224, 159, 255, 0.17);
+    color: #efc4ff;
+    font-size: 1.15em;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.PassingEncouragement {
+    margin: 8px 0 0;
+    color: #d4bedf;
+    font-size: clamp(14px, 1.6vw, 16px);
+    line-height: 1.6;
+    text-wrap: balance;
+}
+
+.SuccessMessage {
+    padding: 24px;
+    border-color: rgba(128, 230, 194, 0.35);
+    background: radial-gradient(ellipse at top, rgba(100, 220, 173, 0.16), transparent 75%),
+        linear-gradient(135deg, rgba(105, 84, 180, 0.18), rgba(71, 182, 139, 0.08));
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.SuccessIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid rgba(128, 230, 194, 0.2);
+    border-radius: 50%;
+    background: rgba(128, 230, 194, 0.09);
+    font-size: 32px;
+}
+
+.SuccessTitle {
+    margin: 12px 0 6px;
+    color: #a5f3d3;
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.SuccessCaption {
+    margin: 0;
+    color: #e1d6ed;
+    font-size: clamp(14px, 1.6vw, 17px);
+    line-height: 1.6;
+    text-wrap: balance;
+}
+
 @media(max-width:900px) {
     .StudentNameLayer, .FinishPage { min-height:100dvh; padding:24px 20px; gap:20px; }
     .StudentNameLayer h2 { font-size:clamp(28px, 8vw, 42px); }

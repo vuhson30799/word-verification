@@ -22,6 +22,8 @@ import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import {format} from "date-fns";
 
+import {maximumIncorrectAnswers} from "../../../modules/utils/examinationPassing";
+
 const ALL_TYPES = 'All'
 const COLLAPSED_QUESTION_COUNT = 6
 const TYPE_CHIP_STYLES = [styles.typeChipPrimary, styles.typeChipAccent]
@@ -129,6 +131,7 @@ export default function ExaminationDetail() {
                                 {examination.creator}
                             </span>
                             <span>Created {formatCreatedDate(examination.createdDate)}</span>
+                            <span>Pass: at most {maximumIncorrectAnswers(examination)} incorrect answers</span>
                             <span>{questions.length} question{questions.length === 1 ? '' : 's'}</span>
                         </div>
                     </div>

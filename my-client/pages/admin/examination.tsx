@@ -25,6 +25,7 @@ export interface ExaminationData {
     questions: Question[]
     createdDate: string
     grade: number
+    maximumIncorrectAnswers?: number
     creator: string
 }
 

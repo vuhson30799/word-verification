@@ -6,6 +6,8 @@ import {toAnswers, toClasses, toStudents} from '../../../../../../modules/utils/
 import {buildHomeworkResults} from '../../../../../../modules/utils/homeworkResults';
 import {currentAcademicYear} from '../../../../../../modules/configuration/classes';
 
+import {maximumIncorrectAnswers} from "../../../../../../modules/utils/examinationPassing";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!requireRole(req, res, ['admin', 'assistant'])) return
     if (req.method !== 'GET') return res.status(405).json({message: 'Request is not supported'})
@@ -33,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             })
         res.status(200).json({
             title: exam.title,
+            maximumIncorrectAnswers: maximumIncorrectAnswers(exam),
             grade: exam.grade,
             beginningDate: homework.beginningDate,
             deadlineDate: homework.deadlineDate,

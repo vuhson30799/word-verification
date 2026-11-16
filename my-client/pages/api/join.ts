@@ -75,6 +75,7 @@ function encodeExamination(examinationData: ExaminationData): ExaminationData {
         creator: examinationData.creator,
         grade: examinationData.grade,
         createdDate: examinationData.createdDate,
+        maximumIncorrectAnswers: examinationData.maximumIncorrectAnswers,
         questions: encodedQuestions
     }
 }
