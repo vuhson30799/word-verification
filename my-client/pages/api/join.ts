@@ -1,9 +1,10 @@
+import {currentAcademicYear} from "../../modules/configuration/classes";
 import {NextApiRequest, NextApiResponse} from "next";
 import type {ExaminationData} from "../admin/examination";
 import {encoding} from "../../constant/ApplicationConstant";
 import type {HomeworkData} from "../admin/examination/[examinationId]/homework";
 import type {HomeworkExam} from "../join";
-import {decodeHomeworkUrl, toHomeworks} from "../../modules/utils/dataUtils";
+import {decodeHomeworkUrl, toHomeworks, toStudents} from "../../modules/utils/dataUtils";
 import {equalTo, get, orderByChild, query, ref} from "firebase/database";
 import {database} from "../../modules/firebase/FirebaseService";
 
@@ -39,7 +40,8 @@ async function retrieveExaminationForHomework(req: NextApiRequest, res: NextApiR
         if (!examination) return res.status(404).json({message: 'This examination no longer exists.'})
         const homeworkExam: HomeworkExam = {
             examination: encodeExamination({...examination, id: examId}),
-            homeworkId: homework.id
+            homeworkId: homework.id,
+            assignees: await loadAssignees(homework.studentIds, examination.grade)
         }
         return res.status(200).json(homeworkExam)
     } catch (error) {
@@ -78,4 +80,18 @@ function encodeExamination(examinationData: ExaminationData): ExaminationData {
         maximumIncorrectAnswers: examinationData.maximumIncorrectAnswers,
         questions: encodedQuestions
     }
+}
+
+async function loadAssignees(studentIds: string[] | undefined, grade: number) {
+    const [students, classes] = await Promise.all([
+        get(ref(database, '/students')), get(ref(database, '/classes'))
+    ])
+    const classRecords = classes.val() || {}
+    return toStudents(students.val()).filter(student => Array.isArray(studentIds)
+        ? studentIds.includes(student.id)
+        : student.classIds.some(id => Number(classRecords[id]?.grade) === Number(grade) && classRecords[id]?.academicYear === currentAcademicYear())).map(student => ({
+        id: student.id,
+        name: student.name,
+        className: student.classIds.map(id => classRecords[id]?.name).filter(Boolean).join(', ')
+    }))
 }

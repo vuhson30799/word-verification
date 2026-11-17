@@ -1,3 +1,4 @@
+import {JoinAssignee, matchingAssignees, exactAssignees} from "../modules/join/assignees";
 import React, {FormEvent, useCallback, useEffect, useRef, useState} from "react";
 import styles from "../styles/Join.module.css";
 import {FormControl, useMediaQuery} from "@mui/material";
@@ -27,6 +28,7 @@ import {requestTestLocation, TestLocation} from "../modules/join/location";
 import {hasPassedExamination, maximumIncorrectAnswers} from "../modules/utils/examinationPassing";
 
 export interface StudentAnswer {
+    studentId?: string
     id?: string
     examId: string
     homeworkId: string
@@ -49,6 +51,7 @@ interface Allowance {
 }
 
 export interface HomeworkExam {
+    assignees?: JoinAssignee[]
     examination: ExaminationData
     homeworkId: string
 }
@@ -163,6 +166,12 @@ export default function AttendingExamination() {
     } = useSWRImmutable<HomeworkExam>((examId && beginningDate && deadlineDate) || q ?
         [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}&q=${q ?? ''}`, 'get'] : null, fetcher)
 
+    const roster = data?.assignees ?? []
+    const exact = exactAssignees(studentAnswer.studentName, roster)
+    const identified = roster.find(s => s.id === studentAnswer.studentId) ?? (exact.length === 1 ? exact[0] : undefined)
+    const suggestions = identified ? [] : matchingAssignees(studentAnswer.studentName, roster)
+    const needsSelection = roster.length > 0 && !identified
+
     const {
         data: submitAnswerSuccess,
         error: submitAnswerError
@@ -225,7 +234,7 @@ export default function AttendingExamination() {
 
     async function OnStartButtonClick(e: FormEvent) {
         e.preventDefault()
-        if (!studentAnswer.studentName.trim() || locationRequestPending.current) return
+        if (!studentAnswer.studentName.trim() || needsSelection || locationRequestPending.current) return
         locationRequestPending.current = true
         setRequestingLocation(true)
         setLocationError('')
@@ -233,6 +242,7 @@ export default function AttendingExamination() {
             const location = await requestTestLocation()
             setStudentAnswer(previous => ({
                 ...previous,
+                ...(identified ? {studentId: identified.id, studentName: identified.name} : {}),
                 location,
                 beginningAt: convertDate(new Date())
             }))
@@ -337,6 +347,7 @@ export default function AttendingExamination() {
             setStudentAnswer({
                 ...initialStudentAnswer,
                 studentName: studentAnswer.studentName,
+                ...(studentAnswer.studentId ? {studentId: studentAnswer.studentId} : {}),
                 trial: studentAnswer.trial + 1,
                 examId: `${examId}`,
                 homeworkId: `${data.homeworkId}`
@@ -370,12 +381,25 @@ export default function AttendingExamination() {
                                      value={studentAnswer.studentName}
                                      onChange={(e) => setStudentAnswer({
                                          ...studentAnswer,
-                                         studentName: e.target.value
+                                         studentName: e.target.value,
+                                         studentId: undefined
                                      })}
                                      autoFocus={true}
                                      placeholder="Your name is..."
                                      autoComplete="off"/>
                         </FormControl>
+                        {studentAnswer.studentName.trim() && roster.length > 0 && <section className={styles.IdentityPanel} aria-label="Confirm your student record" aria-live="polite">
+                            {identified ? <p>✓ Ready to join as <strong>{identified.name}</strong>{identified.className && ` · ${identified.className}`}</p> : <>
+                                <h3>Which student are you?</h3>
+                                <p>Choose your name below so your teacher receives your results correctly.</p>
+                                <div className={styles.IdentityOptions}>
+                                    {suggestions.map(student => <button type="button" key={student.id} onClick={() => setStudentAnswer(previous => ({...previous, studentName: student.name, studentId: student.id}))}>
+                                        <strong>{student.name}</strong><span>{student.className || 'Assigned student'}</span>
+                                    </button>)}
+                                </div>
+                                {!suggestions.length && <p>No matching assigned students. Try your full name or check with your teacher.</p>}
+                            </>}
+                        </section>}
                         <Typography id="location-explanation" sx={{color: '#eaeaea', textAlign: 'center', maxWidth: 480}}>
                             📍 Taking the test from Mars? Share your location to start.
                             Saved once per attempt with your results.
@@ -386,7 +410,7 @@ export default function AttendingExamination() {
                         {requestingLocation && <Typography role="status" sx={{color: '#eaeaea'}}>
                             📍 Finding your test headquarters… Tap Allow in your browser!
                         </Typography>}
-                        <MyButton type="submit" disabled={!studentAnswer.studentName.trim() || requestingLocation}>
+                        <MyButton type="submit" disabled={!studentAnswer.studentName.trim() || needsSelection || requestingLocation}>
                             {requestingLocation ? 'Getting location…' : locationError ? 'Retry location and start test' : 'Share location and start test'}
                         </MyButton>
                     </form>

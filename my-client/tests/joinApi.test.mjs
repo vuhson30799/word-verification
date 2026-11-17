@@ -11,9 +11,11 @@ const start = '2026-01-01T08:00:00'
 const end = '2099-01-08T23:59:00'
 const queryParams = {examId:'exam1',beginningDate:start,deadlineDate:end}
 
-async function request({query=queryParams, expired=false, missingExam=false, fail=false, method='GET'} = {}) {
+async function request({query=queryParams, expired=false, missingExam=false, fail=false, method='GET', studentIds} = {}) {
     const records = {
-        '/homeworks':{hw1:{examId:'exam1',beginningDate:start,deadlineDate:expired?'2000-01-08T23:59:00':end}},
+        '/students': {s1:{name:'Nguyễn Minh', phone:'private', classIds:['c1']}, s2:{name:'Other',classIds:[]}},
+        '/classes': {c1:{name:'10A1'}},
+        '/homeworks':{hw1:{studentIds,examId:'exam1',beginningDate:start,deadlineDate:expired?'2000-01-08T23:59:00':end}},
         '/examinations/exam1':missingExam?null:{title:'Homework',maximumIncorrectAnswers:1,questions:[{title:'Test',keys:['Answer'],timeout:30,questionType:'text'}],grade:10,createdDate:start,creator:'Teacher'}
     }
     const cache = new Map()
@@ -49,7 +51,7 @@ test('public join API loads homework without a cookie or referer and encodes ans
     assert.equal(res.body.examination.id,'exam1')
     assert.notEqual(res.body.examination.questions[0].keys[0],'Answer')
     assert.equal(res.body.examination.maximumIncorrectAnswers,1)
-    assert.deepEqual(res.calls,['/homeworks','/examinations/exam1'])
+    assert.deepEqual(res.calls,['/homeworks','/examinations/exam1','/students','/classes'])
 })
 
 test('encoded homework links work without authentication',async()=>{
@@ -68,4 +70,10 @@ test('missing exams, database failures and unsupported methods return responses'
     assert.equal((await request({missingExam:true})).code,404)
     assert.equal((await request({fail:true})).code,500)
     assert.equal((await request({method:'POST'})).code,405)
+})
+
+test('join exposes only assigned names, IDs and class labels without private contact details', async () => {
+    const res = await request({studentIds:['s1']})
+    assert.equal(res.code, 200)
+    assert.deepEqual(res.body.assignees, [{id:'s1',name:'Nguyễn Minh',className:'10A1'}])
 })

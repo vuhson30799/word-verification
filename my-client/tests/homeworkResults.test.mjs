@@ -86,3 +86,10 @@ test('progress includes location and older attempts without location remain supp
     assert.equal(buildHomeworkResults([], [answer()]).rows[0].location, null)
     assert.equal(buildHomeworkResults([student('an', 'Nguyễn An')], []).rows[0].location, null)
 })
+
+test('student ID maps duplicate names to the selected student', () => {
+    const result = buildHomeworkResults([student('a','Nguyễn An'),student('b','Nguyễn An')], [answer({studentId:'b',finishAt:'2026-07-05T08:30:00'})])
+    assert.equal(result.rows.length, 2)
+    assert.equal(result.rows[0].status, 'notJoined')
+    assert.equal(result.rows[1].status, 'finished')
+})

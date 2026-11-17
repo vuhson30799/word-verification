@@ -20,6 +20,7 @@ import {ExaminationData} from "../../examination";
 import styles from "../../../../styles/Homework.module.css";
 
 export interface HomeworkData {
+    studentIds?: string[]
     id: string
     url: string
     beginningDate: string

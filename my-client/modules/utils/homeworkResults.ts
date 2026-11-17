@@ -42,7 +42,7 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
     const groups = new Map<string, StudentAnswer[]>()
     for (const answer of answers) {
         if (!answer.studentName?.trim()) continue
-        const key = normalizeStudentName(answer.studentName)
+        const key = answer.studentId ? `id:${answer.studentId}` : normalizeStudentName(answer.studentName)
         groups.set(key, [...(groups.get(key) ?? []), answer])
     }
     const nameCounts = new Map<string, number>()
@@ -73,8 +73,10 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
         const key = normalizeStudentName(student.name)
         // A name alone cannot safely identify two different students. Keep the
         // unmatched submission visible separately rather than duplicate its score.
-        const records = nameCounts.get(key) === 1 ? groups.get(key) : undefined
-        if (records) groups.delete(key)
+        const idKey = `id:${student.id}`
+        const records = [...(groups.get(idKey) ?? []), ...(nameCounts.get(key) === 1 ? groups.get(key) ?? [] : [])]
+        groups.delete(idKey)
+        if (nameCounts.get(key) === 1) groups.delete(key)
         return row(student.id, student.name, student.phone, student.parentPhone, records, student.facebook)
     })
     for (const [key, records] of groups) rows.push(row(`answer:${key}`, records[0].studentName.trim(), '', '', records))

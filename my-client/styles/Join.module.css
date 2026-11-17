@@ -177,3 +177,11 @@
     .FinishPage h1 { font-size:clamp(24px,7vw,36px); }
     .FinishPage h5 { line-height:1.6; }
 }
+
+.IdentityPanel { box-sizing: border-box; width: min(540px, 90vw); padding: 20px; border: 1px solid #bb81d3; border-radius: 18px; background: #24202e; color: #f7effb; }
+.IdentityPanel h3 { margin: 0 0 8px; }
+.IdentityPanel p { margin: 0 0 12px; line-height: 1.5; }
+.IdentityOptions { display: grid; gap: 8px; }
+.IdentityOptions button { display: flex; justify-content: space-between; gap: 12px; padding: 14px; border: 1px solid #80638d; border-radius: 10px; background: #35293e; color: #fff; text-align: left; cursor: pointer; font: inherit; }
+.IdentityOptions button:hover, .IdentityOptions button:focus-visible { outline: 2px solid #e3aeff; background: #493154; }
+.IdentityOptions span { color: #dbc6e4; }

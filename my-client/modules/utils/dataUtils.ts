@@ -25,6 +25,7 @@ export function toHomeworks(object: any) {
         return {
             id: homeworkId,
             url: object[homeworkId].url,
+            studentIds: object[homeworkId].studentIds,
             beginningDate: object[homeworkId].beginningDate,
             deadlineDate: object[homeworkId].deadlineDate
         }
@@ -39,6 +40,7 @@ export function toAnswers(object: any) {
             examId: object[answerId].examId,
             homeworkId: object[answerId].homeworkId,
             studentName: object[answerId].studentName,
+            studentId: object[answerId].studentId,
             correctAnswers: object[answerId].correctAnswers,
             trial: object[answerId].trial,
             questionNumber: object[answerId].questionNumber,
