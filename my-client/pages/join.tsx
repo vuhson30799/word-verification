@@ -1,517 +1,154 @@
-import {JoinAssignee, matchingAssignees, exactAssignees} from "../modules/join/assignees";
-import React, {FormEvent, useCallback, useEffect, useRef, useState} from "react";
-import styles from "../styles/Join.module.css";
-import {FormControl, useMediaQuery} from "@mui/material";
-import useSWRImmutable from 'swr/immutable'
-import {ExaminationData} from "./admin/examination";
-import {fetcher, fetcherWithForm} from "../modules/configuration/Configuration";
-import {useRouter} from "next/router";
-import {convertDate} from "../modules/utils/dateUtils";
-import {translateKey, verifyAnswer} from "../modules/utils/verification";
-import ProgressQuestionBar from "../components/ProgressQuestionBar";
-import {rightAnswerColor, timeToDisplayFirstQuestion, wrongAnswerColor} from "../constant/ApplicationConstant";
-import MyToast from "../components/MyToast";
-import {MySpinner} from "../components/MySpinner";
-import Head from "next/head";
-import useSWR from "swr";
-import StartingQuestion from "../components/StartingQuestion";
-import MyInput from "../components/MyInput";
-import {MyButton} from "../components/MyButton";
-import Typography from "@mui/material/Typography";
-import {DisplayState, DisplayStateEnum, isDisplayed} from "../modules/join/display/DisplayService";
-import {TimeoutContext} from "../modules/join/context";
-import MyColorDiv from "../components/MyColorDiv";
-import {isEmpty} from "lodash";
-import {decodeHomeworkUrl} from "../modules/utils/dataUtils";
-import {requestTestLocation, TestLocation} from "../modules/join/location";
-
-import {hasPassedExamination, maximumIncorrectAnswers} from "../modules/utils/examinationPassing";
+import {useEffect, useRef, useState} from 'react';
+import {useRouter} from 'next/router';
+import useSWRImmutable from 'swr/immutable';
+import type {ExaminationData} from './admin/examination';
+import type {JoinAssignee} from '../modules/join/assignees';
+import {fetcher, fetcherWithForm} from '../modules/configuration/Configuration';
+import {requestTestLocation, TestLocation} from '../modules/join/location';
+import {maximumIncorrectAnswers} from '../modules/utils/examinationPassing';
+import {verifyAnswer} from '../modules/utils/verification';
+import {convertDate} from '../modules/utils/dateUtils';
+import {StudentLayout, Button, Heading, StatusIcon} from '../components/student/StudentLayout';
+import NameScreen from '../components/student/NameScreen';
+import LocationScreen, {LocationStatus} from '../components/student/LocationScreen';
+import QuestionScreen from '../components/student/QuestionScreen';
+import ResultScreen from '../components/student/ResultScreen';
+import styles from '../styles/Join.module.css';
 
 export interface StudentAnswer {
-    studentId?: string
-    id?: string
-    examId: string
-    homeworkId: string
-    studentName: string
-    correctAnswers: number
-    trial: number
-    questionNumber?: number
-    beginningAt?: string
-    finishAt?: string
-    location?: TestLocation
+    id?: string; studentId?: string; examId: string; homeworkId: string; studentName: string;
+    correctAnswers: number; trial: number; questionNumber?: number; beginningAt?: string; finishAt?: string; location?: TestLocation
 }
+export interface HomeworkExam {assignees?: JoinAssignee[]; examination: ExaminationData; homeworkId: string}
+type Stage = 'name' | 'location' | 'question' | 'result' | 'interrupted';
 
-interface CurrentQuestion {
-    questionNumber: number
-    studentAnswer: string
-}
-
-interface Allowance {
-    answer: boolean
-}
-
-export interface HomeworkExam {
-    assignees?: JoinAssignee[]
-    examination: ExaminationData
-    homeworkId: string
-}
-
-const initialDisplayState: DisplayState = {
-    components: [DisplayStateEnum.STUDENT_NAME]
-}
-
-const initialStudentAnswer: StudentAnswer = {
-    examId: "",
-    homeworkId: "",
-    studentName: "",
-    correctAnswers: 0,
-    trial: 1,
-    beginningAt: "",
-    finishAt: ""
-}
-
-const initialCurrentQuestion: CurrentQuestion = {
-    questionNumber: 0,
-    studentAnswer: ""
-}
-
-const initialAllowance: Allowance = {
-    answer: true
-}
-
-function shuffleExamination(examinationData: ExaminationData): ExaminationData {
-    const shuffledQuestions = []
-    const questions = examinationData.questions
-    while (questions.length !== 0) {
-        const index = Math.floor(Math.random() * questions.length);
-        shuffledQuestions.push(examinationData.questions[index])
-        questions.splice(index, 1)
+function shuffle(exam: ExaminationData) {
+    const questions = [...exam.questions];
+    for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
     }
-
-    examinationData.questions = shuffledQuestions
-    return examinationData
-
-}
-
-function getAnswerColor(displayState: DisplayState) {
-    if (isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON)) return wrongAnswerColor
-    if (isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION)) return rightAnswerColor
-
-    //default color will be used
-    return undefined
-}
-
-function setVisible(predicate: boolean) {
-    return predicate ? 'visible' : 'hidden'
+    return questions;
 }
 
 export default function AttendingExamination() {
-    const isSmallPhone = useMediaQuery('(max-width:430px)')
-    const router = useRouter()
-    const {q} = router.query
-    const {examId, beginningDate, deadlineDate} = !isEmpty(q)
-      ? decodeHomeworkUrl(`${q}`)
-      // to be removed when all homework uses new structure: with 'data' query
-      : router.query
-    const [examinationData, setExaminationData] = useState<ExaminationData | undefined>(undefined)
-    const [studentAnswer, setStudentAnswer] = useState<StudentAnswer>(initialStudentAnswer)
-    const [allowance, setAllowance] = useState<Allowance>(initialAllowance)
-
-    const [displayState, setDisplayState] = useState<DisplayState>(initialDisplayState)
-    const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion>(initialCurrentQuestion)
-    const [triggerTimeout, setTriggerTimeout] = useState(false)
-    const questionFormRef = useRef<HTMLFormElement>(null)
-    const locationRequestPending = useRef(false)
-    const [requestingLocation, setRequestingLocation] = useState(false)
-    const [locationError, setLocationError] = useState('')
-
-    useEffect(() => {
-        if (!isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) return
-        const timeout = setTimeout(() => setDisplayState({
-            components: [DisplayStateEnum.QUESTION]
-        }), timeToDisplayFirstQuestion)
-        return () => clearTimeout(timeout)
-    }, [displayState])
-
-    useEffect(() => {
-        if (!isDisplayed(displayState, DisplayStateEnum.QUESTION)) return
-        const selector = allowance.answer ? '#currentAnswer' : 'button[type="submit"]'
-        questionFormRef.current?.querySelector<HTMLElement>(selector)?.focus()
-    }, [displayState, allowance.answer, currentQuestion.questionNumber])
+    const router = useRouter();
+    const [ready, setReady] = useState(false);
+    useEffect(() => {if (router.isReady) setReady(true)}, [router.isReady]);
+    const params = new URLSearchParams();
+    for (const key of ['q', 'examId', 'beginningDate', 'deadlineDate']) {
+        const value = router.query[key];
+        if (typeof value === 'string') params.set(key, value);
+    }
+    const hasLink = params.has('q') || ['examId', 'beginningDate', 'deadlineDate'].every(key => params.has(key));
+    const {data, error, mutate} = useSWRImmutable<HomeworkExam>(ready && hasLink ? [`/api/join?${params}`, 'get'] : null, fetcher);
+    const [stage, setStage] = useState<Stage>('name');
+    const [name, setName] = useState('');
+    const [studentId, setStudentId] = useState<string>();
+    const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
+    const [locationError, setLocationError] = useState('');
+    const [countdown, setCountdown] = useState(3);
+    const [questions, setQuestions] = useState<ExaminationData['questions']>([]);
+    const [index, setIndex] = useState(0);
+    const [feedback, setFeedback] = useState<boolean | null>(null);
+    const [attempt, setAttempt] = useState<StudentAnswer>();
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState('');
+    const [progressError, setProgressError] = useState('');
+    const locationPending = useRef(false);
+    const answered = useRef(false);
+    const submitPending = useRef(false);
+    const questionCount = data?.examination.questions.length ?? 0;
+    const required = questionCount - maximumIncorrectAnswers(data?.examination ?? {});
 
     useEffect(() => {
-        const viewport = window.visualViewport
-        if (!viewport) return
-
-        // Keep the mobile controls above keyboards that shrink only the visual viewport.
-        const updateKeyboardInset = () => {
-            const inset = viewport.scale === 1
-                ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
-                : 0
-            document.documentElement.style.setProperty('--join-keyboard-inset', `${inset}px`)
-        }
-        updateKeyboardInset()
-        viewport.addEventListener('resize', updateKeyboardInset)
-        viewport.addEventListener('scroll', updateKeyboardInset)
-        return () => {
-            viewport.removeEventListener('resize', updateKeyboardInset)
-            viewport.removeEventListener('scroll', updateKeyboardInset)
-            document.documentElement.style.removeProperty('--join-keyboard-inset')
-        }
-    }, [])
-
-    const {
-        data,
-        error
-    } = useSWRImmutable<HomeworkExam>((examId && beginningDate && deadlineDate) || q ?
-        [`/api/join?examId=${examId}&beginningDate=${beginningDate}&deadlineDate=${deadlineDate}&q=${q ?? ''}`, 'get'] : null, fetcher)
-
-    const roster = data?.assignees ?? []
-    const exact = exactAssignees(studentAnswer.studentName, roster)
-    const identified = roster.find(s => s.id === studentAnswer.studentId) ?? (exact.length === 1 ? exact[0] : undefined)
-    const suggestions = identified ? [] : matchingAssignees(studentAnswer.studentName, roster)
-    const needsSelection = roster.length > 0 && !identified
-
-    const {
-        data: submitAnswerSuccess,
-        error: submitAnswerError
-    } = useSWR<{ success: string }>(isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) ? ['/api/answers', 'post', studentAnswer] : null, fetcherWithForm)
-
-    // update current state of student
-    useSWR(currentQuestion.questionNumber % 5 == 0
-    && !!studentAnswer.beginningAt && !!studentAnswer.studentName.trim()
-    && !isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE)
-        ? [`/api/answers/current-state`, 'post', {
-            ...studentAnswer,
-            questionNumber: currentQuestion.questionNumber + 1,
-            finishAt: ''
-        }] : null, fetcherWithForm)
+        if (stage !== 'location' || locationStatus !== 'received') return;
+        const timer = setInterval(() => setCountdown(value => Math.max(0, value - 1)), 1000);
+        return () => clearInterval(timer);
+    }, [stage, locationStatus]);
     useEffect(() => {
-        const lastExamId = localStorage.getItem('examId')
-        const lastHomeworkId = localStorage.getItem('homeworkId')
-        const lastTrial = localStorage.getItem('trial')
-        const lastStudentName = localStorage.getItem('studentName')
-        if (data) {
-            if (lastExamId === examId
-                && lastHomeworkId === data.homeworkId
-                && lastStudentName === studentAnswer.studentName
-                && lastTrial) {
-                setStudentAnswer({
-                    ...studentAnswer,
-                    examId: `${examId}`,
-                    homeworkId: `${data.homeworkId}`,
-                    trial: Number.parseInt(lastTrial)
-                })
-            } else {
-                setStudentAnswer({
-                    ...studentAnswer,
-                    examId: `${examId}`,
-                    homeworkId: `${data.homeworkId}`
-                })
-            }
-            setExaminationData(shuffleExamination(data.examination))
-        }
-    }, [data, studentAnswer.studentName])
-
-    const updateHomeworkLocalStorage = useCallback(() => {
-        localStorage.setItem('examId', `${examId}`)
-        localStorage.setItem('homeworkId', `${data?.homeworkId}`)
-        localStorage.setItem('trial', `${studentAnswer.trial + 1}`)
-        localStorage.setItem('studentName', `${studentAnswer.studentName}`)
-    }, [examId, data?.homeworkId, studentAnswer.trial, studentAnswer.studentName])
-
+        if (stage === 'location' && locationStatus === 'received' && countdown === 0) setStage('question');
+    }, [stage, locationStatus, countdown]);
     useEffect(() => {
-        window.onbeforeunload = updateHomeworkLocalStorage
-    }, [updateHomeworkLocalStorage])
+        if (stage !== 'question') return;
+        const interrupt = () => {if (document.hidden) setStage('interrupted')};
+        document.addEventListener('visibilitychange', interrupt);
+        return () => document.removeEventListener('visibilitychange', interrupt);
+    }, [stage]);
+    useEffect(() => {
+        if (stage !== 'question' || index % 5 !== 0 || !attempt) return;
+        // Checkpoints have no finish time, so they cannot be mistaken for a completed test.
+        fetcherWithForm(['/api/answers/current-state', 'post', {...attempt, questionNumber: index + 1, finishAt: ''}])
+            .then(() => setProgressError('')).catch(() => setProgressError('Your progress could not be saved. Check your connection.'));
+        // A checkpoint is recorded once when entering each five-question block.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [stage, index]);
 
-
-    if (error) return <MyToast message={error.message} severity={"error"}/>
-    if (submitAnswerError) return <MyToast message={submitAnswerError.message} severity={"error"}/>
-    if (!data) return <MySpinner/>
-    if (isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) && !submitAnswerSuccess) return <MySpinner/>
-
-    document.onvisibilitychange = showCheatingPage
-
-    async function OnStartButtonClick(e: FormEvent) {
-        e.preventDefault()
-        if (!studentAnswer.studentName.trim() || needsSelection || locationRequestPending.current) return
-        locationRequestPending.current = true
-        setRequestingLocation(true)
-        setLocationError('')
+    async function start() {
+        if (!data || locationPending.current) return;
+        locationPending.current = true;
+        setLocationStatus('pending');
+        setLocationError('');
         try {
-            const location = await requestTestLocation()
-            setStudentAnswer(previous => ({
-                ...previous,
-                ...(identified ? {studentId: identified.id, studentName: identified.name} : {}),
-                location,
-                beginningAt: convertDate(new Date())
-            }))
-            setDisplayState({components: [DisplayStateEnum.STARTING_COMPONENT]})
+            const location = await requestTestLocation();
+            const key = `wv:attempt:${data.examination.id}:${data.homeworkId}:${studentId || name.trim()}`;
+            let trial = 1;
+            try {trial = Number(localStorage.getItem(key) || 0) + 1; localStorage.setItem(key, `${trial}`)} catch { /* Storage may be disabled. The test can still be submitted. */ }
+            setAttempt({examId: data.examination.id!, homeworkId: data.homeworkId, studentName: name.trim(), ...(studentId ? {studentId} : {}), correctAnswers: 0, trial, beginningAt: convertDate(new Date()), location});
+            setQuestions(shuffle(data.examination));
+            setIndex(0);
+            setFeedback(null);
+            answered.current = false;
+            setSaveError('');
+            setProgressError('');
+            setCountdown(3);
+            setLocationStatus('received');
         } catch (error) {
-            setLocationError(error instanceof Error ? error.message : 'Could not get your location. Please retry.')
-        } finally {
-            locationRequestPending.current = false
-            setRequestingLocation(false)
-        }
+            setLocationStatus((error as {code?: number}).code === 1 ? 'blocked' : 'unavailable');
+            setLocationError(error instanceof Error ? error.message : 'Could not get your location. Please retry.');
+        } finally {locationPending.current = false}
     }
 
-    function handleStudentAnswerChange(value: string) {
-        setCurrentQuestion({
-            ...currentQuestion,
-            studentAnswer: value
-        })
+    function answer(value: string) {
+        if (answered.current || !attempt || stage !== 'question') return;
+        answered.current = true;
+        const correct = verifyAnswer(value, questions[index].keys);
+        setFeedback(correct);
+        if (correct) setAttempt(previous => previous && ({...previous, correctAnswers: previous.correctAnswers + 1}));
     }
 
-    function showFinishPage() {
-        setDisplayState({
-            components: [DisplayStateEnum.FINISH_PAGE]
-        })
+    async function save(result: StudentAnswer) {
+        if (submitPending.current) return;
+        submitPending.current = true;
+        setSaving(true);
+        setSaveError('');
+        try {await fetcherWithForm(['/api/answers', 'post', result])}
+        catch (error) {setSaveError(error instanceof Error ? error.message : 'Your results could not be saved. Please retry.')}
+        finally {submitPending.current = false; setSaving(false)}
     }
 
-    function showCheatingPage() {
-        if (!isDisplayed(displayState, DisplayStateEnum.QUESTION)
-            && !isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT)) return
-        setTriggerTimeout(false)
-        setDisplayState({
-            components: [DisplayStateEnum.CHEATING_PAGE]
-        })
+    function next() {
+        if (feedback === null || !attempt) return;
+        if (index + 1 === questions.length) {
+            const result = {...attempt, finishAt: convertDate(new Date())};
+            setAttempt(result);
+            setStage('result');
+            void save(result);
+        } else {setIndex(value => value + 1); setFeedback(null); answered.current = false}
     }
 
-    function onStudentAnswerSubmit(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
-        e.preventDefault()
-        if (!allowance.answer) return
+    function playAgain() {setStage('name'); setLocationStatus('idle'); setLocationError(''); setProgressError('')}
 
-        setAllowance({
-            ...allowance,
-            answer: false
-        })
-        const isRightAnswer = verifyAnswer(currentQuestion.studentAnswer, examinationData?.questions[currentQuestion.questionNumber].keys)
-        if (isRightAnswer) {
-            setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.TO_NEXT_QUESTION]})
-            setStudentAnswer({
-                ...studentAnswer,
-                correctAnswers: studentAnswer.correctAnswers + 1,
-                // On the last question, I update student answer twice, then the second override value of correct answers cause a bug
-                // That's why I update finishAt here as a workaround.
-                finishAt: convertDate(new Date())
-            })
-        } else {
-            setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.KEY_BUTTON]})
-            setStudentAnswer({
-                ...studentAnswer,
-                finishAt: convertDate(new Date())
-            })
-        }
-        setTriggerTimeout(true)
-    }
+    const problem = error?.message || (ready && !hasLink ? 'Open the homework link shared by your teacher to join this examination.' : data && !questionCount ? 'This examination has no questions. Please contact your teacher.' : '');
+    if (problem || !data) return <StudentLayout title="Join examination"><section className={styles.content}><StatusIcon kind={problem ? 'error' : 'waiting'}/><Heading title={problem ? 'We couldn’t open this test.' : 'Opening your test…'}>{problem || 'Getting everything ready for you.'}</Heading>{error && <Button onClick={() => mutate()}>Try again</Button>}</section></StudentLayout>;
 
-    function onNextButtonClick(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
-        e.preventDefault()
-        setTriggerTimeout(false)
-        const noQuestionLeft = currentQuestion.questionNumber + 1 == examinationData?.questions.length
-        if (noQuestionLeft) {
-            showFinishPage()
-            return
-        }
-
-        setCurrentQuestion({
-            studentAnswer: "",
-            questionNumber: currentQuestion.questionNumber + 1
-        })
-
-        setAllowance({
-            ...allowance,
-            answer: true
-        })
-        setDisplayState({
-            components: [DisplayStateEnum.QUESTION]
-        })
-
-    }
-
-    function onKeyButtonClick(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLAnchorElement> | React.MouseEvent<HTMLButtonElement>) {
-        e.preventDefault()
-        setDisplayState({components: [DisplayStateEnum.QUESTION, DisplayStateEnum.ANSWERS, DisplayStateEnum.TO_NEXT_QUESTION]})
-    }
-
-    function onPlayingAgain() {
-        setLocationError('')
-        setTriggerTimeout(false)
-        setDisplayState({
-            components: [DisplayStateEnum.STUDENT_NAME]
-        })
-        setCurrentQuestion(initialCurrentQuestion)
-        setAllowance(initialAllowance)
-        if (data) {
-            setExaminationData(shuffleExamination(data.examination))
-            setStudentAnswer({
-                ...initialStudentAnswer,
-                studentName: studentAnswer.studentName,
-                ...(studentAnswer.studentId ? {studentId: studentAnswer.studentId} : {}),
-                trial: studentAnswer.trial + 1,
-                examId: `${examId}`,
-                homeworkId: `${data.homeworkId}`
-            })
-        }
-    }
-
-    return (
-        <TimeoutContext.Provider value={triggerTimeout}>
-            <style global jsx>
-                {`body {
-                  margin: 0;
-                  background-image: url('/background.svg');
-                  background-repeat: no-repeat;
-                  background-size: cover;
-                  background-color: #343a40;
-                }`}
-            </style>
-            <Head>
-                <title>Play Homework</title>
-                <meta name="description" content="Student zone page"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            </Head>
-            {isDisplayed(displayState, DisplayStateEnum.STUDENT_NAME) &&
-                <>
-                    <form className={styles.StudentNameLayer}
-                          onSubmit={(e) => OnStartButtonClick(e)}>
-                        <Typography variant="h2" sx={{color: "#eaeaea", textAlign: "center"}}>WHO ARE YOU?</Typography>
-                        <FormControl className={styles.JoinFormControl} required={true}>
-                            <MyInput id="studentName"
-                                     value={studentAnswer.studentName}
-                                     onChange={(e) => setStudentAnswer({
-                                         ...studentAnswer,
-                                         studentName: e.target.value,
-                                         studentId: undefined
-                                     })}
-                                     autoFocus={true}
-                                     placeholder="Your name is..."
-                                     autoComplete="off"/>
-                        </FormControl>
-                        {studentAnswer.studentName.trim() && roster.length > 0 && <section className={styles.IdentityPanel} aria-label="Confirm your student record" aria-live="polite">
-                            {identified ? <p>✓ Ready to join as <strong>{identified.name}</strong>{identified.className && ` · ${identified.className}`}</p> : <>
-                                <h3>Which student are you?</h3>
-                                <p>Choose your name below so your teacher receives your results correctly.</p>
-                                <div className={styles.IdentityOptions}>
-                                    {suggestions.map(student => <button type="button" key={student.id} onClick={() => setStudentAnswer(previous => ({...previous, studentName: student.name, studentId: student.id}))}>
-                                        <strong>{student.name}</strong><span>{student.className || 'Assigned student'}</span>
-                                    </button>)}
-                                </div>
-                                {!suggestions.length && <p>No matching assigned students. Try your full name or check with your teacher.</p>}
-                            </>}
-                        </section>}
-                        <Typography id="location-explanation" sx={{color: '#eaeaea', textAlign: 'center', maxWidth: 480}}>
-                            📍 Taking the test from Mars? Share your location to start.
-                            Saved once per attempt with your results.
-                        </Typography>
-                        {locationError && <Typography role="alert" sx={{color: '#ffb4ab', textAlign: 'center', maxWidth: 480}}>
-                            {locationError} You cannot start the test without sharing your location.
-                        </Typography>}
-                        {requestingLocation && <Typography role="status" sx={{color: '#eaeaea'}}>
-                            📍 Finding your test headquarters… Tap Allow in your browser!
-                        </Typography>}
-                        <MyButton type="submit" disabled={!studentAnswer.studentName.trim() || needsSelection || requestingLocation}>
-                            {requestingLocation ? 'Getting location…' : locationError ? 'Retry location and start test' : 'Share location and start test'}
-                        </MyButton>
-                    </form>
-
-                </>
-            }
-            {isDisplayed(displayState, DisplayStateEnum.STARTING_COMPONENT) && <StartingQuestion/>}
-            {isDisplayed(displayState, DisplayStateEnum.QUESTION) && examinationData &&
-                <>
-                    <form ref={questionFormRef}
-                          className={styles.QuestionLayer}
-                          onSubmit={(e) => {
-                              if (allowance.answer) onStudentAnswerSubmit(e)
-                              else if (isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON)) onKeyButtonClick(e)
-                              else if (isDisplayed(displayState, DisplayStateEnum.TO_NEXT_QUESTION)) onNextButtonClick(e)
-                              else e.preventDefault()
-                          }}>
-                        <ProgressQuestionBar className={styles.QuestionProgress}
-                                             style={{visibility: `${setVisible(allowance.answer)}`}}
-                                             timeout={examinationData.questions[currentQuestion.questionNumber].timeout}
-                                             handleTimeout={onStudentAnswerSubmit}/>
-                        <div className={styles.QuestionTitle}>
-                            <MyColorDiv style={{minWidth: '80vw', padding: '32px 32px'}}
-                                        value={`Question ${currentQuestion.questionNumber + 1}: ${examinationData.questions[currentQuestion.questionNumber].title}`}
-                            />
-                            <h5 className={styles.KeyContainer}
-                                style={{visibility: `${setVisible(isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
-                                {examinationData.questions[currentQuestion.questionNumber].keys.map((key, index) => {
-                                    return <MyColorDiv key={index}
-                                                       style={{minHeight: '5vh', backgroundImage: `${rightAnswerColor}`, display: 'flex', justifyContent: 'center', fontSize: isSmallPhone ? '1rem' : undefined}}
-                                                       value={isDisplayed(displayState, DisplayStateEnum.ANSWERS) ? translateKey(key) : "Good try! Find another way ^^"}
-                                    />
-                                })}
-                            </h5>
-                        </div>
-                        <div className={styles.AnswerSubmit}>
-                            <FormControl className={styles.JoinFormControl}
-                                         style={{visibility: `${setVisible(!isDisplayed(displayState, DisplayStateEnum.ANSWERS))}`}}>
-                                <MyInput id="currentAnswer"
-                                         backgroundImage={getAnswerColor(displayState)}
-                                         value={currentQuestion.studentAnswer}
-                                         autoFocus={true}
-                                         autoComplete="off"
-                                         onChange={(e) => handleStudentAnswerChange(e.target.value)}/>
-                            </FormControl>
-                            <MyButton className={styles.ButtonAnswerSubmit}
-                                      variant="contained"
-                                      type="submit">
-                                {allowance.answer ? 'Submit'
-                                    : isDisplayed(displayState, DisplayStateEnum.KEY_BUTTON) ? 'Answer' : 'Next'}
-                            </MyButton>
-                        </div>
-                    </form>
-                </>
-            }
-            {isDisplayed(displayState, DisplayStateEnum.FINISH_PAGE) &&
-                <div className={styles.FinishPage}>
-                    <MyColorDiv style={{display: "flex", justifyContent: "space-around", flexDirection: "column",
-                        minHeight: `${isSmallPhone ? "35vh" : "50vh"}`,
-                        minWidth: `${isSmallPhone ? "60vw" : "40vw"}`,
-                        fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
-                        <h1>Your result</h1>
-                        <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                        {examinationData && <>
-                            {hasPassedExamination(studentAnswer.correctAnswers, examinationData.questions.length, maximumIncorrectAnswers(examinationData)) ?
-                                <div className={`${styles.PassingMessage} ${styles.SuccessMessage}`}>
-                                    <span className={styles.SuccessIcon} aria-hidden="true">🎉</span>
-                                    <h2 className={styles.SuccessTitle}>You passed!</h2>
-                                    <p className={styles.SuccessCaption}>Your brain needs a holiday now. <span aria-hidden="true">😎</span></p>
-                                </div> :
-                            <div className={styles.PassingMessage}>
-                                <p className={styles.PassingGoal}>Get at least <strong>{examinationData.questions.length - maximumIncorrectAnswers(examinationData)}</strong> answers right to pass.</p>
-                                <p className={styles.PassingEncouragement}>Your brain can snack after! <span aria-hidden="true">🧠🍪</span></p>
-                            </div>}
-                        </>}
-                        <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
-                            Play Again
-                        </MyButton>
-                        {!!submitAnswerSuccess
-                            && <MyToast message={submitAnswerSuccess.success} severity="success"/>
-                        }
-                    </MyColorDiv>
-                </div>
-            }
-            {isDisplayed(displayState, DisplayStateEnum.CHEATING_PAGE) &&
-                <div className={styles.FinishPage}>
-                    <MyColorDiv style={{display: "flex", justifyContent: "space-around", flexDirection: "column",
-                        minHeight: `${isSmallPhone ? "35vh" : "50vh"}`,
-                        minWidth: `${isSmallPhone ? "60vw" : "40vw"}`,
-                        fontSize: `${isSmallPhone ? "1em" : "2.25em"}`}}>
-                        <h1>Your result</h1>
-                        <h1>{studentAnswer.correctAnswers} / {examinationData?.questions.length}</h1>
-                        <h5>Detecting cheating when you open another tab or different application. Your result will not be
-                            submitted. Please start over.</h5>
-                        <MyButton style={{margin: "2vh 0"}} variant="contained" onClick={onPlayingAgain}>
-                            Play Again
-                        </MyButton>
-                    </MyColorDiv>
-
-                </div>
-            }
-        </TimeoutContext.Provider>
-    )
+    return <StudentLayout title={data.examination.title} progress={stage === 'question' ? `${index + 1} / ${questions.length}` : undefined}>
+        <p className={styles.examTitle}>{data.examination.title}</p>
+        {stage === 'name' && <NameScreen name={name} selectedId={studentId} roster={data.assignees ?? []} questionCount={questionCount} required={required}
+            onChange={(value, id) => {setName(value); setStudentId(id)}} onContinue={student => {if (student) {setName(student.name); setStudentId(student.id)} setStage('location'); setLocationStatus('idle')}}/>}
+        {stage === 'location' && <LocationScreen status={locationStatus} error={locationError} countdown={countdown} onStart={start} onBack={() => setStage('name')}/>}
+        {stage === 'question' && questions[index] && <QuestionScreen key={index} question={questions[index]} index={index} total={questions.length} feedback={feedback} onAnswer={answer} onNext={next}/>}
+        {progressError && stage === 'question' && <p role="status" className={styles.notice}>{progressError}</p>}
+        {(stage === 'result' || stage === 'interrupted') && attempt && <ResultScreen score={attempt.correctAnswers} total={questions.length} required={required} interrupted={stage === 'interrupted'} saving={saving} error={saveError} onRetrySave={() => save(attempt)} onPlayAgain={playAgain}/>}
+    </StudentLayout>;
 }

@@ -43,8 +43,8 @@ for (const [code, message] of [[1, /browser settings/], [2, /unavailable/], [3, 
         const request = loadLocation({geolocation: {
             getCurrentPosition(success, failure) {calls++; failure({code})}
         }})
-        await assert.rejects(request(), message)
-        await assert.rejects(request(), message)
+        await assert.rejects(request(), error => {assert.match(error.message, message); assert.equal(error.code, code); return true})
+        await assert.rejects(request(), error => {assert.match(error.message, message); assert.equal(error.code, code); return true})
         assert.equal(calls, 2)
     })
 }
