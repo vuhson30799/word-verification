@@ -106,3 +106,5 @@
 }
 @media (max-height: 650px) { .shell { min-height: 100dvh; } .content { margin-top: 20px; } .locationBody { margin: 0; } }
 @media (prefers-reduced-motion: reduce) { .spinner > span { animation: none; } .button, .progress > span { transition: none; } }
+.recovery { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px; padding:20px; margin:24px auto; width:100%; box-sizing:border-box; max-width:520px; border:1px solid #ffffff30; border-radius:16px; background:#ffffff08; }
+.recovery p { flex-basis:100%; text-align:center; overflow-wrap:anywhere; }

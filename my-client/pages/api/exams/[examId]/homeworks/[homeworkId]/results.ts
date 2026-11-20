@@ -1,3 +1,6 @@
+import {serverGet, apiError} from '../../../../../../modules/firebase/server';
+import {validKey} from '../../../../../../modules/progress/types';
+import type {Attempt, ProgressSnapshot} from '../../../../../../modules/progress/types';
 import type {NextApiRequest, NextApiResponse} from 'next';
 import {equalTo, get, orderByChild, query, ref} from 'firebase/database';
 import {database} from '../../../../../../modules/firebase/FirebaseService';
@@ -9,17 +12,20 @@ import {currentAcademicYear} from '../../../../../../modules/configuration/class
 import {maximumIncorrectAnswers} from "../../../../../../modules/utils/examinationPassing";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    res.setHeader('Cache-Control', 'no-store')
     if (!requireRole(req, res, ['admin', 'assistant'])) return
     if (req.method !== 'GET') return res.status(405).json({message: 'Request is not supported'})
     const {examId, homeworkId} = req.query
-    if (typeof examId !== 'string' || typeof homeworkId !== 'string') return res.status(400).json({message: 'Invalid homework.'})
+    if (!validKey(examId) || !validKey(homeworkId)) return res.status(400).json({message: 'Invalid homework.'})
     try {
-        const [examSnapshot, homeworkSnapshot, studentsSnapshot, classesSnapshot, answers] = await Promise.all([
+        const [examSnapshot, homeworkSnapshot, studentsSnapshot, classesSnapshot, answers, completed, snapshots] = await Promise.all([
             get(ref(database, `/examinations/${examId}`)),
             get(ref(database, `/homeworks/${homeworkId}`)),
             get(ref(database, '/students')),
             get(ref(database, '/classes')),
-            getHomeworkAnswers(examId, homeworkId)
+            getHomeworkAnswers(examId, homeworkId),
+            serverGet<Record<string, Attempt> | null>(`completedAttempts/${homeworkId}`),
+            serverGet<Record<string, ProgressSnapshot> | null>(`progress/${examId}/${homeworkId}/snapshots`)
         ])
         const exam = examSnapshot.val()
         const homework = homeworkSnapshot.val()
@@ -42,23 +48,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             questionCount: (exam.questions ?? []).filter((q: {keys?: string[]}) => q?.keys?.length).length,
             assignedCount: roster.length,
             legacyRoster,
-            ...buildHomeworkResults(roster, answers)
+            ...buildHomeworkResults(roster, [...answers, ...Object.values(completed ?? {}),
+                ...Object.values(snapshots ?? {}).map(snapshot => ({...snapshot, provisional: true}))])
         })
-    } catch {
-        res.status(500).json({message: 'Could not load homework results. Please try again.'})
+    } catch (error) {
+        const failure = apiError(error)
+        res.status(failure.status).json({message: failure.message})
     }
 }
 
 async function getHomeworkAnswers(examId: string, homeworkId: string) {
     const answersRef = ref(database, '/answers')
-    let snapshot
-    try {
-        snapshot = await get(query(answersRef, orderByChild('examId'), equalTo(examId)))
-    } catch (error) {
-        // Older databases do not have an examId index. Keep the indexed query
-        // when available, and filter a one-time read for those installations.
-        if (!(error instanceof Error) || !error.message.includes('Index not defined')) throw error
-        snapshot = await get(answersRef)
-    }
+    const snapshot = await get(query(answersRef, orderByChild('examId'), equalTo(examId)))
     return toAnswers(snapshot.val()).filter(answer => answer.examId === examId && answer.homeworkId === homeworkId)
 }

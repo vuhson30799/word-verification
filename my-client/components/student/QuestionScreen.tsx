@@ -4,10 +4,11 @@ import {translateKey} from '../../modules/utils/verification';
 import {StatusIcon} from './StudentLayout';
 import styles from '../../styles/Join.module.css';
 
-export default function QuestionScreen({question, index, total, feedback, onAnswer, onNext}: {
+export default function QuestionScreen({question, index, total, feedback, initialAnswer, deadline: savedDeadline, onAnswer, onNext}: {
     question: Question; index: number; total: number; feedback: boolean | null; onAnswer: (answer: string) => void; onNext: () => void
+    initialAnswer?: string; deadline?: number;
 }) {
-    const [answer, setAnswer] = useState('');
+    const [answer, setAnswer] = useState(initialAnswer ?? '');
     const duration = Math.max(1, question.timeout || 30);
     const [seconds, setSeconds] = useState(duration);
     const expire = useRef(() => onAnswer(''));
@@ -16,14 +17,14 @@ export default function QuestionScreen({question, index, total, feedback, onAnsw
     useEffect(() => {expire.current = () => onAnswer(answer)}, [onAnswer, answer]);
     useEffect(() => {
         if (feedback !== null) return;
-        const deadline = Date.now() + duration * 1000;
+        const deadline = savedDeadline ?? Date.now() + duration * 1000;
         const timer = setInterval(() => {
             const remaining = Math.max(0, (deadline - Date.now()) / 1000);
             setSeconds(remaining);
             if (remaining === 0) {clearInterval(timer); expire.current()}
         }, 200);
         return () => clearInterval(timer);
-    }, [duration, feedback]);
+    }, [duration, feedback, savedDeadline]);
     useEffect(() => {if (feedback === null) input.current?.focus(); else next.current?.focus()}, [feedback]);
     const Prompt = feedback === null ? 'h1' : 'p';
     return <form className={styles.content} onSubmit={event => {event.preventDefault(); if (feedback === null) onAnswer(answer); else onNext()}}>

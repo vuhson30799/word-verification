@@ -2,7 +2,7 @@ import {hasPassedExamination} from "../../../../../../modules/utils/examinationP
 import {useRouter} from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import {useId, useState} from 'react';
+import {useEffect, useId, useRef, useState} from 'react';
 import {ListItemIcon, ListItemText, Menu, MenuItem} from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import useSWR from 'swr';
@@ -21,17 +21,66 @@ import {normalizeStudentName} from '../../../../../../modules/utils/homeworkResu
 import type {HomeworkResultRow, HomeworkResultsData, ResultStatus} from '../../../../../../modules/utils/homeworkResults';
 import styles from '../../../../../../styles/HomeworkResults.module.css';
 
+import {DEFAULT_POLL_INTERVAL, pollingInterval} from '../../../../../../modules/progress/types';
+import type {ProgressSnapshot} from '../../../../../../modules/progress/types';
+import {requestRefresh} from '../../../../../../modules/progress/client';
+import {applySnapshots} from '../../../../../../modules/progress/results';
+
 const STATUS_LABEL: Record<ResultStatus, string> = {finished: 'Finished', inProgress: 'In progress', notJoined: 'Not joined'}
 
 export default function CompletedStudents() {
     const router = useRouter()
     const {examinationId, homeworkId} = router.query
     const [search, setSearch] = useState('')
-    const {data, error, mutate} = useSWR<HomeworkResultsData>(examinationId && homeworkId
+    const [interval, setIntervalValue] = useState(DEFAULT_POLL_INTERVAL)
+    const [lastRefresh, setLastRefresh] = useState<Date>()
+    const [collecting, setCollecting] = useState(false)
+    const [refreshError, setRefreshError] = useState('')
+    const [requestId, setRequestId] = useState('')
+    const [snapshots, setSnapshots] = useState<ProgressSnapshot[]>([])
+    const cleanup = useRef<(() => void) | undefined>(undefined)
+    const generation = useRef(0)
+    useEffect(() => {
+        try {setIntervalValue(pollingInterval(localStorage.getItem('wv:results-poll-interval')))} catch { /* Auto-refresh stays off. */ }
+    }, [])
+    useEffect(() => {
+        generation.current++
+        setSnapshots([]); setRequestId(''); setRefreshError(''); setCollecting(false); setLastRefresh(undefined)
+        return () => {generation.current++; cleanup.current?.()}
+    }, [examinationId, homeworkId])
+    const {data, error, mutate, isValidating} = useSWR<HomeworkResultsData>(examinationId && homeworkId
         ? [`/api/exams/${examinationId}/homeworks/${homeworkId}/results`, 'get'] : null, fetcher,
-        {refreshInterval: 15000})
+        {refreshInterval: interval, refreshWhenHidden: false, refreshWhenOffline: false, revalidateOnFocus: false, revalidateOnReconnect: false, shouldRetryOnError: false, onSuccess: () => setLastRefresh(new Date())})
     const homeworkPath = `/admin/examination/${examinationId}/homework`
-    const rows = data?.rows.filter(row => normalizeStudentName(row.name).includes(normalizeStudentName(search))) ?? []
+    const displayed = data ? applySnapshots(data, snapshots) : undefined
+    const rows = displayed?.rows.filter(row => normalizeStudentName(row.name).includes(normalizeStudentName(search))) ?? []
+
+    function changeInterval(value: string) {
+        const next = pollingInterval(value)
+        setIntervalValue(next)
+        try {localStorage.setItem('wv:results-poll-interval', `${next}`)} catch { /* The selection still applies to this screen. */ }
+    }
+    async function refreshProgress() {
+        if (collecting || isValidating || typeof examinationId !== 'string' || typeof homeworkId !== 'string') return
+        const current = generation.current
+        cleanup.current?.()
+        setCollecting(true); setRefreshError(''); setSnapshots([]); setRequestId('')
+        try {
+            await mutate()
+            if (current !== generation.current) return
+            setLastRefresh(new Date())
+            const active = await requestRefresh(examinationId, homeworkId,
+                values => {if (current === generation.current) setSnapshots(values)},
+                message => {if (current === generation.current) setRefreshError(message)},
+                () => {if (current === generation.current) setCollecting(false)},
+                id => {if (current === generation.current) setRequestId(id)},
+                () => current !== generation.current)
+            if (current !== generation.current) active.stop()
+            else cleanup.current = active.stop
+        } catch (problem) {
+            if (current === generation.current) {setRefreshError(problem instanceof Error ? problem.message : 'Could not refresh progress.'); setCollecting(false)}
+        }
+    }
 
     return <Admin>
         <Head><title>Homework results — Word Verification</title></Head>
@@ -46,7 +95,17 @@ export default function CompletedStudents() {
                 <h1 className={styles.title}>{data ? dateRange(data.beginningDate, data.deadlineDate) : 'Homework results'}</h1>
                 {data && <p className={styles.subtitle}>{data.assignedCount} students {data.legacyRoster ? 'in current roster' : 'assigned'} · Grade {data.grade}</p>}
             </header>
-            {error ? <ErrorCard title="We couldn't load homework results" message={error.message} onRetry={() => mutate()}/>
+            <section className={styles.refreshControls} aria-label="Progress refresh controls">
+                <label>Auto-refresh <select aria-label="Auto-refresh" value={interval} onChange={event => changeInterval(event.target.value)}>
+                    <option value={0}>Off</option><option value={300000}>5 minutes</option><option value={600000}>10 minutes</option>
+                </select></label>
+                <button type="button" className={styles.notifyButton} disabled={collecting || isValidating} onClick={refreshProgress}>{collecting ? 'Collecting progress…' : 'Refresh progress'}</button>
+                <span role="status">{lastRefresh ? `Results updated ${lastRefresh.toLocaleTimeString()}` : 'Loading results…'}</span>
+            </section>
+            <p className={styles.note}>Auto-refresh reads saved results. Refresh progress asks connected students for an update. Progress and scores are last reported, not a connectivity check.</p>
+            {refreshError && <p role="alert" className={styles.refreshError}>{refreshError}</p>}
+            {error && data && <p role="alert" className={styles.refreshError}>{error.message}</p>}
+            {error && !data ? <ErrorCard title="We couldn't load homework results" message={error.message} onRetry={() => mutate()}/>
                 : !data ? <MySpinner/> : <>
                     {data.legacyRoster && <p className={styles.note}>This homework has no saved recipient list. Showing the current Grade {data.grade} roster and recorded participants.</p>}
                     <section className={styles.stats} aria-label="Homework summary">
@@ -58,10 +117,10 @@ export default function CompletedStudents() {
                     <label className={styles.search}><SearchIcon fontSize="small"/><input type="search" aria-label="Filter by student name" placeholder="Filter by student name…" value={search} onChange={event => setSearch(event.target.value)}/></label>
                     <div className={styles.list} role="table" aria-label="Student homework results">
                         <div className={`${styles.row} ${styles.listHead}`} role="row">
-                            {['Student', 'Status', 'Score', 'Joined at', 'Finished at'].map(label => <span key={label} role="columnheader">{label}</span>)}
+                            {['Student', 'Status', 'Best score', 'Joined at', 'Finished at'].map(label => <span key={label} role="columnheader">{label}</span>)}
                             <span role="columnheader" className={styles.srOnly}>Notify</span>
                         </div>
-                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount} maximumIncorrectAnswers={data.maximumIncorrectAnswers}/>)}
+                        {rows.map((row, index) => <ResultRow key={row.id} row={row} index={index} questionCount={data.questionCount} maximumIncorrectAnswers={data.maximumIncorrectAnswers} requestId={requestId} collecting={collecting}/>)}
                     </div>
                     {!rows.length && <div className={styles.empty} role="status">{search.trim() ? 'No students match your search.' : 'No students assigned or answers recorded for this homework.'}</div>}
                     <span className={styles.srOnly} role="status">{rows.length} students shown</span>
@@ -74,13 +133,22 @@ function Summary({label, value, color}: {label: string; value: number; color: Re
     return <div className={styles.stat}><span>{label}</span><strong className={styles[color]}>{value}</strong></div>
 }
 
-function ResultRow({row, index, questionCount, maximumIncorrectAnswers}: {row: HomeworkResultRow; index: number; questionCount: number; maximumIncorrectAnswers: number}) {
+function ResultRow({row, index, questionCount, maximumIncorrectAnswers, requestId, collecting}: {row: HomeworkResultRow; index: number; questionCount: number; maximumIncorrectAnswers: number; requestId: string; collecting: boolean}) {
+    const progress = row.status === 'inProgress' && row.questionNumber != null
+        ? `Q${row.questionNumber}/${questionCount}`
+        : null
+    const points = row.score ?? row.currentScore
+    const outcome = row.score == null ? '' : hasPassedExamination(row.score, questionCount, maximumIncorrectAnswers) ? ' · Passed' : ' · Not passed'
+
     return <div className={`${styles.row} ${styles.item}`} role="row">
         <div className={styles.student} role="cell">
             <span className={`${styles.avatar} ${styles[`avatar${index % 5}`]}`} aria-hidden="true">{initialsOf(row.name)}</span>
             <div>
                 <span>{row.name}</span>
                 <div className={styles.location}>
+                    {row.currentStatus && <span>Latest attempt: {row.currentStatus === 'completed' ? 'completed' : row.currentStatus === 'completedPending' ? 'finished, submission pending' : row.currentStatus === 'interrupted' ? 'interrupted' : progress ? 'in progress' : `Q${row.questionNumber ?? '?'} / ${questionCount}`} {row.score != null && row.currentScore != null ? `· ${row.currentScore} points` : ''}</span>}
+                    <span>{row.lastReportedAt ? `Last reported ${displayDate(new Date(row.lastReportedAt).toISOString())}` : 'No progress report yet'}</span>
+                    {requestId && <span>{row.refreshRequestId === requestId ? 'Responded to refresh' : collecting ? 'Waiting for response…' : 'No response — status may be stale'}</span>}
                     {row.location ?
                         <a href={`https://www.google.com/maps/search/?api=1&query=${row.location.latitude},${row.location.longitude}`}
                            target="_blank" rel="noopener noreferrer" aria-label={`View test location for ${row.name} on map`}>
@@ -90,8 +158,12 @@ function ResultRow({row, index, questionCount, maximumIncorrectAnswers}: {row: H
                 </div>
             </div>
         </div>
-        <span className={`${styles.status} ${styles[row.status]}`} role="cell"><i/>{STATUS_LABEL[row.status]}</span>
-        <span className={`${styles.score} ${row.status !== 'finished' ? styles.muted : ''}`} role="cell" data-label="Score">{row.status === 'finished' ? `${row.score} / ${questionCount} · ${hasPassedExamination(row.score ?? 0, questionCount, maximumIncorrectAnswers) ? 'Passed' : 'Not passed'}` : row.status === 'inProgress' && row.questionNumber !== null ? `Q${row.questionNumber} / ${questionCount}` : '—'}</span>
+        <span className={`${styles.status} ${styles[row.status]}`} role="cell">
+            <i/><span>{STATUS_LABEL[row.status]}{progress && <small className={styles.questionProgress}>{progress}</small>}</span>
+        </span>
+        <span className={`${styles.score} ${points == null ? styles.muted : ''}`} role="cell" data-label="Best score">
+            {points == null ? '—' : `${points} / ${questionCount}${outcome}`}
+        </span>
         <span className={styles.date} role="cell" data-label="Joined at">{displayDate(row.joinedAt)}</span>
         <span className={styles.date} role="cell" data-label="Finished at">{displayDate(row.finishedAt)}</span>
         <div className={styles.notify} role="cell">

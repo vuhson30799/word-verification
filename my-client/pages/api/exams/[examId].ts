@@ -1,9 +1,9 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
+import {onValue, ref} from "firebase/database";
 import {database} from "../../../modules/firebase/FirebaseService";
 import {ExaminationData} from "../../admin/examination";
-import {toAnswers, toHomeworks} from "../../../modules/utils/dataUtils";
-import {StudentAnswer} from "../../join";
+import {deleteStudentData} from "../../../modules/progress/deletion";
+import {apiError} from "../../../modules/firebase/server";
 import {requireRole} from "../../../modules/auth/requireAuth";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,33 +37,11 @@ function retrieveExamination(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function deleteExamination(req: NextApiRequest, res: NextApiResponse) {
-    const {examId} = req.query
-    const updates: Record<string, any> = {}
-    // delete examination
-    updates[`/examinations/${examId}`] = null
-    // delete homework of this examination
-    onValue(query(ref(database, `/homeworks`), orderByChild('examId'),
-        equalTo(`${examId}`)), async (snapshot) => {
-        if (snapshot.val()) {
-            const homeworkData = toHomeworks(snapshot.val())
-            for (const homework of homeworkData) {
-                updates[`/homeworks/${homework.id}`] = null
-                // delete all answer related
-                onValue(query(ref(database, `/answers`), orderByChild('examId'),
-                    equalTo(`${examId}`)), async (snapshot) => {
-                    if (snapshot.val()) {
-                        const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homework.id)
-                        answers.forEach(answer => {
-                            if (answer.id) updates[`/answers/${answer.id}`] = null
-                        })
-                    }
-                    await update(ref(database), updates);
-                })
-            }
-        }
-        await update(ref(database), updates);
-    })
-
-    await update(ref(database), updates);
-    return res.status(200).json({message: 'This examination is deleted successfully. All homework and students answers are also deleted accordingly.'})
+    try {
+        await deleteStudentData(req.query.examId)
+        return res.status(200).json({message: 'This examination is deleted successfully. All homework and students answers are also deleted accordingly.'})
+    } catch (error) {
+        const failure = apiError(error)
+        return res.status(failure.status).json({message: failure.message})
+    }
 }

@@ -1,9 +1,7 @@
 import {NextApiRequest, NextApiResponse} from "next";
-import {equalTo, onValue, orderByChild, query, ref, update} from "firebase/database";
-import {database} from "../../../../../modules/firebase/FirebaseService";
-import {toAnswers} from "../../../../../modules/utils/dataUtils";
-import {StudentAnswer} from "../../../../join";
 import {requireRole} from "../../../../../modules/auth/requireAuth";
+import {deleteStudentData} from "../../../../../modules/progress/deletion";
+import {apiError} from "../../../../../modules/firebase/server";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!requireRole(req, res, ['admin', 'assistant'])) return
@@ -17,22 +15,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function deleteHomework(req: NextApiRequest, res: NextApiResponse) {
-    const {examId, homeworkId} = req.query
-    const updates: Record<string, any> = {}
-
-    // delete homework
-    updates[`/homeworks/${homeworkId}`] = null
-    // delete all answer related
-    await onValue(query(ref(database, `/answers`), orderByChild('examId'),
-        equalTo(`${examId}`)), (snapshot) => {
-        if (snapshot.val()) {
-            const answers: StudentAnswer[] = toAnswers(snapshot.val()).filter((answer) => answer.homeworkId === homeworkId)
-            answers.forEach(answer => {
-                if (answer.id) updates[`/answers/${answer.id}`] = null
-            })
-        }
-    })
-
-    await update(ref(database), updates);
-    return res.status(200).json({message: 'This homework is deleted successfully. All students answers are also deleted accordingly.'})
+    try {
+        await deleteStudentData(req.query.examId, req.query.homeworkId)
+        return res.status(200).json({message: 'This homework is deleted successfully. All students answers are also deleted accordingly.'})
+    } catch (error) {
+        const failure = apiError(error)
+        return res.status(failure.status).json({message: failure.message})
+    }
 }

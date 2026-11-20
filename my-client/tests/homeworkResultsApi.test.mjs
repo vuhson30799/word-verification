@@ -31,6 +31,11 @@ function loadRoute(records, fail, missingIndex = false) {
             compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}
         }).outputText
         function requireMock(name) {
+            if (name.endsWith('/firebase/server')) return {
+                serverGet: async path => records['/' + path] ?? null,
+                apiError: error => ({status: error.status ?? 503, message:error.message}),
+                HttpError: class extends Error {constructor(status,message){super(message);this.status=status}}
+            }
             if (name === 'firebase/database') return firebase
             if (name.endsWith('/firebase/FirebaseService')) return {database:{}}
             if (name.endsWith('/auth/requireAuth')) return {requireRole: (req,res,roles) => {
@@ -49,7 +54,7 @@ function loadRoute(records, fail, missingIndex = false) {
 
 async function request(records, overrides = {}, fail = false, missingIndex = false) {
     const handler = loadRoute(records, fail, missingIndex)
-    const response = {statusCode:0,body:null,sent:0,status(code){this.statusCode=code;return this},json(body){this.body=body;this.sent++;return this}}
+    const response = {statusCode:0,body:null,sent:0,setHeader(){},status(code){this.statusCode=code;return this},json(body){this.body=body;this.sent++;return this}}
     await handler({method:'GET',role:'admin',query:{examId:'exam1',homeworkId:'hw1'},...overrides},response)
     assert.equal(response.sent,1,'route must send exactly one response before resolving')
     return response
@@ -96,11 +101,11 @@ test('legacy homework uses the grade roster; explicitly empty recipients stay em
     assert.deepEqual(empty.body.rows,[])
 })
 
-test('missing/mismatched homework returns 404; database failures return 500', async () => {
+test('missing/mismatched homework returns 404; database failures return 503', async () => {
     const data=fixtures(); data['/homeworks/hw1'].examId='wrong'
     assert.equal((await request(data)).statusCode,404)
     assert.equal((await request({})).statusCode,404)
-    assert.equal((await request(fixtures(),{},true)).statusCode,500)
+    assert.equal((await request(fixtures(),{},true)).statusCode,503)
 })
 
 test('route rejects unauthenticated users, unsupported roles/methods and invalid params', async () => {
@@ -111,11 +116,19 @@ test('route rejects unauthenticated users, unsupported roles/methods and invalid
 })
 
 
-test('missing Firebase index falls back to one-time read and filters both exam and homework', async () => {
+test('missing Firebase index reports a configuration error without broad reads', async () => {
+    const res = await request(fixtures(), {}, false, true)
+    assert.equal(res.statusCode, 503)
+    assert.match(res.body.message, /index/i)
+})
+
+test('new completed attempts and provisional snapshots merge without reducing the best score', async () => {
     const data = fixtures()
-    data['/answers'].unrelated = {examId:'another-exam', homeworkId:'hw1', studentName:'Other exam', correctAnswers:2, finishAt:'2026-07-05T08:10:00'}
-    const res = await request(data, {}, false, true)
-    assert.equal(res.statusCode, 200)
-    assert.equal(res.body.rows.length, 2)
-    assert.deepEqual(res.body.summary, {finished:1, inProgress:0, notJoined:1, averageScore:2})
+    data['/completedAttempts/hw1'] = {second:{attemptId:'second',examId:'exam1',homeworkId:'hw1',studentId:'an',studentName:'Nguyễn An',correctAnswers:1,trial:2,status:'completed',beginningAt:'2026-07-06T08:00:00Z',finishAt:'2026-07-06T08:05:00Z'}}
+    data['/progress/exam1/hw1/snapshots'] = {third:{attemptId:'third',examId:'exam1',homeworkId:'hw1',studentId:'an',studentName:'Nguyễn An',correctAnswers:2,trial:3,status:'completed',questionNumber:2,beginningAt:'2026-07-07T08:00:00Z',finishAt:'2026-07-07T08:05:00Z',receivedAt:123,requestId:'r1'}}
+    const res = await request(data)
+    assert.equal(res.statusCode,200)
+    assert.equal(res.body.rows[0].score,2)
+    assert.equal(res.body.rows[0].finishedAt,'2026-07-05T08:10:00')
+    assert.equal(res.body.rows[0].refreshRequestId,'r1')
 })

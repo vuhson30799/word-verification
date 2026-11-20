@@ -3,7 +3,7 @@ import {useRouter} from 'next/router';
 import useSWRImmutable from 'swr/immutable';
 import type {ExaminationData} from './admin/examination';
 import type {JoinAssignee} from '../modules/join/assignees';
-import {fetcher, fetcherWithForm} from '../modules/configuration/Configuration';
+import {fetcher} from '../modules/configuration/Configuration';
 import {requestTestLocation, TestLocation} from '../modules/join/location';
 import {maximumIncorrectAnswers} from '../modules/utils/examinationPassing';
 import {verifyAnswer} from '../modules/utils/verification';
@@ -14,8 +14,14 @@ import LocationScreen, {LocationStatus} from '../components/student/LocationScre
 import QuestionScreen from '../components/student/QuestionScreen';
 import ResultScreen from '../components/student/ResultScreen';
 import styles from '../styles/Join.module.css';
+import {useAttempt} from '../modules/progress/useAttempt';
+import {post, studentUser} from '../modules/progress/client';
+import {allAttempts} from '../modules/progress/storage';
+import type {Attempt, LocalAttempt} from '../modules/progress/types';
 
 export interface StudentAnswer {
+    attemptId?: string; ownerUid?: string; revision?: number; status?: 'inProgress' | 'interrupted' | 'completed';
+    provisional?: boolean; receivedAt?: number; requestId?: string;
     id?: string; studentId?: string; examId: string; homeworkId: string; studentName: string;
     correctAnswers: number; trial: number; questionNumber?: number; beginningAt?: string; finishAt?: string; location?: TestLocation
 }
@@ -51,15 +57,19 @@ export default function AttendingExamination() {
     const [questions, setQuestions] = useState<ExaminationData['questions']>([]);
     const [index, setIndex] = useState(0);
     const [feedback, setFeedback] = useState<boolean | null>(null);
-    const [attempt, setAttempt] = useState<StudentAnswer>();
-    const [saving, setSaving] = useState(false);
-    const [saveError, setSaveError] = useState('');
-    const [progressError, setProgressError] = useState('');
+    const progress = useAttempt(data?.examination.id, data?.homeworkId);
+    const {local, latest, saving, saveError, storageError, syncError, recoverable, write} = progress;
+    const attempt = local?.result;
+    const [recoveryError, setRecoveryError] = useState('');
     const locationPending = useRef(false);
     const answered = useRef(false);
-    const submitPending = useRef(false);
     const questionCount = data?.examination.questions.length ?? 0;
     const required = questionCount - maximumIncorrectAnswers(data?.examination ?? {});
+
+    useEffect(() => {
+        setStage('name'); setQuestions([]); setIndex(0); setFeedback(null);
+        setLocationStatus('idle'); setLocationError(''); setRecoveryError('');
+    }, [data?.examination.id, data?.homeworkId]);
 
     useEffect(() => {
         if (stage !== 'location' || locationStatus !== 'received') return;
@@ -67,22 +77,23 @@ export default function AttendingExamination() {
         return () => clearInterval(timer);
     }, [stage, locationStatus]);
     useEffect(() => {
-        if (stage === 'location' && locationStatus === 'received' && countdown === 0) setStage('question');
-    }, [stage, locationStatus, countdown]);
+        if (stage === 'location' && locationStatus === 'received' && countdown === 0) {
+            const current = latest.current;
+            if (current) void write({...current, questionDeadline: Date.now() + Math.max(1, current.questions[0].timeout || 30) * 1000});
+            setStage('question');
+        }
+    }, [stage, locationStatus, countdown, latest, write]);
     useEffect(() => {
         if (stage !== 'question') return;
-        const interrupt = () => {if (document.hidden) setStage('interrupted')};
+        const interrupt = () => {
+            if (!document.hidden || !latest.current || latest.current.result.status !== 'inProgress') return;
+            const current = latest.current;
+            void write({...current, result: {...current.result, status: 'interrupted', revision: current.result.revision + 1}});
+            setStage('interrupted');
+        };
         document.addEventListener('visibilitychange', interrupt);
         return () => document.removeEventListener('visibilitychange', interrupt);
-    }, [stage]);
-    useEffect(() => {
-        if (stage !== 'question' || index % 5 !== 0 || !attempt) return;
-        // Checkpoints have no finish time, so they cannot be mistaken for a completed test.
-        fetcherWithForm(['/api/answers/current-state', 'post', {...attempt, questionNumber: index + 1, finishAt: ''}])
-            .then(() => setProgressError('')).catch(() => setProgressError('Your progress could not be saved. Check your connection.'));
-        // A checkpoint is recorded once when entering each five-question block.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [stage, index]);
+    }, [stage, latest, write]);
 
     async function start() {
         if (!data || locationPending.current) return;
@@ -91,16 +102,21 @@ export default function AttendingExamination() {
         setLocationError('');
         try {
             const location = await requestTestLocation();
-            const key = `wv:attempt:${data.examination.id}:${data.homeworkId}:${studentId || name.trim()}`;
-            let trial = 1;
-            try {trial = Number(localStorage.getItem(key) || 0) + 1; localStorage.setItem(key, `${trial}`)} catch { /* Storage may be disabled. The test can still be submitted. */ }
-            setAttempt({examId: data.examination.id!, homeworkId: data.homeworkId, studentName: name.trim(), ...(studentId ? {studentId} : {}), correctAnswers: 0, trial, beginningAt: convertDate(new Date()), location});
-            setQuestions(shuffle(data.examination));
+            const user = await studentUser();
+            let previous: LocalAttempt[] = [];
+            try {previous = await allAttempts()} catch { /* The recovery warning is shown by useAttempt. */ }
+            const trial = 1 + Math.max(0, ...previous.filter(a => a.result.examId === data.examination.id && a.result.homeworkId === data.homeworkId &&
+                (studentId ? a.result.studentId === studentId : a.result.studentName === name.trim())).map(a => a.result.trial));
+            const result: Attempt = {attemptId: crypto.randomUUID(), ownerUid: user.uid, revision: 0, status: 'inProgress',
+                examId: data.examination.id!, homeworkId: data.homeworkId, studentName: name.trim(), ...(studentId ? {studentId} : {}),
+                correctAnswers: 0, trial, beginningAt: convertDate(new Date()), location};
+            await post('/api/progress/session', {idToken: await user.getIdToken(), attempt: result, link: Object.fromEntries(params)});
+            const shuffled = shuffle(data.examination);
+            await progress.claim({result, questions: shuffled, index: 0, feedback: null, pending: false, saved: false, active: true});
+            setQuestions(shuffled);
             setIndex(0);
             setFeedback(null);
             answered.current = false;
-            setSaveError('');
-            setProgressError('');
             setCountdown(3);
             setLocationStatus('received');
         } catch (error) {
@@ -110,45 +126,75 @@ export default function AttendingExamination() {
     }
 
     function answer(value: string) {
-        if (answered.current || !attempt || stage !== 'question') return;
+        const current = latest.current;
+        if (answered.current || !current || stage !== 'question') return;
         answered.current = true;
         const correct = verifyAnswer(value, questions[index].keys);
         setFeedback(correct);
-        if (correct) setAttempt(previous => previous && ({...previous, correctAnswers: previous.correctAnswers + 1}));
-    }
-
-    async function save(result: StudentAnswer) {
-        if (submitPending.current) return;
-        submitPending.current = true;
-        setSaving(true);
-        setSaveError('');
-        try {await fetcherWithForm(['/api/answers', 'post', result])}
-        catch (error) {setSaveError(error instanceof Error ? error.message : 'Your results could not be saved. Please retry.')}
-        finally {submitPending.current = false; setSaving(false)}
+        void write({...current, feedback: correct,
+            answers: [...(current.answers ?? []).filter(answer => answer.questionIndex !== index), {questionIndex: index, value, correct, answeredAt: new Date().toISOString()}], result: {...current.result,
+            correctAnswers: current.result.correctAnswers + (correct ? 1 : 0), revision: current.result.revision + 1}});
     }
 
     function next() {
-        if (feedback === null || !attempt) return;
+        const current = latest.current;
+        if (feedback === null || !current) return;
         if (index + 1 === questions.length) {
-            const result = {...attempt, finishAt: convertDate(new Date())};
-            setAttempt(result);
+            const completed: LocalAttempt = {...current, pending: true, saved: false,
+                result: {...current.result, status: 'completed', finishAt: convertDate(new Date()), revision: current.result.revision + 1}};
+            void write(completed);
             setStage('result');
-            void save(result);
-        } else {setIndex(value => value + 1); setFeedback(null); answered.current = false}
+        } else {
+            void write({...current, index: index + 1, feedback: null,
+                questionDeadline: Date.now() + Math.max(1, questions[index + 1].timeout || 30) * 1000,
+                result: {...current.result, revision: current.result.revision + 1}});
+            setIndex(value => value + 1); setFeedback(null); answered.current = false;
+        }
     }
 
-    function playAgain() {setStage('name'); setLocationStatus('idle'); setLocationError(''); setProgressError('')}
+    async function restore() {
+        if (!recoverable) return;
+        try {
+            const user = await studentUser();
+            if (user.uid !== recoverable.result.ownerUid) throw new Error('This attempt belongs to another browser identity. Please use the original browser session.');
+            await progress.claim(recoverable);
+            setName(recoverable.result.studentName);
+            setStudentId(recoverable.result.studentId);
+            setQuestions(recoverable.questions);
+            setIndex(recoverable.index);
+            setFeedback(recoverable.feedback);
+            answered.current = recoverable.feedback !== null;
+            setStage(recoverable.result.status === 'completed' ? 'result' : recoverable.result.status === 'interrupted' ? 'interrupted' : 'question');
+            setRecoveryError('');
+        } catch (error) {setRecoveryError(error instanceof Error ? error.message : 'Could not restore this attempt.')}
+    }
+
+    async function playAgain() {
+        await progress.leave();
+        setStage('name'); setLocationStatus('idle'); setLocationError(''); setRecoveryError('');
+    }
 
     const problem = error?.message || (ready && !hasLink ? 'Open the homework link shared by your teacher to join this examination.' : data && !questionCount ? 'This examination has no questions. Please contact your teacher.' : '');
     if (problem || !data) return <StudentLayout title="Join examination"><section className={styles.content}><StatusIcon kind={problem ? 'error' : 'waiting'}/><Heading title={problem ? 'We couldn’t open this test.' : 'Opening your test…'}>{problem || 'Getting everything ready for you.'}</Heading>{error && <Button onClick={() => mutate()}>Try again</Button>}</section></StudentLayout>;
 
     return <StudentLayout title={data.examination.title} progress={stage === 'question' ? `${index + 1} / ${questions.length}` : undefined}>
         <p className={styles.examTitle}>{data.examination.title}</p>
-        {stage === 'name' && <NameScreen name={name} selectedId={studentId} roster={data.assignees ?? []} questionCount={questionCount} required={required}
+        {progress.pendingCount > (local?.pending ? 1 : 0) && <section className={styles.recovery} aria-label="Pending results">
+            <p>{progress.pendingCount - (local?.pending ? 1 : 0)} earlier {progress.pendingCount - (local?.pending ? 1 : 0) === 1 ? 'result' : 'results'} awaiting submission. Keep this browser’s data until saved.</p>
+            {progress.queueError && <p role="status">{progress.queueError}</p>}
+            <Button secondary onClick={progress.retry}>Retry pending results</Button>
+        </section>}
+        {stage === 'name' && recoverable && <section className={styles.recovery} aria-label="Saved attempt">
+            <p>Saved attempt for <strong>{recoverable.result.studentName}</strong> · {recoverable.result.status === 'completed' ? 'Results' : recoverable.result.status === 'interrupted' ? 'Interrupted' : `Question ${recoverable.index + 1}`}</p>
+            <Button onClick={restore}>Open saved attempt</Button>
+            <Button secondary onClick={playAgain}>Start a new attempt</Button>
+        </section>}
+        {stage === 'name' && !recoverable && <NameScreen name={name} selectedId={studentId} roster={data.assignees ?? []} questionCount={questionCount} required={required}
             onChange={(value, id) => {setName(value); setStudentId(id)}} onContinue={student => {if (student) {setName(student.name); setStudentId(student.id)} setStage('location'); setLocationStatus('idle')}}/>}
         {stage === 'location' && <LocationScreen status={locationStatus} error={locationError} countdown={countdown} onStart={start} onBack={() => setStage('name')}/>}
-        {stage === 'question' && questions[index] && <QuestionScreen key={index} question={questions[index]} index={index} total={questions.length} feedback={feedback} onAnswer={answer} onNext={next}/>}
-        {progressError && stage === 'question' && <p role="status" className={styles.notice}>{progressError}</p>}
-        {(stage === 'result' || stage === 'interrupted') && attempt && <ResultScreen score={attempt.correctAnswers} total={questions.length} required={required} interrupted={stage === 'interrupted'} saving={saving} error={saveError} onRetrySave={() => save(attempt)} onPlayAgain={playAgain}/>}
+        {stage === 'question' && questions[index] && <QuestionScreen key={index} question={questions[index]} index={index} total={questions.length} feedback={feedback}
+            initialAnswer={local?.answers?.find(answer => answer.questionIndex === index)?.value} deadline={local?.questionDeadline} onAnswer={answer} onNext={next}/>}
+        {(storageError || syncError || recoveryError) && <p role="status" className={styles.notice}>{storageError || syncError || recoveryError}</p>}
+        {(stage === 'result' || stage === 'interrupted') && attempt && <ResultScreen score={attempt.correctAnswers} total={questions.length} required={required} interrupted={stage === 'interrupted'} saving={saving} saved={!!local?.saved} error={saveError || local?.permanentError || (local?.pending && !navigator.onLine ? 'Offline — your results are pending submission.' : '')} onRetrySave={progress.retry} onPlayAgain={playAgain}/>}
     </StudentLayout>;
 }

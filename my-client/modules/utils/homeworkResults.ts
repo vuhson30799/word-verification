@@ -15,6 +15,13 @@ export interface HomeworkResultRow {
     joinedAt: string | null
     finishedAt: string | null
     location: TestLocation | null
+    currentAttemptId?: string | null
+    currentRevision?: number | null
+    currentStatus?: string | null
+    currentScore?: number | null
+    currentBeginningAt?: string | null
+    lastReportedAt?: number | null
+    refreshRequestId?: string | null
 }
 
 export interface HomeworkResultsData {
@@ -52,9 +59,10 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
     }
 
     function row(id: string, name: string, phone = '', parentPhone = '', records: StudentAnswer[] = [], facebook = ''): HomeworkResultRow {
-        const completed = records.filter(a => a.questionNumber == null && timestamp(a.finishAt)).sort((a, b) =>
+        const completed = records.filter(a => !a.provisional && a.questionNumber == null && timestamp(a.finishAt) && (!a.status || a.status === 'completed')).sort((a, b) =>
             b.correctAnswers - a.correctAnswers || timestamp(b.finishAt) - timestamp(a.finishAt))
         const latest = [...records].sort((a, b) =>
+            (a.attemptId || b.attemptId ? timestamp(b.beginningAt) - timestamp(a.beginningAt) || (b.revision || 0) - (a.revision || 0) : 0) ||
             (b.trial || 0) - (a.trial || 0) || (b.questionNumber || 0) - (a.questionNumber || 0) || timestamp(b.beginningAt) - timestamp(a.beginningAt))[0]
         const best = completed[0]
         const attempt = best ?? latest
@@ -65,7 +73,15 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
             questionNumber: latest?.questionNumber ?? null,
             joinedAt: attempt?.beginningAt && timestamp(attempt.beginningAt) ? attempt.beginningAt : null,
             finishedAt: best?.finishAt ?? null,
-            location: attempt?.location ?? null
+            location: attempt?.location ?? null,
+            currentAttemptId: latest?.attemptId ?? null,
+            currentRevision: latest?.revision ?? null,
+            currentStatus: latest?.provisional && latest.status === 'completed' && !completed.some(record => record.attemptId === latest.attemptId)
+                ? 'completedPending' : latest?.status ?? (latest ? latest.questionNumber == null && timestamp(latest.finishAt) ? 'completed' : 'inProgress' : null),
+            currentScore: latest?.correctAnswers ?? null,
+            currentBeginningAt: latest?.beginningAt ?? null,
+            lastReportedAt: Math.max(0, ...records.map(record => record.receivedAt || 0)) || null,
+            refreshRequestId: [...records].sort((a, b) => (b.receivedAt || 0) - (a.receivedAt || 0))[0]?.requestId ?? null
         }
     }
 

@@ -1,0 +1,110 @@
+{
+  "rules": {
+    "attemptOwners": {
+      ".read": false,
+      ".write": false
+    },
+    "progressAccess": {
+      ".read": false,
+      ".write": false
+    },
+    "completedAttempts": {
+      ".read": false,
+      ".write": false
+    },
+    "progress": {
+      "$exam": {
+        "$homework": {
+          "signal": {
+            ".read": "root.child('homeworks').child($homework).child('examId').val() === $exam && ((auth != null && auth.token.teacher === true && auth.token.examId === $exam && auth.token.homeworkId === $homework && auth.token.accessUntil > now) || (auth != null && root.child('progressAccess').child(auth.uid).child($exam).child($homework).val() === true))",
+            ".write": "root.child('homeworks').child($homework).child('examId').val() === $exam && (auth != null && auth.token.teacher === true && auth.token.examId === $exam && auth.token.homeworkId === $homework && auth.token.accessUntil > now && newData.exists())",
+            ".validate": "newData.hasChildren(['requestId','requestedAt'])",
+            "requestId": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "requestedAt": {
+              ".validate": "newData.isNumber() && newData.val() === now"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "snapshots": {
+            ".read": "auth != null && auth.token.teacher === true && auth.token.examId === $exam && auth.token.homeworkId === $homework && auth.token.accessUntil > now",
+            "$attempt": {
+              ".read": "auth != null && (root.child('attemptOwners').child($homework).child($attempt).child('ownerUid').val() === auth.uid && root.child('attemptOwners').child($homework).child($attempt).child('examId').val() === $exam && root.child('attemptOwners').child($homework).child($attempt).child('homeworkId').val() === $homework)",
+              ".write": "root.child('homeworks').child($homework).child('examId').val() === $exam && (auth != null && (root.child('attemptOwners').child($homework).child($attempt).child('ownerUid').val() === auth.uid && root.child('attemptOwners').child($homework).child($attempt).child('examId').val() === $exam && root.child('attemptOwners').child($homework).child($attempt).child('homeworkId').val() === $homework) && !root.child('completedAttempts').child($homework).child($attempt).exists() && newData.exists())",
+              ".validate": "newData.hasChildren(['attemptId','ownerUid','examId','homeworkId','studentName','trial','beginningAt','correctAnswers','questionNumber','revision','status','requestId','receivedAt']) && (!data.exists() || ((data.child('status').val() === 'inProgress' || newData.child('status').val() === data.child('status').val()) && (newData.child('revision').val() > data.child('revision').val() || (newData.child('revision').val() === data.child('revision').val() && newData.child('correctAnswers').val() === data.child('correctAnswers').val() && newData.child('questionNumber').val() === data.child('questionNumber').val() && newData.child('status').val() === data.child('status').val())))) && newData.child('studentId').exists() === root.child('attemptOwners').child($homework).child($attempt).child('studentId').exists() && newData.child('location').exists() === root.child('attemptOwners').child($homework).child($attempt).child('location').exists()",
+              "attemptId": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('attemptId').val()"
+              },
+              "ownerUid": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('ownerUid').val()"
+              },
+              "examId": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('examId').val()"
+              },
+              "homeworkId": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('homeworkId').val()"
+              },
+              "studentName": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('studentName').val()"
+              },
+              "studentId": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('studentId').val()"
+              },
+              "trial": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('trial').val()"
+              },
+              "beginningAt": {
+                ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('beginningAt').val()"
+              },
+              "location": {
+                ".validate": "newData.hasChildren(['latitude', 'longitude', 'accuracyMeters', 'capturedAt'])",
+                "latitude": {
+                  ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('location/latitude').val()"
+                },
+                "longitude": {
+                  ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('location/longitude').val()"
+                },
+                "accuracyMeters": {
+                  ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('location/accuracyMeters').val()"
+                },
+                "capturedAt": {
+                  ".validate": "newData.val() === root.child('attemptOwners').child($homework).child($attempt).child('location/capturedAt').val()"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              },
+              "correctAnswers": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= root.child('attemptOwners').child($homework).child($attempt).child('questionCount').val() && (!data.exists() || newData.val() >= data.val())"
+              },
+              "questionNumber": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= root.child('attemptOwners').child($homework).child($attempt).child('questionCount').val()"
+              },
+              "revision": {
+                ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && (!data.exists() || newData.val() >= data.val())"
+              },
+              "status": {
+                ".validate": "newData.val() === 'inProgress' || newData.val() === 'interrupted' || newData.val() === 'completed'"
+              },
+              "requestId": {
+                ".validate": "newData.isString() && newData.val() === root.child('progress').child($exam).child($homework).child('signal/requestId').val()"
+              },
+              "receivedAt": {
+                ".validate": "newData.isNumber() && newData.val() === now"
+              },
+              "finishAt": {
+                ".validate": "newData.isString() && newData.val().length <= 50"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

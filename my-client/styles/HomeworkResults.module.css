@@ -33,6 +33,7 @@
 .avatar3 { background:#e0784f; color:white; }
 .avatar4 { background:#5b5fef; color:white; }
 .status { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; }
+.questionProgress { display:block; font:inherit; }
 .status i { width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0; }
 .score { font-size:14px; font-weight:600; }
 .muted { color:#aca89c; }
@@ -64,3 +65,10 @@
     .breadcrumb { overflow-wrap:anywhere; }
     .notifyMenuItem { min-height:44px; }
 }
+.refreshControls { display:flex; align-items:center; flex-wrap:wrap; gap:12px 18px; }
+.refreshControls label { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; color:#5b564a; }
+.refreshControls select { min-height:40px; padding:8px 28px 8px 10px; border:1px solid #d6d1c4; border-radius:9px; background:#fff; color:#1c1b1f; font:inherit; }
+.refreshControls > span { font-size:12px; color:#5b564a; }
+.refreshControls button { min-height:40px; white-space:normal; }
+.refreshControls button:disabled { cursor:wait; opacity:.6; }
+.refreshError { margin:0; padding:12px 16px; border:1px solid #e9b8ad; border-radius:10px; color:#923a29; background:#fff3ee; font-size:13px; overflow-wrap:anywhere; }
