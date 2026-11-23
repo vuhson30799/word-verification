@@ -1,7 +1,10 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {acknowledgeAttempt, allAttempts, persistAttempt} from './storage';
 import {listenForRefresh, SaveError, submitResult} from './client';
+import {studentErrorMessage} from '../join/studentErrorMessage';
 import type {LocalAttempt} from './types';
+
+const storageUnavailable = 'Không thể khôi phục bài làm từ trình duyệt này. Em hãy giữ trang mở cho đến khi kết quả được lưu.';
 
 export function useAttempt(examId?: string, homeworkId?: string) {
     const latest = useRef<LocalAttempt | undefined>(undefined);
@@ -28,7 +31,7 @@ export function useAttempt(examId?: string, homeworkId?: string) {
                 memoryPending.current.delete(stored.result.attemptId);
             }
         }
-        catch {setStorageError('Local recovery is unavailable. Keep this page open until your results are saved.')}
+        catch {setStorageError(storageUnavailable)}
         if (value.pending) wake.current();
     }, []);
 
@@ -55,7 +58,7 @@ export function useAttempt(examId?: string, homeworkId?: string) {
             const candidate = values.filter(a => a.active !== false && a.result.examId === examId && a.result.homeworkId === homeworkId)
                 .sort((a, b) => Date.parse(b.result.beginningAt!) - Date.parse(a.result.beginningAt!))[0];
             if (!cancelled) setRecoverable(candidate);
-        }).catch(() => {if (!cancelled) setStorageError('Local recovery is unavailable. Keep this page open until your results are saved.')});
+        }).catch(() => {if (!cancelled) setStorageError(storageUnavailable)});
         return () => {
             cancelled = true;
             release.current?.();
@@ -86,7 +89,7 @@ export function useAttempt(examId?: string, homeworkId?: string) {
                     if (current) {setSaving(true); setSaveError('')}
                     try {
                         await submitResult(item);
-                        try {await acknowledgeAttempt(id)} catch {setStorageError('Your result was saved, but local recovery storage is unavailable.')}
+                        try {await acknowledgeAttempt(id)} catch {setStorageError('Kết quả đã được lưu. Hiện không thể khôi phục bài làm từ trình duyệt này.')}
                         memoryPending.current.delete(id);
                         if (!cancelled) {setPendingCount(memoryPending.current.size); if (!memoryPending.current.size) setQueueError('')}
                         if (latest.current?.result.attemptId === id) {
@@ -95,20 +98,22 @@ export function useAttempt(examId?: string, homeworkId?: string) {
                             if (!cancelled) {setLocal(saved); setSaveError('')}
                         }
                     } catch (error) {
-                        const message = error instanceof Error ? error.message : 'Your results could not be saved.';
+                        const errorMessage = error instanceof Error ? error.message : 'Your results could not be saved.';
+                        const message = studentErrorMessage(errorMessage, 'Không thể lưu kết quả của em.');
                         if (!cancelled) setQueueError(`${item.result.studentName}: ${message}`);
                         const retryable = !(error instanceof SaveError) || error.retryable;
                         const count = (failures.get(id) ?? 0) + 1;
                         failures.set(id, count);
                         if (!retryable) {
-                            memoryPending.current.set(id, {...item, permanentError: message});
+                            const permanentError = errorMessage;
+                            memoryPending.current.set(id, {...item, permanentError});
                             if (latest.current?.result.attemptId === id) {
-                                latest.current = {...latest.current, permanentError: message};
+                                latest.current = {...latest.current, permanentError};
                                 if (!cancelled) setLocal(latest.current);
                             }
-                            try {await acknowledgeAttempt(id, message)} catch { /* The pending payload remains in memory. */ }
+                            try {await acknowledgeAttempt(id, permanentError)} catch { /* The pending payload remains in memory. */ }
                         } else if (count < 6) retryDelay = Math.min(retryDelay ?? Infinity, Math.min(60000, 2000 * 2 ** (count - 1)));
-                        if (latest.current?.result.attemptId === id && !cancelled) setSaveError(`${message}${retryable ? ' Results are pending; retrying when connected.' : ''}`);
+                        if (latest.current?.result.attemptId === id && !cancelled) setSaveError(`${message}${retryable ? ' Kết quả đang chờ gửi và sẽ được gửi lại khi có kết nối.' : ''}`);
                     } finally {if (current && !cancelled) setSaving(false)}
                 }
             } finally {
@@ -131,7 +136,7 @@ export function useAttempt(examId?: string, homeworkId?: string) {
 
     useEffect(() => {
         if (!examId || !homeworkId || !local || local.saved) return;
-        return listenForRefresh(examId, homeworkId, () => latest.current, setSyncError);
+        return listenForRefresh(examId, homeworkId, () => latest.current, message => setSyncError(studentErrorMessage(message, 'Không thể đồng bộ tiến độ làm bài.')));
         // Keep one subscription for the attempt; callbacks read the latest state.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [examId, homeworkId, local?.result.attemptId, local?.saved]);
@@ -140,7 +145,7 @@ export function useAttempt(examId?: string, homeworkId?: string) {
         if (latest.current) await write({...latest.current, active: false});
         else if (recoverable) {
             try {await persistAttempt({...recoverable, active: false})}
-            catch {setStorageError('Local recovery is unavailable. Keep this page open until your results are saved.')}
+            catch {setStorageError(storageUnavailable)}
         }
         release.current?.();
         release.current = undefined;

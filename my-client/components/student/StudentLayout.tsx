@@ -3,10 +3,10 @@ import type {ButtonHTMLAttributes, ReactNode} from 'react';
 import styles from '../../styles/Join.module.css';
 
 export function StudentLayout({children, title, progress}: {children: ReactNode; title?: string; progress?: string}) {
-    return <main className={styles.page}>
-        <Head><title>{title ? `${title} · Word Verification` : 'Word Verification'}</title><meta name="viewport" content="width=device-width, initial-scale=1"/></Head>
+    return <main lang="vi" className={styles.page}>
+        <Head><title>{title ? `${title} · Kiểm tra từ vựng` : 'Kiểm tra từ vựng'}</title><meta name="viewport" content="width=device-width, initial-scale=1"/></Head>
         <div className={styles.shell}>
-            <header className={styles.header}><span className={styles.brand}><span className={styles.logo}>w.</span>Word Verification</span>{progress && <span>{progress}</span>}</header>
+            <header className={styles.header}><span className={styles.brand}><span className={styles.logo}>w.</span>Kiểm tra từ vựng</span>{progress && <span>{progress}</span>}</header>
             {children}
         </div>
     </main>

@@ -4,6 +4,7 @@ import useSWRImmutable from 'swr/immutable';
 import type {ExaminationData} from './admin/examination';
 import type {JoinAssignee} from '../modules/join/assignees';
 import {fetcher} from '../modules/configuration/Configuration';
+import {studentErrorMessage} from '../modules/join/studentErrorMessage';
 import {requestTestLocation, TestLocation} from '../modules/join/location';
 import {maximumIncorrectAnswers} from '../modules/utils/examinationPassing';
 import {verifyAnswer} from '../modules/utils/verification';
@@ -121,7 +122,7 @@ export default function AttendingExamination() {
             setLocationStatus('received');
         } catch (error) {
             setLocationStatus((error as {code?: number}).code === 1 ? 'blocked' : 'unavailable');
-            setLocationError(error instanceof Error ? error.message : 'Could not get your location. Please retry.');
+            setLocationError(studentErrorMessage(error, 'Không thể bắt đầu làm bài. Em hãy thử lại.'));
         } finally {locationPending.current = false}
     }
 
@@ -156,7 +157,10 @@ export default function AttendingExamination() {
         if (!recoverable) return;
         try {
             const user = await studentUser();
-            if (user.uid !== recoverable.result.ownerUid) throw new Error('This attempt belongs to another browser identity. Please use the original browser session.');
+            if (user.uid !== recoverable.result.ownerUid) {
+                setRecoveryError('Bài làm này thuộc một phiên trình duyệt khác. Em hãy mở lại phiên trình duyệt ban đầu.');
+                return;
+            }
             await progress.claim(recoverable);
             setName(recoverable.result.studentName);
             setStudentId(recoverable.result.studentId);
@@ -166,7 +170,7 @@ export default function AttendingExamination() {
             answered.current = recoverable.feedback !== null;
             setStage(recoverable.result.status === 'completed' ? 'result' : recoverable.result.status === 'interrupted' ? 'interrupted' : 'question');
             setRecoveryError('');
-        } catch (error) {setRecoveryError(error instanceof Error ? error.message : 'Could not restore this attempt.')}
+        } catch (error) {setRecoveryError(studentErrorMessage(error, 'Không thể mở lại bài làm này.'))}
     }
 
     async function playAgain() {
@@ -174,20 +178,20 @@ export default function AttendingExamination() {
         setStage('name'); setLocationStatus('idle'); setLocationError(''); setRecoveryError('');
     }
 
-    const problem = error?.message || (ready && !hasLink ? 'Open the homework link shared by your teacher to join this examination.' : data && !questionCount ? 'This examination has no questions. Please contact your teacher.' : '');
-    if (problem || !data) return <StudentLayout title="Join examination"><section className={styles.content}><StatusIcon kind={problem ? 'error' : 'waiting'}/><Heading title={problem ? 'We couldn’t open this test.' : 'Opening your test…'}>{problem || 'Getting everything ready for you.'}</Heading>{error && <Button onClick={() => mutate()}>Try again</Button>}</section></StudentLayout>;
+    const problem = error ? studentErrorMessage(error, 'Không thể tải bài tập. Em hãy thử lại.') : (ready && !hasLink ? 'Em hãy mở liên kết bài tập do giáo viên gửi để làm bài.' : data && !questionCount ? 'Bài kiểm tra này chưa có câu hỏi. Em hãy liên hệ với giáo viên.' : '');
+    if (problem || !data) return <StudentLayout title="Tham gia làm bài"><section className={styles.content}><StatusIcon kind={problem ? 'error' : 'waiting'}/><Heading title={problem ? 'Không thể mở bài kiểm tra' : 'Đang mở bài kiểm tra…'}>{problem || 'Em vui lòng chờ trong giây lát.'}</Heading>{error && <Button onClick={() => mutate()}>Thử lại</Button>}</section></StudentLayout>;
 
     return <StudentLayout title={data.examination.title} progress={stage === 'question' ? `${index + 1} / ${questions.length}` : undefined}>
         <p className={styles.examTitle}>{data.examination.title}</p>
-        {progress.pendingCount > (local?.pending ? 1 : 0) && <section className={styles.recovery} aria-label="Pending results">
-            <p>{progress.pendingCount - (local?.pending ? 1 : 0)} earlier {progress.pendingCount - (local?.pending ? 1 : 0) === 1 ? 'result' : 'results'} awaiting submission. Keep this browser’s data until saved.</p>
+        {progress.pendingCount > (local?.pending ? 1 : 0) && <section className={styles.recovery} aria-label="Kết quả đang chờ gửi">
+            <p>{progress.pendingCount - (local?.pending ? 1 : 0)} kết quả trước đó đang chờ gửi. Em hãy giữ lại dữ liệu trình duyệt cho đến khi kết quả được lưu.</p>
             {progress.queueError && <p role="status">{progress.queueError}</p>}
-            <Button secondary onClick={progress.retry}>Retry pending results</Button>
+            <Button secondary onClick={progress.retry}>Thử gửi lại kết quả đang chờ</Button>
         </section>}
-        {stage === 'name' && recoverable && <section className={styles.recovery} aria-label="Saved attempt">
-            <p>Saved attempt for <strong>{recoverable.result.studentName}</strong> · {recoverable.result.status === 'completed' ? 'Results' : recoverable.result.status === 'interrupted' ? 'Interrupted' : `Question ${recoverable.index + 1}`}</p>
-            <Button onClick={restore}>Open saved attempt</Button>
-            <Button secondary onClick={playAgain}>Start a new attempt</Button>
+        {stage === 'name' && recoverable && <section className={styles.recovery} aria-label="Bài làm đã lưu">
+            <p>Bài làm đã lưu của <strong>{recoverable.result.studentName}</strong> · {recoverable.result.status === 'completed' ? 'Kết quả' : recoverable.result.status === 'interrupted' ? 'Bị gián đoạn' : `Câu ${recoverable.index + 1}`}</p>
+            <Button onClick={restore}>Mở lại bài làm đã lưu</Button>
+            <Button secondary onClick={playAgain}>Bắt đầu lượt làm mới</Button>
         </section>}
         {stage === 'name' && !recoverable && <NameScreen name={name} selectedId={studentId} roster={data.assignees ?? []} questionCount={questionCount} required={required}
             onChange={(value, id) => {setName(value); setStudentId(id)}} onContinue={student => {if (student) setName(student.name); setStudentId(student?.id); setStage('location'); setLocationStatus('idle')}}/>}
@@ -195,6 +199,6 @@ export default function AttendingExamination() {
         {stage === 'question' && questions[index] && <QuestionScreen key={index} question={questions[index]} index={index} total={questions.length} feedback={feedback}
             initialAnswer={local?.answers?.find(answer => answer.questionIndex === index)?.value} deadline={local?.questionDeadline} onAnswer={answer} onNext={next}/>}
         {(storageError || syncError || recoveryError) && <p role="status" className={styles.notice}>{storageError || syncError || recoveryError}</p>}
-        {(stage === 'result' || stage === 'interrupted') && attempt && <ResultScreen score={attempt.correctAnswers} total={questions.length} required={required} interrupted={stage === 'interrupted'} saving={saving} saved={!!local?.saved} error={saveError || local?.permanentError || (local?.pending && !navigator.onLine ? 'Offline — your results are pending submission.' : '')} onRetrySave={progress.retry} onPlayAgain={playAgain}/>}
+        {(stage === 'result' || stage === 'interrupted') && attempt && <ResultScreen score={attempt.correctAnswers} total={questions.length} required={required} interrupted={stage === 'interrupted'} saving={saving} saved={!!local?.saved} error={saveError || (local?.permanentError && studentErrorMessage(local.permanentError, 'Không thể lưu kết quả.')) || (local?.pending && !navigator.onLine ? 'Đang ngoại tuyến. Kết quả của em đang chờ gửi.' : '')} onRetrySave={progress.retry} onPlayAgain={playAgain}/>}
     </StudentLayout>;
 }
