@@ -53,3 +53,22 @@
 
 .mobilePrompt { display:none; }
 @media(max-width:900px) { .desktopPrompt { display:none; } .mobilePrompt { display:inline; } }
+
+.fileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.dropzone:focus-within {
+    outline: 2px solid #1C4A63;
+    outline-offset: -4px;
+}
+
+.dropzoneDisabled,
+.dropzoneDisabled:hover {
+    cursor: default;
+    border-color: #D6D1C4;
+    background: #FDFCF9;
+}

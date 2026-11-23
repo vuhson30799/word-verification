@@ -161,3 +161,21 @@
     .addChip { min-height:40px; }
     .subtitle { line-height:1.6; overflow-wrap:anywhere; }
 }
+
+.paper.importPaper {
+    width: 560px;
+    overflow-wrap: anywhere;
+}
+
+.importForm {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.importContent {
+    overflow-y: auto;
+    min-height: 0;
+    padding: 2px;
+    margin: -2px;
+}

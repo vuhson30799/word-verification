@@ -2,12 +2,15 @@ import React, {useMemo, useState} from "react";
 import {useRouter} from "next/router";
 import useSWR from "swr";
 import {orderBy, uniq} from "lodash";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import {Admin} from "../../../layout/Admin";
 import ConfigurationTabs from "../../../components/ConfigurationTabs";
+import StudentImportDialog from "../../../components/StudentImportDialog";
+import {useAuth} from "../../../modules/auth/AuthContext";
 import StudentDialog from "../../../components/StudentDialog";
 import ConfirmDialog from "../../../components/ConfirmDialog";
 import ErrorCard from "../../../components/ErrorCard";
@@ -36,9 +39,11 @@ function avatarColor(name: string): string {
 
 function Students() {
     const router = useRouter()
+    const {user} = useAuth()
+    const [importOpen, setImportOpen] = useState(false)
     const classFilter = typeof router.query.classId === 'string' ? router.query.classId : undefined
     const {data: students, error, mutate} = useSWR<StudentData[]>(STUDENTS_KEY, fetcher)
-    const {data: classes, error: classesError} = useSWR<ClassData[]>(CLASSES_KEY, fetcher)
+    const {data: classes, error: classesError, mutate: mutateClasses} = useSWR<ClassData[]>(CLASSES_KEY, fetcher)
     const [searchTerm, setSearchTerm] = useState('')
     const [gradeFilter, setGradeFilter] = useState<number | 'unassigned'>()
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -136,10 +141,17 @@ function Students() {
                                 </button>}
                         </div>
                     </div>
-                    <button type="button" className={styles.addButton} onClick={() => openDialog()}>
-                        <AddIcon fontSize="small"/>
-                        Add student
-                    </button>
+                    <div className={styles.toolbarActions}>
+                        {user?.role === 'admin' && classes && <button type="button"
+                                className={`${styles.addButton} ${styles.importButton}`} onClick={() => setImportOpen(true)}>
+                            <UploadFileOutlinedIcon fontSize="small"/>
+                            Import students
+                        </button>}
+                        <button type="button" className={styles.addButton} onClick={() => openDialog()}>
+                            <AddIcon fontSize="small"/>
+                            Add student
+                        </button>
+                    </div>
                 </div>
 
                 {loadError
@@ -197,6 +209,14 @@ function Students() {
                             </div>}
             </div>
 
+            {importOpen && <StudentImportDialog classes={classes ?? []} initialClassId={classFilter}
+                onCancel={() => setImportOpen(false)}
+                onImported={({imported, skipped}) => {
+                    setImportOpen(false)
+                    void mutate()
+                    void mutateClasses()
+                    notify(`Imported ${imported} ${imported === 1 ? 'student' : 'students'}.${skipped ? ` Skipped ${skipped} already enrolled.` : ''}`, 'success')
+                }}/>}
             <StudentDialog open={dialogOpen} classes={classes ?? []} editing={editing}
                            initialClassId={classFilter} saving={saving} error={saveError}
                            onSubmit={handleSave} onCancel={() => setDialogOpen(false)}/>

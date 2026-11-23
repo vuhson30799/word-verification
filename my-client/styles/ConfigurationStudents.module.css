@@ -281,3 +281,26 @@
     .addButton { min-height:46px; font-size:14px; }
 }
 @media(max-width:350px) { .actions { grid-column:1 / -1 !important; grid-row:auto; justify-self:start; } }
+
+.toolbarActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.importButton {
+    color: #1C4A63;
+    background: #EEF3F5;
+}
+
+@media (max-width: 900px) {
+    .toolbarActions {
+        width: 100%;
+    }
+
+    .toolbarActions .addButton {
+        width: auto;
+        flex: 1;
+        padding-inline: 12px;
+    }
+}
