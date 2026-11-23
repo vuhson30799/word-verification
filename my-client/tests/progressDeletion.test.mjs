@@ -15,6 +15,9 @@ test('homework and exam deletion atomically remove new results, owner metadata, 
  for(const path of ['homeworks/hw1','completedAttempts/hw1','attemptOwners/hw1','progress/exam1/hw1','progressAccess/u1/exam1/hw1','answers/old'])assert.equal(changes[path],null);
  assert.equal(changes['answers/other'],undefined);assert.equal(changes['examinations/exam1'],undefined);
  await deleteStudentData('exam1');assert.equal(changes['examinations/exam1'],null);assert.equal(changes['answers/other'],null);
+ assert.equal(changes['progress/exam1'],null);
+ assert.equal(changes['progress/exam1/hw1'],undefined);
+ assert.equal(changes['progressAccess/u1/exam1/hw1'],null);
  await assert.rejects(()=>deleteStudentData('../bad'),e=>e.status===400);
  await assert.rejects(()=>deleteStudentData('other','hw1'),e=>e.status===404);
 });

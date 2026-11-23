@@ -9,8 +9,7 @@ async function homeworkUpdates(examId: string, homeworkId: string) {
     const updates: Record<string, null> = {
         [`homeworks/${homeworkId}`]: null,
         [`completedAttempts/${homeworkId}`]: null,
-        [`attemptOwners/${homeworkId}`]: null,
-        [`progress/${examId}/${homeworkId}`]: null
+        [`attemptOwners/${homeworkId}`]: null
     };
     for (const owner of Object.values(owners ?? {})) updates[`progressAccess/${owner.ownerUid}/${examId}/${homeworkId}`] = null;
     return updates;
@@ -24,6 +23,7 @@ export async function deleteStudentData(examId: unknown, homeworkId?: unknown) {
         const homework = await serverGet(`homeworks/${homeworkId}`);
         if (!homework || homework.examId !== examId) throw new HttpError(404, 'Homework not found.');
         Object.assign(updates, await homeworkUpdates(examId, homeworkId));
+        updates[`progress/${examId}/${homeworkId}`] = null;
     } else {
         const homeworks = await get(query(ref(database, '/homeworks'), orderByChild('examId'), equalTo(examId)));
         for (const id of Object.keys(homeworks.val() ?? {})) Object.assign(updates, await homeworkUpdates(examId, id));
