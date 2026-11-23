@@ -4,6 +4,7 @@ import {orderBy} from "lodash";
 import AddIcon from "@mui/icons-material/Add";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import {useAuth} from "../../../modules/auth/AuthContext";
 import {Admin} from "../../../layout/Admin";
 import ConfigurationTabs from "../../../components/ConfigurationTabs";
 import AssistantDialog from "../../../components/AssistantDialog";
@@ -26,7 +27,8 @@ function avatarColor(name: string): string {
 }
 
 function Assistants() {
-    const {data: assistants, error, mutate} = useSWR<AssistantData[]>(ASSISTANTS_KEY, fetcher)
+    const {user} = useAuth()
+    const {data: assistants, error, mutate} = useSWR<AssistantData[]>(user?.role === 'admin' ? ASSISTANTS_KEY : null, fetcher)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [passwordTarget, setPasswordTarget] = useState<AssistantData>()
     const [saving, setSaving] = useState(false)
@@ -78,7 +80,7 @@ function Assistants() {
     }
 
     return (
-        <Admin>
+        <Admin adminOnly>
             <div className={page.page}>
                 <div>
                     <h1 className={page.title}>Configuration</h1>
@@ -92,7 +94,7 @@ function Assistants() {
                 </div>
 
                 <span className={styles.description}>
-                    Assistant accounts can manage exams and homework, but not configuration or other admins.
+                    Assistant accounts can manage exams, homework, classes, and students.
                 </span>
 
                 {error

@@ -5,7 +5,7 @@ import {requireRole} from "../../../modules/auth/requireAuth";
 import {ClassInput, getInvalidClassMessage} from "../../../modules/configuration/classes";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (!requireRole(req, res, ['admin'])) return
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
 
     switch (req.method) {
         case 'PUT':

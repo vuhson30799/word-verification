@@ -14,7 +14,7 @@ import {useRouter} from "next/router";
 import {useAuth} from "../modules/auth/AuthContext";
 import {MySpinner} from "../components/MySpinner";
 
-export function Admin({children, className}: any) {
+export function Admin({children, className, adminOnly = false}: any) {
     const {user, loading} = useAuth()
     const router = useRouter()
     const [menuOpen, setMenuOpen] = useState(false)
@@ -28,19 +28,22 @@ export function Admin({children, className}: any) {
         : path.endsWith('/oral-checking') ? 'Oral checking' : path.endsWith('/arrange-wrong-answers') ? 'Arrange wrong answers' : 'Word Verification'
     const backHref = isResults ? `/admin/examination/${examId}/homework`
         : isHomework ? `/admin/examination/${examId}` : isExam || path === '/admin/quiz' ? '/admin/examination' : undefined
+    const denied = adminOnly && user?.role === 'assistant'
     const navigation = [
         {href: '/admin/quiz', label: 'Create', icon: AddCircleOutlineIcon, active: path === '/admin/quiz'},
         {href: '/admin/examination', label: 'Exams', icon: ViewListIcon, active: path.startsWith('/admin/examination')},
-        ...(user?.role === 'admin' ? [{href: '/admin/configuration/classes', label: 'Config', icon: SchoolIcon, active: path.startsWith('/admin/configuration')}] : [])
+        {href: '/admin/configuration/classes', label: 'Config', icon: SchoolIcon, active: path.startsWith('/admin/configuration')}
     ]
 
     useEffect(() => {
         if (!loading && !user) {
             router.replace('/admin/login')
+        } else if (denied) {
+            router.replace('/admin/configuration/classes')
         }
-    }, [loading, user, router])
+    }, [loading, user, denied, router])
 
-    if (loading || !user) return <MySpinner/>
+    if (loading || !user || denied) return <MySpinner/>
 
     return (
         <div className={`${style.adminLayout} ${className ?? ''}`}>

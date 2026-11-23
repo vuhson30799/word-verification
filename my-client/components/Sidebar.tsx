@@ -58,12 +58,10 @@ export default function Sidebar({mobile = false, onNavigate}: {mobile?: boolean;
                         <ViewListIcon/>
                         <span>Examinations</span>
                     </Link>
-                    {user?.role === 'admin' &&
-                        <Link href="/admin/configuration/classes" className={`${styles.navItem} ${isActive('/admin/configuration') ? styles.navItemActive : ''}`}>
-                            <SchoolIcon/>
-                            <span>Configuration</span>
-                        </Link>
-                    }
+                    <Link href="/admin/configuration/classes" className={`${styles.navItem} ${isActive('/admin/configuration') ? styles.navItemActive : ''}`}>
+                        <SchoolIcon/>
+                        <span>Configuration</span>
+                    </Link>
                 </div>
 
                 <div className={styles.utilities}>

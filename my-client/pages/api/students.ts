@@ -6,7 +6,7 @@ import {getInvalidStudentMessage, normalizeStudent, StudentInput} from "../../mo
 import {toStudents} from "../../modules/utils/dataUtils";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (!requireRole(req, res, ['admin'])) return
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
 
     switch (req.method) {
         case 'GET':

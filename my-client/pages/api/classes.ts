@@ -6,7 +6,7 @@ import {ClassInput, getInvalidClassMessage} from "../../modules/configuration/cl
 import {toClasses} from "../../modules/utils/dataUtils";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (!requireRole(req, res, ['admin'])) return
+    if (!requireRole(req, res, ['admin', 'assistant'])) return
 
     switch (req.method) {
         case 'GET':

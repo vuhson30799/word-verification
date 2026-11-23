@@ -55,7 +55,7 @@ function CreateForm({saving, error, onCreate, onCancel}: AssistantDialogProps) {
     return (
         <form onSubmit={handleSubmit}>
             <div className={styles.title} id="assistant-dialog-title">Add assistant</div>
-            <div className={styles.subtitle}>Assistants can manage exams and homework, but not configuration.</div>
+            <div className={styles.subtitle}>Assistants can manage exams, homework, classes, and students.</div>
             <label className={styles.field}>
                 <span className={styles.label}>Full name</span>
                 <input className={styles.input} value={name} placeholder="e.g. Mai Thảo" autoFocus
