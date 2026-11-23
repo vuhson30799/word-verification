@@ -22,6 +22,14 @@ test('attempt registration binds anonymous ownership, homework link and roster; 
  assert.equal((await setup().call({idToken:'valid',attempt,link:{...link,deadlineDate:'2098-01-01'}})).code,400);
  assert.equal((await setup({'attemptOwners/hw1/a1':{...attempt,ownerUid:'other'}}).call()).code,409);
 });
+test('unassigned students can register a name-only attempt', async () => {
+ const app = setup();
+ const entry = {...attempt, studentName: 'Bình'};
+ delete entry.studentId;
+ assert.equal((await app.call({idToken: 'valid', attempt: entry, link})).code, 200);
+ assert.equal(app.records['attemptOwners/hw1/a1'].studentName, 'Bình');
+ assert.equal(app.records['attemptOwners/hw1/a1'].studentId, undefined);
+});
 test('teacher bridge requires a session and issues only scoped time-limited Firebase claims',async()=>{
  const app=setup();const body={teacher:true,examId:'exam1',homeworkId:'hw1'};
  assert.equal((await app.call(body)).code,401);assert.equal(app.tokens.length,0);

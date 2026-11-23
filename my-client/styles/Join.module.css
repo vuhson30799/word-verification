@@ -54,6 +54,8 @@
 .panel h2 { color: #dfb3f6; }
 .panel p { font-size: 13px; }
 .selected { color: #a8e1c3; }
+.warning { color: #ffd2a3; }
+.options:empty { display: none; }
 .options { display: grid; gap: 8px; }
 .options button { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #80638d; border-radius: 10px; background: #493154; color: var(--text); text-align: left; font-size: 13px; cursor: pointer; }
 .options button > span { color: var(--muted); font-size: 12px; }

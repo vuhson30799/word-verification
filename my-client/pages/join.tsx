@@ -190,7 +190,7 @@ export default function AttendingExamination() {
             <Button secondary onClick={playAgain}>Start a new attempt</Button>
         </section>}
         {stage === 'name' && !recoverable && <NameScreen name={name} selectedId={studentId} roster={data.assignees ?? []} questionCount={questionCount} required={required}
-            onChange={(value, id) => {setName(value); setStudentId(id)}} onContinue={student => {if (student) {setName(student.name); setStudentId(student.id)} setStage('location'); setLocationStatus('idle')}}/>}
+            onChange={(value, id) => {setName(value); setStudentId(id)}} onContinue={student => {if (student) setName(student.name); setStudentId(student?.id); setStage('location'); setLocationStatus('idle')}}/>}
         {stage === 'location' && <LocationScreen status={locationStatus} error={locationError} countdown={countdown} onStart={start} onBack={() => setStage('name')}/>}
         {stage === 'question' && questions[index] && <QuestionScreen key={index} question={questions[index]} index={index} total={questions.length} feedback={feedback}
             initialAnswer={local?.answers?.find(answer => answer.questionIndex === index)?.value} deadline={local?.questionDeadline} onAnswer={answer} onNext={next}/>}

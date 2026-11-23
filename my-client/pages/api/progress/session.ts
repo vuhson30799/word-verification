@@ -35,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             !Number.isFinite(Date.parse(homework.deadlineDate)) || Date.parse(homework.deadlineDate) <= Date.now()) {
             throw new HttpError(400, 'This homework is no longer valid.');
         }
-        if (Array.isArray(homework.studentIds) && (!attempt.studentId || !homework.studentIds.includes(attempt.studentId))) {
+        if (attempt.studentId && Array.isArray(homework.studentIds) && !homework.studentIds.includes(attempt.studentId)) {
             throw new HttpError(403, 'Please select an assigned student.');
         }
         if (attempt.studentId) {
