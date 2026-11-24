@@ -46,8 +46,10 @@ function Examination() {
     if (error) return <MyToast message={error.message} severity={"error"}/>
     if (!examinations) return <MySpinner/>
 
+    const normalizedSearchTerm = searchTerm.toLowerCase()
     const filtered = examinations.filter(examination =>
-        examination.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        !normalizedSearchTerm ||
+        (typeof examination.title === 'string' && examination.title.toLowerCase().includes(normalizedSearchTerm)))
     const ordered = orderExamsByCreatedDate(filtered)
 
     return (
