@@ -46,16 +46,16 @@ test('name matching tolerates whitespace, case and Unicode normalization', () =>
 test('different accented names stay separate and unmatched participants remain visible', () => {
     const result = buildHomeworkResults([student('an','Nguyễn An')], [answer({studentName:'Nguyen An', finishAt:'2026-07-05T08:30:00'})])
     assert.equal(result.rows.length, 2)
-    assert.equal(result.rows[0].status, 'notJoined')
-    assert.equal(result.rows[1].status, 'finished')
-    assert.equal(result.rows[1].phone, '')
+    assert.equal(result.rows[0].status, 'finished')
+    assert.equal(result.rows[1].status, 'notJoined')
+    assert.equal(result.rows[0].phone, '')
 })
 
 test('ambiguous duplicate names do not duplicate scores or attach the wrong phone', () => {
     const result = buildHomeworkResults([student('one','Nguyễn An'),student('two','Nguyễn An')], [answer({finishAt:'2026-07-05T08:30:00'})])
     assert.equal(result.rows.length, 3)
     assert.equal(result.summary.finished, 1)
-    assert.equal(result.rows[2].phone, '')
+    assert.equal(result.rows[0].phone, '')
 })
 
 test('empty homework is a valid empty result; invalid finish dates do not mark completion', () => {
@@ -90,6 +90,20 @@ test('progress includes location and older attempts without location remain supp
 test('student ID maps duplicate names to the selected student', () => {
     const result = buildHomeworkResults([student('a','Nguyễn An'),student('b','Nguyễn An')], [answer({studentId:'b',finishAt:'2026-07-05T08:30:00'})])
     assert.equal(result.rows.length, 2)
-    assert.equal(result.rows[0].status, 'notJoined')
-    assert.equal(result.rows[1].status, 'finished')
+    assert.equal(result.rows[0].status, 'finished')
+    assert.equal(result.rows[1].status, 'notJoined')
+})
+
+test('finished students sort by finish time, followed by unfinished students by join time', () => {
+    const ids = ['absent', 'finished-later', 'joined-later', 'finished-earlier', 'joined-earlier', 'missing-join']
+    const result = buildHomeworkResults(ids.map(id => student(id, id)), [
+        answer({studentId:'finished-later', finishAt:'2026-07-05T10:00:00'}),
+        answer({studentId:'joined-later', beginningAt:'2026-07-05T08:20:00', questionNumber:2}),
+        answer({studentId:'finished-earlier', beginningAt:'2026-07-05T08:30:00', finishAt:'2026-07-05T09:00:00'}),
+        answer({studentId:'joined-earlier', beginningAt:'2026-07-05T08:10:00', questionNumber:2}),
+        answer({studentId:'missing-join', beginningAt:undefined, questionNumber:2})
+    ])
+    assert.deepEqual(result.rows.map(row => row.id), [
+        'finished-earlier', 'finished-later', 'joined-earlier', 'joined-later', 'missing-join', 'absent'
+    ])
 })

@@ -1,5 +1,5 @@
 import type {HomeworkResultsData} from '../utils/homeworkResults';
-import {buildHomeworkResults, normalizeStudentName} from '../utils/homeworkResults';
+import {buildHomeworkResults, compareHomeworkResultRows, normalizeStudentName} from '../utils/homeworkResults';
 import type {ProgressSnapshot} from './types';
 
 // Live snapshots update provisional activity and participation counts. Official
@@ -19,7 +19,8 @@ export function applySnapshots(data: HomeworkResultsData, snapshots: ProgressSna
             (row.currentAttemptId === newest.attemptId && (row.currentRevision ?? 0) > newest.revision);
         return {...row, status: row.status === 'notJoined' ? 'inProgress' : row.status,
             lastReportedAt: Math.max(row.lastReportedAt ?? 0, response.receivedAt), refreshRequestId: response.requestId,
-            ...(!older ? {currentAttemptId: newest.attemptId, currentRevision: newest.revision, currentBeginningAt: newest.beginningAt,
+            ...(!older ? {joinedAt: row.status === 'finished' ? row.joinedAt : newest.beginningAt ?? null,
+                currentAttemptId: newest.attemptId, currentRevision: newest.revision, currentBeginningAt: newest.beginningAt,
                 currentStatus: newest.status === 'completed'
                     ? row.currentAttemptId === newest.attemptId && row.currentStatus === 'completed' ? 'completed' : 'completedPending'
                     : newest.status,
@@ -27,7 +28,7 @@ export function applySnapshots(data: HomeworkResultsData, snapshots: ProgressSna
     });
     const unmatched = snapshots.filter(snapshot => !matched.has(snapshot));
     rows.push(...buildHomeworkResults([], unmatched.map(snapshot => ({...snapshot, provisional: true}))).rows);
-    return {...data, rows, summary: {...data.summary,
+    return {...data, rows: rows.sort(compareHomeworkResultRows), summary: {...data.summary,
         finished: rows.filter(row => row.status === 'finished').length,
         inProgress: rows.filter(row => row.status === 'inProgress').length,
         notJoined: rows.filter(row => row.status === 'notJoined').length}};

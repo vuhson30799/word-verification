@@ -45,6 +45,17 @@ export function normalizeStudentName(name: string): string {
 
 const timestamp = (value?: string) => value && Number.isFinite(Date.parse(value)) ? Date.parse(value) : 0
 
+const resultStatusOrder: Record<ResultStatus, number> = {finished: 0, inProgress: 1, notJoined: 2}
+
+export function compareHomeworkResultRows(a: HomeworkResultRow, b: HomeworkResultRow): number {
+    const statusOrder = resultStatusOrder[a.status] - resultStatusOrder[b.status]
+    if (statusOrder !== 0) return statusOrder
+
+    const dateA = a.status === 'finished' ? a.finishedAt : a.joinedAt
+    const dateB = b.status === 'finished' ? b.finishedAt : b.joinedAt
+    return Number(!dateA) - Number(!dateB) || timestamp(dateA ?? undefined) - timestamp(dateB ?? undefined)
+}
+
 export function buildHomeworkResults(roster: StudentData[], answers: StudentAnswer[]) {
     const groups = new Map<string, StudentAnswer[]>()
     for (const answer of answers) {
@@ -98,7 +109,7 @@ export function buildHomeworkResults(roster: StudentData[], answers: StudentAnsw
     for (const [key, records] of groups) rows.push(row(`answer:${key}`, records[0].studentName.trim(), '', '', records))
     const finished = rows.filter(r => r.status === 'finished')
     return {
-        rows,
+        rows: rows.sort(compareHomeworkResultRows),
         summary: {
             finished: finished.length,
             inProgress: rows.filter(r => r.status === 'inProgress').length,
